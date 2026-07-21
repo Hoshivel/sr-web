@@ -66,6 +66,7 @@ const zhHant = {
   "a11y.skip": "跳到主要內容",
   "a11y.langMenu": "切換語言",
   "a11y.home": "回首頁",
+  "a11y.menu": "選單",
 
   "footer.langLabel": "語言",
   "footer.summary": "《碎界》官方門面。程序化動態即視覺識別。",
@@ -191,6 +192,7 @@ const zhCN: Record<UIKey, string> = {
   "a11y.skip": "跳到主要内容",
   "a11y.langMenu": "切换语言",
   "a11y.home": "回首页",
+  "a11y.menu": "菜单",
 
   "footer.langLabel": "语言",
   "footer.summary": "《碎界》官方门面。程序化动态即视觉识别。",
@@ -309,6 +311,7 @@ const en: Record<UIKey, string> = {
   "a11y.skip": "Skip to main content",
   "a11y.langMenu": "Switch language",
   "a11y.home": "Back to home",
+  "a11y.menu": "Menu",
 
   "footer.langLabel": "Language",
   "footer.summary":

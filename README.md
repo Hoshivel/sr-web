@@ -29,4 +29,11 @@ npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
 
-目前進度：**Phase 6 Play 啟動器 + iframe 即時展示完成**（`npm run build` 綠燈）。已完成 Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）、Phase 4（玩法四柱＋程序化 SVG 母題；四英雄卡＋換裝槽＋指標微傾）、Phase 5（碎界樹——複用遊戲 Entry.tsx spring-damper 物理的官網版 island：拖曳拋擲、章節詳情卡、章節氛圍 morph）、Phase 6（Play 分流啟動器——mock 節點清單 health/latency/load ← 靜態 `/api/play.json`；選節點→iframe 嵌入同源對戰頁＝即時 Pixi 六角戰場＋遙測 HUD；截圖換裝槽）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視各區並實測 Play 選點→進入戰場（iframe 即時 Pixi）**。下一步 **Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）**——見 `docs/plan.md`。
+目前進度：**Phase 1–7 全數完成（計畫功能齊備）**，`npm run build` 綠燈。Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）、Phase 4（玩法四柱＋程序化 SVG 母題；四英雄卡＋換裝槽＋指標微傾）、Phase 5（碎界樹——複用遊戲 Entry.tsx spring-damper 物理的官網版 island：拖曳拋擲、章節詳情卡、章節氛圍 morph）、Phase 6（Play 分流啟動器——mock 節點清單 ← 靜態 `/api/play.json`；選節點→iframe 嵌入同源對戰頁＝即時 Pixi 六角戰場＋遙測 HUD；截圖換裝槽）、Phase 7 打磨（sitemap＋robots、OG 補全、品牌化 404、可存取行動選單、Play 節點 aria-pressed、Pixi ticker 於分頁隱藏/離開視窗時暫停）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視各區並實測 Play 選點→進入戰場（iframe 即時 Pixi）與行動選單**（Phase 3–7 待視覺簽核）。
+
+## 部署（sr.oha.li）
+
+- **建置產物**：`npm run build` → `dist/`（純靜態：HTML／JS chunk／CSS／`og.png`／`sitemap.xml`／`robots.txt`／mock `/api/play.json`）。上傳 `dist/` 到任何靜態主機（或 CDN）即可，站點網域設定為 `sr.oha.li`（`astro.config.mjs` 的 `site` 已指定，供 canonical／hreflang／sitemap 產生絕對 URL）。
+- **Play 接真後端**：把 `/api/play.json`（或改前端 fetch 目標）換成真實 Go 分流後端回傳同形狀 JSON（見 `src/lib/play.ts`），並將 `region.url` 指向真實遊戲主機；前端 `iframe.src = region.url` 不需改動。
+- **CORS**：若 `sr.oha.li` 以 iframe 跨源嵌入遊戲後端，需把其 https origin 加入**遊戲後端** `allowedOrigins`（見 ShatteredRealms `docs/deployment.md §7`），否則 `/ws` 403。
+- **CI**：沿用家族慣例——若日後加 CI，以 branch 過濾只在 `main` 觸發（工作分支頻繁推送不付 CI 成本）。

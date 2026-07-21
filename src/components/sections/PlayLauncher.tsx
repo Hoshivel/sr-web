@@ -58,14 +58,13 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
       {/* 左：分流器 */}
       <div className="play-panel">
         <p className="play-panel__title">{t("play.serversTitle")}</p>
-        <ul className="play-nodes" role="listbox" aria-label={t("play.serversTitle")}>
+        <ul className="play-nodes" role="group" aria-label={t("play.serversTitle")}>
           {!regions && <li className="play-node play-node--skeleton" aria-hidden="true" />}
           {regions?.map((r) => (
             <li key={r.id}>
               <button
                 type="button"
-                role="option"
-                aria-selected={selId === r.id}
+                aria-pressed={selId === r.id}
                 className={`play-node${selId === r.id ? " is-selected" : ""}${r.healthy ? "" : " is-degraded"}`}
                 onClick={() => pick(r.id)}
               >

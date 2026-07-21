@@ -175,7 +175,30 @@ export default function VoidField() {
           }
         });
 
+        // 效能：離開視窗（IntersectionObserver）或分頁隱藏時暫停 ticker，省 GPU/CPU/電量。
+        let onscreen = true;
+        let visible = !document.hidden;
+        const applyRun = () => {
+          if (onscreen && visible) app.ticker.start();
+          else app.ticker.stop();
+        };
+        const io = new IntersectionObserver(
+          (entries) => {
+            onscreen = entries.some((e) => e.isIntersecting);
+            applyRun();
+          },
+          { threshold: 0 },
+        );
+        io.observe(host);
+        const onVis = () => {
+          visible = !document.hidden;
+          applyRun();
+        };
+        document.addEventListener("visibilitychange", onVis);
+
         cleanup = () => {
+          io.disconnect();
+          document.removeEventListener("visibilitychange", onVis);
           if (fine) window.removeEventListener("mousemove", onMove);
           app.destroy(true, { children: true });
           glow.destroy(true);
