@@ -38,13 +38,15 @@ function constellation(seed: number) {
   return { stars, path };
 }
 
-// 四位英雄：id → 元素徽記字符 + 元素強調色（inline --el）+ 立繪（art，已接者）。
-// 文案由 i18n 提供。art 為 null＝立繪待接（程序化佔位）；有值＝疊上正式立繪換裝槽。
+// 四位英雄：id → 元素徽記字符 + 元素強調色（inline --el）+ 立繪（art）。文案由 i18n
+// 提供。art 為 null＝立繪待接（程序化佔位）；有值＝疊上正式立繪換裝槽。以 `as const`
+// 保 id 為字面量（供 i18n 鍵推導）；渲染時以區域變數 `art` 判斷，避免佔位分支被
+// 收斂為 never（日後新增英雄可留 art: null 走佔位）。
 const heroes = [
-  { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01, art: "/art/portraits/hakuto.webp" },
-  { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0, art: null },
-  { id: "sekien", glyph: "❂", el: "var(--sr-gold)", seed: 0xf1a3e, art: null },
-  { id: "aoiro", glyph: "❦", el: "var(--sr-success)", seed: 0xa01a0, art: null },
+  { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01, art: "/art/portraits/hakuto.webp" as string | null },
+  { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0, art: "/art/portraits/shadow.webp" as string | null },
+  { id: "sekien", glyph: "❂", el: "var(--sr-gold)", seed: 0xf1a3e, art: "/art/portraits/sekien.webp" as string | null },
+  { id: "aoiro", glyph: "❦", el: "var(--sr-success)", seed: 0xa01a0, art: "/art/portraits/aoiro.webp" as string | null },
 ] as const;
 ---
 
@@ -77,7 +79,7 @@ const heroes = [
                 src={h.art}
                 alt={t(`char.${h.id}.name`)}
                 width="720"
-                height="1080"
+                height="960"
                 loading="lazy"
                 decoding="async"
               />
