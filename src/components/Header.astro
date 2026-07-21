@@ -1,0 +1,131 @@
+---
+/*
+  站首 Header —— sticky 毛玻璃列。
+  brand（連首頁）＋ section 導覽（錨點，隨 Phase 2–6 區塊長出）＋ 語言切換 ＋ Play CTA。
+  首列 skip link 供鍵盤 / 螢幕閱讀器跳到主內容。
+  註：section 導覽在窄視窗收起（完整行動選單留待 Phase 7 打磨）。
+*/
+import Wordmark from "@/components/brand/Wordmark.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+  path?: string;
+}
+const { locale, path = "/" } = Astro.props;
+const t = useTranslations(locale);
+const home = localizedPath(locale, "/");
+
+const nav = [
+  { href: "#world", label: t("nav.world") },
+  { href: "#gameplay", label: t("nav.gameplay") },
+  { href: "#chapters", label: t("nav.chapters") },
+  { href: "#characters", label: t("nav.characters") },
+];
+---
+
+<a class="sr-skip" href="#main">{t("a11y.skip")}</a>
+
+<header class="sr-header">
+  <div class="sr-container sr-header__inner">
+    <a class="sr-header__brand" href={home} aria-label={t("a11y.home")}>
+      <Wordmark locale={locale} variant="compact" glow />
+    </a>
+
+    <nav class="sr-header__nav" aria-label={t("nav.world")}>
+      {nav.map((item) => (
+        <a class="sr-header__link" href={item.href}>{item.label}</a>
+      ))}
+    </nav>
+
+    <div class="sr-header__actions">
+      <LanguageSwitcher locale={locale} path={path} />
+      <a class="sr-btn sr-btn--primary sr-header__play" href="#play">
+        {t("nav.play")}
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* skip link：預設隱藏，聚焦時浮現於左上 */
+  .sr-skip {
+    position: fixed;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: var(--sr-z-overlay);
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--sr-radius);
+    background: var(--sr-surface-3);
+    color: var(--sr-text-bright);
+    transform: translateY(-160%);
+    transition: transform var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .sr-skip:focus {
+    transform: translateY(0);
+  }
+
+  .sr-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--sr-z-header);
+    border-bottom: 1px solid var(--sr-border);
+    background: var(--sr-scrim);
+    -webkit-backdrop-filter: var(--sr-blur);
+    backdrop-filter: var(--sr-blur);
+  }
+  .sr-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 62px;
+  }
+  .sr-header__brand {
+    display: inline-flex;
+    align-items: center;
+  }
+  .sr-header__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 2vw, 1.6rem);
+    margin-inline: auto;
+  }
+  .sr-header__link {
+    position: relative;
+    font-size: var(--sr-text-sm);
+    color: var(--sr-text-muted);
+    transition: color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .sr-header__link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.4rem;
+    height: 1px;
+    background: var(--sr-accent-grad);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--sr-dur) var(--sr-ease-out);
+  }
+  .sr-header__link:hover {
+    color: var(--sr-text-bright);
+  }
+  .sr-header__link:hover::after {
+    transform: scaleX(1);
+  }
+  .sr-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+  }
+
+  /* 窄視窗：收起 section 導覽與 Play 文字外距，保留 brand + 語言 + Play */
+  @media (max-width: 760px) {
+    .sr-header__nav {
+      display: none;
+    }
+  }
+</style>

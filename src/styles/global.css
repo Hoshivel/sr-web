@@ -89,6 +89,107 @@ button {
   color: transparent;
 }
 
+/* 區塊節奏：統一的上下留白 */
+.sr-section {
+  padding-block: var(--sr-section-pad);
+}
+
+/* 眉標：小型全大寫追蹤標籤 */
+.sr-eyebrow {
+  display: inline-block;
+  font-size: var(--sr-text-xs);
+  letter-spacing: var(--sr-tracking-wider);
+  text-transform: uppercase;
+  color: var(--sr-text-muted);
+}
+
+/* 按鈕基元（品牌一致的 CTA；hero / header / play 共用） */
+.sr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.62rem 1.15rem;
+  border-radius: var(--sr-radius-pill);
+  font-size: var(--sr-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform var(--sr-dur-fast) var(--sr-ease-out),
+    box-shadow var(--sr-dur-fast) var(--sr-ease-out),
+    border-color var(--sr-dur-fast) var(--sr-ease-out),
+    color var(--sr-dur-fast) var(--sr-ease-out);
+}
+.sr-btn:hover {
+  transform: translateY(-1px);
+}
+.sr-btn:active {
+  transform: translateY(0);
+}
+.sr-btn--primary {
+  color: #0a0c12;
+  background: var(--sr-accent-grad);
+  box-shadow: var(--sr-glow-accent);
+}
+.sr-btn--primary:hover {
+  box-shadow: 0 0 30px rgba(143, 169, 255, 0.5);
+}
+.sr-btn--ghost {
+  color: var(--sr-text);
+  border: 1px solid var(--sr-border-strong);
+  background: rgba(255, 255, 255, 0.02);
+}
+.sr-btn--ghost:hover {
+  border-color: var(--sr-accent);
+  color: var(--sr-text-bright);
+}
+
+/*
+  字符系統：以偽元素輸出品牌 Unicode 字符（◈ ❄ ✶ ◆）。
+  裝飾性用途；語意名稱交給 aria-label / sr-visually-hidden。
+*/
+.sr-glyph::before {
+  content: var(--sr-glyph, "◈");
+}
+.sr-glyph-mark::before {
+  content: var(--sr-glyph-mark);
+}
+.sr-glyph-snowpass::before {
+  content: var(--sr-glyph-snowpass);
+  color: var(--sr-chapter-snowpass);
+}
+.sr-glyph-starseal::before {
+  content: var(--sr-glyph-starseal);
+  color: var(--sr-chapter-starseal);
+}
+.sr-glyph-shard::before {
+  content: var(--sr-glyph-shard);
+  color: var(--sr-gold);
+}
+
+/*
+  reveal-on-scroll 基線：進場淡入 + 上移。
+  只有在 <html class="sr-js">（由 head 內聯腳本盡早加上）時才預先隱藏，
+  確保「無 JS / JS 失效」時內容一律可見（不會被永久藏住）。
+  JS（src/lib/motion.ts）在元素進入視窗時加 .is-visible。
+  以 --sr-reveal-i 控制同批元素的 stagger 次序。
+*/
+html.sr-js [data-reveal] {
+  opacity: 0;
+  transform: translateY(var(--sr-reveal-shift));
+  transition:
+    opacity var(--sr-dur-slow) var(--sr-ease-out),
+    transform var(--sr-dur-slow) var(--sr-ease-out);
+  transition-delay: calc(var(--sr-reveal-i, 0) * var(--sr-reveal-stagger));
+  will-change: opacity, transform;
+}
+html.sr-js [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
 /*
   全站 reduced-motion 基線：關閉所有裝飾性動態。
   JS 端的 Pixi / GSAP / Lenis 也會各自偵測此偏好並降級（沿用遊戲慣例）。
@@ -101,5 +202,10 @@ button {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  /* 不隱藏任何 reveal 內容：直接呈現最終狀態 */
+  html.sr-js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

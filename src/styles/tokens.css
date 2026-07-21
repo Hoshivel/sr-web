@@ -71,16 +71,65 @@
 
   /* ---- 版面 layout ---- */
   --sr-maxw: 1200px;
+  --sr-maxw-narrow: 780px;
   --sr-gutter: clamp(1.25rem, 4vw, 4rem);
+  --sr-radius-sm: 8px;
   --sr-radius: 14px;
   --sr-radius-lg: 22px;
+  --sr-radius-pill: 999px;
+
+  /* ---- 間距尺度 spacing scale（8pt 為基）---- */
+  --sr-space-1: 0.25rem;
+  --sr-space-2: 0.5rem;
+  --sr-space-3: 0.75rem;
+  --sr-space-4: 1rem;
+  --sr-space-6: 1.5rem;
+  --sr-space-8: 2rem;
+  --sr-space-12: 3rem;
+  --sr-space-16: 4rem;
+  --sr-space-24: 6rem;
+  /* 區塊上下留白（隨視窗流動）*/
+  --sr-section-pad: clamp(4rem, 10vw, 9rem);
+
+  /* ---- 字級尺度 fluid type scale ---- */
+  --sr-text-xs: clamp(0.72rem, 1.6vw, 0.8rem);
+  --sr-text-sm: clamp(0.82rem, 1.8vw, 0.92rem);
+  --sr-text-base: clamp(0.95rem, 2vw, 1.05rem);
+  --sr-text-lg: clamp(1.1rem, 2.6vw, 1.35rem);
+  --sr-text-xl: clamp(1.4rem, 3.4vw, 2rem);
+  --sr-text-2xl: clamp(1.9rem, 5vw, 3rem);
+  --sr-text-display: clamp(3.5rem, 14vw, 8rem);
+  --sr-leading-tight: 1.15;
+  --sr-leading: 1.6;
+
+  /* ---- 高度 / 陰影 elevation ---- */
+  --sr-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sr-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --sr-shadow-3: 0 20px 60px rgba(0, 0, 0, 0.55);
+  --sr-ring: 0 0 0 1px var(--sr-border);
+  --sr-ring-accent: 0 0 0 1px rgba(143, 169, 255, 0.5);
+
+  /* ---- 毛玻璃 backdrop ---- */
+  --sr-blur: saturate(140%) blur(14px);
+  --sr-scrim: rgba(6, 7, 11, 0.72);
+
+  /* ---- 字符系統 glyph system（Unicode 品牌字符，無美術資產時的識別）---- */
+  --sr-glyph-mark: "◈"; /* 主標記 */
+  --sr-glyph-snowpass: "❄"; /* 風雪過境 */
+  --sr-glyph-starseal: "✶"; /* 星痕紀元 */
+  --sr-glyph-shard: "◆"; /* 碎晶 Shards */
 
   /* ---- 動效 motion ---- */
   --sr-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --sr-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --sr-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --sr-dur-fast: 180ms;
   --sr-dur: 420ms;
   --sr-dur-slow: 800ms;
+  --sr-dur-scene: 1200ms;
+  /* reveal-on-scroll 起始位移與間隔（stagger） */
+  --sr-reveal-shift: 26px;
+  --sr-reveal-stagger: 80ms;
 
   /* ---- z 層 ---- */
   --sr-z-bg: 0;

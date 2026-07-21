@@ -1,0 +1,54 @@
+---
+/*
+  碎界 品牌標記 ◈ —— SVG 向量版（可縮放、漸層、可選發光）。
+  幾何沿用 favicon.svg：外框菱形（描邊）＋內填菱形（漸層）。
+  title 有值 → role="img" + aria-label；無值 → aria-hidden（純裝飾，語意交給旁邊文字）。
+*/
+interface Props {
+  size?: number;
+  glow?: boolean;
+  title?: string;
+  class?: string;
+}
+const { size = 32, glow = false, title, class: className } = Astro.props;
+
+// 每個實例獨立漸層 id，避免同頁多個 Mark 撞 id
+const gid = `sr-mark-grad-${Math.random().toString(36).slice(2, 8)}`;
+const a11y = title
+  ? { role: "img" as const, "aria-label": title }
+  : { "aria-hidden": "true" as const };
+---
+
+<svg
+  class:list={["sr-mark", { "is-glow": glow }, className]}
+  width={size}
+  height={size}
+  viewBox="0 0 32 32"
+  xmlns="http://www.w3.org/2000/svg"
+  {...a11y}
+>
+  <defs>
+    <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cdd7ff"></stop>
+      <stop offset="0.45" stop-color="#8fa9ff"></stop>
+      <stop offset="1" stop-color="#b89bff"></stop>
+    </linearGradient>
+  </defs>
+  <path
+    d="M16 3 L29 16 L16 29 L3 16 Z"
+    fill="none"
+    stroke={`url(#${gid})`}
+    stroke-width="1.5"
+    opacity="0.75"></path>
+  <path d="M16 8.5 L23.5 16 L16 23.5 L8.5 16 Z" fill={`url(#${gid})`}></path>
+</svg>
+
+<style>
+  .sr-mark {
+    display: block;
+    overflow: visible;
+  }
+  .sr-mark.is-glow {
+    filter: drop-shadow(0 0 10px rgba(143, 169, 255, 0.5));
+  }
+</style>

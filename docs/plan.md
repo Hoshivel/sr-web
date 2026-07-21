@@ -111,9 +111,9 @@
 ## 分階段里程碑
 
 - **Phase 0 — 骨架** ✅：Astro5 + React + strict TS；GSAP/Lenis/Pixi；base layout、tokens、favicon(`◈`)、session log；`npm run build` 綠燈、佔位頁 0 JS。
-- **Phase 1 — 品牌基元**：tokens 完善、SVG 字標、字符系統、OG 圖、動效工具、header/footer、語言切換。
-- **Phase 2 — Hero**：Pixi 程序化虛空 + 移植 Starfield/星座 + 漸層字標 + CTA + 磁吸按鈕。**交付 Hero 預覽供視覺定調簽核**再往下。
-- **Phase 3 — 捲動電影框架 + 碎裂區**：Lenis+ScrollTrigger pin/scrub、「褪色」溶解 set-piece。
+- **Phase 1 — 品牌基元** ✅：tokens 完善（間距/字級/陰影/backdrop/glyph 尺度）、SVG 標記 `Mark` + `Wordmark` 鎖定組、字符系統（◈❄✶◆）、程序化 OG 圖（og.svg→og.png）、動效工具（`src/lib/motion.ts`：reveal/Lenis/GSAP 動態載入 + `useReducedMotion` hook）、Header/Footer、i18n 三語字典 + 連結式語言切換 + `/`、`/zh-cn`、`/en` 路由（含 hreflang）。`npm run build` 綠。
+- **Phase 2 — Hero** ✅（**待視覺簽核**）：分層 Hero＝Pixi 程序化虛空（`VoidField`：漂浮碎片＋星雲＋游標視差，動態載入、reduced-motion/窄視窗降級）＋移植 Starfield 星座（`client:visible` island）＋◈ 脈動＋漸層字標＋標語＋Play/Learn 磁吸 CTA＋捲動指示＋中央可讀性 veil。`npm run build` 綠。**依計畫在此暫停，交付 Hero 預覽供視覺定調簽核再進 Phase 3。**
+- **Phase 3 — 捲動電影框架 + 碎裂區** ✅：`src/lib/scrollCinema.ts` 單例 boot（Lenis 平滑捲動 + GSAP/ScrollTrigger 同步 + 錨點平滑捲動）；碎裂區 `Shattering.astro`（#world）pin+scrub 讓種子化殘片由凝聚向虛空四散＋淡出＋去飽和（招牌「褪色」溶解），招牌句「碎裂不是天罰，是天地最後一次自救」。reduced-motion 全程降級為靜態。`npm run build` 綠（Lenis/GSAP 動態 chunk）。
 - **Phase 4 — 玩法 + 英雄**：四合一 scroll-reveal、角色卡（換裝槽）。
 - **Phase 5 — 主題曲 / World Tree**：物理複用、章節氛圍 morph。
 - **Phase 6 — Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽**。
@@ -135,6 +135,7 @@
 
 ## 風險 / 待決
 
-- 字標是否加 display web font —— Phase 1 定。
+- ~~字標是否加 display web font~~ —— **已定（Phase 1）**：**不加**。維持 `system-ui` + 漸層字標，避免二進位資產與字型載入成本、保留效能預算給動效；字標的識別力來自漸層 + ◈ 標記。日後若要 display font 再於局部區塊評估。
+- ~~英文章節名~~ —— **已定**：以 `theme.json` 統一為 `Snowbound Passage` / `Age of Starmarks`，已寫入 `src/i18n/ui.ts`。
 - Play 採 **iframe** vs **redirect** —— Phase 6 前確認。
-- 英文章節名以 `theme.json` 統一（`Snowbound Passage` / `Age of Starmarks`）。
+- **Phase 2 前置門檻**：Hero 為視覺定調關鍵；依計畫應**先交付 Hero 預覽供簽核**再往下（Phase 3+）。
