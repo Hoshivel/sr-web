@@ -29,4 +29,4 @@ npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
 
-目前進度：**Phase 4 玩法四合一 + 英雄卡完成**（`npm run build` 綠燈）。已完成 Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）、Phase 4（玩法四柱 scroll-reveal＋程序化 SVG 母題；白棠/暗影/赤焰/青蘿英雄卡＋元素徽記＋種子化星座＋換裝槽＋指標微傾）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視 Hero、碎裂區 scrub、玩法/英雄進場**。下一步 **Phase 5 主題曲 / World Tree**——見 `docs/plan.md`。
+目前進度：**Phase 5 主題曲 / 碎界樹完成**（`npm run build` 綠燈）。已完成 Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）、Phase 4（玩法四柱 scroll-reveal＋程序化 SVG 母題；白棠/暗影/赤焰/青蘿英雄卡＋換裝槽＋指標微傾）、Phase 5（碎界樹——複用遊戲 Entry.tsx spring-damper 物理的官網版 React island：拖曳拋擲節點、彎曲擺動枝條、章節詳情卡、章節氛圍 morph 冰藍↔星紫；seed 決定性、響應式、SSR 靜態樹）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視 Hero、碎裂區 scrub、玩法/英雄進場、碎界樹拖曳與章節 morph**。下一步 **Phase 6 Play 啟動器（mock）＋即時 Pixi 展示**——見 `docs/plan.md`。

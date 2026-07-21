@@ -1,0 +1,76 @@
+---
+/*
+  主題曲 Chapters（#chapters）—— 碎界樹。
+  區塊殼：眉標 / 標題 / 導言 + 互動式碎界樹 island（改編自遊戲 Entry.tsx 物理）。
+  島為 client:visible 延遲注水；SSR 出靜態樹（節點在錨點、枝條已畫）→ 無 CLS、可降級。
+*/
+import WorldTree from "@/components/sections/WorldTree.tsx";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section class="sr-section chapters" id="chapters">
+  <div class="sr-container chapters__head">
+    <p class="sr-eyebrow" data-reveal>{t("chapters.eyebrow")}</p>
+    <h2 class="chapters__title" data-reveal>
+      <span class="chapters__title-a">{t("chapters.titleA")}</span>
+      <span class="chapters__title-b sr-gradient-text">{t("chapters.titleB")}</span>
+    </h2>
+    <p class="chapters__lead" data-reveal>{t("chapters.lead")}</p>
+  </div>
+
+  <div class="sr-container chapters__stage" data-reveal>
+    <WorldTree client:visible locale={locale} />
+    <p class="chapters__hint">{t("chapters.hint")}</p>
+  </div>
+</section>
+
+<style>
+  .chapters {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(60% 50% at 50% 30%, rgba(122, 162, 255, 0.05), transparent 70%),
+      var(--sr-void);
+  }
+  .chapters__head {
+    text-align: center;
+    max-width: 60rem;
+  }
+  .chapters__title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12em;
+    margin-top: var(--sr-space-3);
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-2xl);
+    line-height: var(--sr-leading-tight);
+    letter-spacing: 0.02em;
+  }
+  .chapters__title-a {
+    color: var(--sr-text-bright);
+  }
+  .chapters__lead {
+    margin: var(--sr-space-6) auto 0;
+    max-width: 52ch;
+    font-size: var(--sr-text-lg);
+    color: var(--sr-text-muted);
+  }
+  .chapters__stage {
+    margin-top: var(--sr-space-12);
+  }
+  .chapters__hint {
+    margin-top: var(--sr-space-6);
+    text-align: center;
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+    color: var(--sr-text-dim);
+  }
+</style>

@@ -123,6 +123,33 @@ const zhHant = {
   "char.aoiro.epithet": "噬星荊棘",
   "char.aoiro.element": "劇毒 · 藤蔓",
   "char.aoiro.fantasy": "以神經毒素層層進階，於臨界引爆〈神經崩潰〉；藤蔓封鎖，連射傾瀉。",
+
+  // 主題曲 Chapters / 碎界樹（#chapters）
+  "chapters.eyebrow": "主題曲",
+  "chapters.titleA": "碎界之樹，",
+  "chapters.titleB": "章節自虛空生長",
+  "chapters.lead":
+    "每一章都是碎界樹上的一枚星火。拖動枝上的節點撥動整棵樹，點按展開那一章的故事。",
+  "chapters.hint": "拖曳撥動 · 點按展開",
+  "chapters.status.root": "世界之根",
+  "chapters.status.live": "已上線",
+  "chapters.status.soon": "即將開放",
+  "chapters.close": "關閉",
+  "theme.shattered.name": "碎界",
+  "theme.shattered.kicker": "起源",
+  "theme.shattered.tagline": "破碎星空之下，萬章由此而生。",
+  "theme.shattered.story":
+    "破碎的世界漂浮於虛空，你率領探索隊拼合失落的大地——所有篇章，都從這裡的裂縫中生長。",
+  "theme.snowpass.name": "風雪過境",
+  "theme.snowpass.kicker": "第一章",
+  "theme.snowpass.tagline": "世界破碎後的第一場暴風雪，與冰原上僅存的善意。",
+  "theme.snowpass.story":
+    "霜雪封境的開篇。世界被第一場暴風雪覆蓋，白棠於冰原深處的一朵白棠花中誕生，守護世界最後的善意與希望。以冰霜疊加、凍結封鎖戰場為基調的篇章。",
+  "theme.starseal.name": "星痕紀元",
+  "theme.starseal.kicker": "第二章",
+  "theme.starseal.tagline": "星辰已經消失，只剩下痕跡。",
+  "theme.starseal.story":
+    "世界曾由「星痕」維繫——河流、山脈、森林乃至命運皆刻於天空星痕。某日星痕破碎，大地失去固定形態；你作為觀星者，踏上重塑世界法則的旅程。",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -200,6 +227,32 @@ const zhCN: Record<UIKey, string> = {
   "char.aoiro.epithet": "噬星荆棘",
   "char.aoiro.element": "剧毒 · 藤蔓",
   "char.aoiro.fantasy": "以神经毒素层层进阶，于临界引爆〈神经崩溃〉；藤蔓封锁，连射倾泻。",
+
+  "chapters.eyebrow": "主题曲",
+  "chapters.titleA": "碎界之树，",
+  "chapters.titleB": "章节自虚空生长",
+  "chapters.lead":
+    "每一章都是碎界树上的一枚星火。拖动枝上的节点拨动整棵树，点按展开那一章的故事。",
+  "chapters.hint": "拖曳拨动 · 点按展开",
+  "chapters.status.root": "世界之根",
+  "chapters.status.live": "已上线",
+  "chapters.status.soon": "即将开放",
+  "chapters.close": "关闭",
+  "theme.shattered.name": "碎界",
+  "theme.shattered.kicker": "起源",
+  "theme.shattered.tagline": "破碎星空之下，万章由此而生。",
+  "theme.shattered.story":
+    "破碎的世界漂浮于虚空，你率领探索队拼合失落的大地——所有篇章，都从这里的裂缝中生长。",
+  "theme.snowpass.name": "风雪过境",
+  "theme.snowpass.kicker": "第一章",
+  "theme.snowpass.tagline": "世界破碎后的第一场暴风雪，与冰原上仅存的善意。",
+  "theme.snowpass.story":
+    "霜雪封境的开篇。世界被第一场暴风雪覆盖，白棠于冰原深处的一朵白棠花中诞生，守护世界最后的善意与希望。以冰霜叠加、冻结封锁战场为基调的篇章。",
+  "theme.starseal.name": "星痕纪元",
+  "theme.starseal.kicker": "第二章",
+  "theme.starseal.tagline": "星辰已经消失，只剩下痕迹。",
+  "theme.starseal.story":
+    "世界曾由「星痕」维系——河流、山脉、森林乃至命运皆刻于天空星痕。某日星痕破碎，大地失去固定形态；你作为观星者，踏上重塑世界法则的旅程。",
 };
 
 const en: Record<UIKey, string> = {
@@ -283,6 +336,33 @@ const en: Record<UIKey, string> = {
   "char.aoiro.element": "Venom · Vines",
   "char.aoiro.fantasy":
     "Escalates neurotoxin stage by stage to detonate Neural Collapse; walls the board with vines and pours out rapid-fire.",
+
+  "chapters.eyebrow": "Chapters",
+  "chapters.titleA": "The World Tree — ",
+  "chapters.titleB": "chapters grow from the void",
+  "chapters.lead":
+    "Every chapter is a spark on the World Tree of Shattered Realms. Drag a node to stir the whole tree; tap one to unfold its story.",
+  "chapters.hint": "Drag to stir · tap to unfold",
+  "chapters.status.root": "World Root",
+  "chapters.status.live": "Live",
+  "chapters.status.soon": "Coming soon",
+  "chapters.close": "Close",
+  "theme.shattered.name": "Shattered Realms",
+  "theme.shattered.kicker": "Origin",
+  "theme.shattered.tagline": "Beneath a shattered sky, every chapter is born.",
+  "theme.shattered.story":
+    "A broken world adrift in the void; you lead the expedition to piece the lost lands together — and every chapter grows from the fractures here.",
+  "theme.snowpass.name": "Snowbound Passage",
+  "theme.snowpass.kicker": "Chapter 1",
+  "theme.snowpass.tagline":
+    "The first blizzard after the world shattered — and the last kindness left on the ice.",
+  "theme.snowpass.story":
+    "The opening chapter of a frozen world. When the first snowstorm buried the land, Hakuto was born from a lone snow-plum blossom deep in the ice, guarding the world's last kindness — a chapter built on stacking frost and locking the field with freeze.",
+  "theme.starseal.name": "Age of Starmarks",
+  "theme.starseal.kicker": "Chapter 2",
+  "theme.starseal.tagline": "The stars are gone; only their marks remain.",
+  "theme.starseal.story":
+    "The world was once held by the star-seal — rivers, mountains, forests, even fate, inscribed in the sky. When it shattered, the land lost its fixed shape; as a Stargazer you set out to reshape the world's laws.",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {
