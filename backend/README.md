@@ -1,13 +1,18 @@
 # sr-web 後端（Play 分流服務）
 
 《碎界 / Shattered Realms》官網 sr-web 的**後端服務**：對遊戲伺服器節點做**探活
-（health probe）／分流／負載均衡**，即時提供一個可用的遊戲 URL 給前端 Play 啟動器
-嵌入顯示（見倉庫根 `README.md` 第 3 點）。
+（health probe）／分流／負載均衡**，並由**後端主導**為每位玩家決定可用的遊戲入點
+（見倉庫根 `README.md` 第 3 點）。
 
 ```
-前端官網 → 點 Play → GET /api/play.json → 本後端回傳即時節點清單 →
-前端挑一個健康節點 → iframe.src = region.url 嵌入該遊戲頁
+前端官網 → 點 Play → GET /api/play.json →
+本後端依「用戶地理位置 + 即時探活」計算 → 只回傳收斂的 2~3 個較近候選 + 建議入點 →
+前端採用建議入點（或於候選中選）→ iframe.src = region.url 嵌入 / 新分頁開啟
 ```
+
+**後端主導分流**：不再全敞開回傳所有節點讓前端自行測試，而是依用戶 IP 地理位置就近
+排序、**只回傳前 N 個候選**（預設 3）＋後端建議的入點 `recommendedId`。另提供有登入
+保護的**網頁後臺**（`/admin`）可視化管理節點與設定、免重啟即時生效。
 
 - **語言 / 工具鏈**：Go 1.24，**零第三方相依**（純標準庫）。
 - **契約**：`GET /api/play.json` 回傳的 JSON 與前端 `src/lib/play.ts` 的 `PlayResponse`
@@ -43,10 +48,11 @@ curl -s localhost:8090/api/play.json  # → {"regions":[...],"updatedAt":"...","
 | 方法 | 路徑 | 說明 |
 |------|------|------|
 | GET | `/healthz` | 後端自身存活探針（純文字 `ok`）。 |
-| GET | `/api/play.json` | 即時節點快照（前端 fetch 目標）。`Cache-Control: no-store`。 |
+| GET | `/api/play.json` | **為此用戶收斂**後的候選節點（依地理就近，前 N 個）＋建議入點。`Cache-Control: no-store`。 |
 | GET | `/api/play` | 同上的別名。 |
+| ·   | `/admin`、`/admin/api/*` | 網頁後臺（登入保護、動態管理）。見下方「後臺」。 |
 
-`/api/play.json` 回應（欄位對齊 `src/lib/play.ts`）：
+`/api/play.json` 回應（欄位對齊 `src/lib/play.ts`，`regions` 已收斂為前 `maxCandidates` 個）：
 
 ```jsonc
 {
@@ -55,9 +61,12 @@ curl -s localhost:8090/api/play.json  # → {"regions":[...],"updatedAt":"...","
       "healthy": true, "latencyMs": 42, "load": 0.38 }
   ],
   "updatedAt": "2026-07-21T07:19:10Z",
-  "recommendedId": "hk1"        // additive：後端分流建議；前端可忽略（現行前端自行挑選）
+  "recommendedId": "hk1"        // 後端為此用戶選定的最終入點；前端優先採用
 }
 ```
+
+> 節點座標（`lat`/`lon`/`country`）為後端內部資訊，**不出現在回應**中——回應只含前端
+> 嵌入 / 顯示所需的欄位，且已收斂為少數候選（不暴露完整節點清單）。
 
 ---
 
@@ -72,7 +81,18 @@ CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。
 | `allowedOrigins` | CORS 允許的來源清單。**空＝放行任意來源（dev）**；設定則只放行清單（prod 收斂），例如 `["https://sr.oha.li"]`。 |
 | `probeIntervalSeconds` | 背景探活週期（預設 10）。 |
 | `probeTimeoutSeconds` | 單次探活逾時（預設 3）。 |
-| `regions[]` | 遊戲節點：`id`／`host`／`url`（iframe 嵌入目標）／`healthUrl`（探活端點，留空＝`https://<host>/healthz`）。 |
+| `maxCandidates` | 每次分流回傳給前端的候選節點上限（預設 3；收斂，不全敞開）。 |
+| `geo` | 地理分流設定（見下）。 |
+| `regions[]` | 遊戲節點：`id`／`host`／`url`（嵌入 / 新分頁目標）／`healthUrl`（探活端點，留空＝`https://<host>/healthz`）／`lat`＋`lon`（座標）或 `country`（ISO 國別碼，缺座標時以國家質心近似）／`disabled`（停用）。 |
+| `admin` | 後臺憑證（PBKDF2 雜湊，由後臺 setup 流程寫入；**勿手改**）。 |
+
+`geo` 子欄位：
+
+| 欄位 | 說明 |
+|------|------|
+| `trustProxyHeaders` | 是否採信反代 / CDN 的地理標頭。**預設 `false`＝不做地理判斷、退回以後端量測延遲排序**。僅在部署於會覆寫 / 剝除用戶偽造值的可信反代 / CDN 之後才可設 `true`。 |
+| `latHeader` / `lonHeader` / `countryHeader` | 攜帶用戶地理資訊的標頭名（預設 Cloudflare `CF-IPLatitude` / `CF-IPLongitude` / `CF-IPCountry`）。 |
+| `countryCoords` | 額外 / 覆寫的國家質心 `{ "XX": [lat, lon] }`（內建約 50 國）。 |
 
 CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port>`。
 
@@ -86,10 +106,34 @@ CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port
   （未知）。本後端**向前相容**：若健康端點日後改回傳 JSON
   （`{"load":0.4}` 或 `{"players":30,"capacity":100}`），`load` 會自動反映，**無需改動
   本後端或前端契約**。
-- **分流建議**：`recommendedId` 以「健康優先 → 延遲最低 → 負載最低」挑選（與前端
-  `recommendRegion` 一致，並多一層負載 tie-break）。回應維持契約形狀，此欄為 additive。
-- **快照一致性**：每輪探活以全新的不可變快照原子替換，讀寫以 `RWMutex` 保護
-  （`go test -race` 綠）。啟動即先探一輪，並種下初始快照，使首個回應不為空。
+- **地理分流（後端主導）**：`/api/play.json` 為**每次請求**計算候選：
+  1. 由反代 / CDN 的地理標頭解析用戶座標（`trustProxyHeaders` 開啟時；精確緯經度優先，
+     否則以國別碼近似為國家質心）。
+  2. 以「健康優先 → 就近（haversine 大圓距離）→ 負載低」排序；無地理訊號時退回以
+     後端量測延遲排序。
+  3. **只取前 `maxCandidates` 個**回傳，首位即 `recommendedId`（後端為此用戶選定的入點）。
+  → 前端拿到的是收斂後的少數候選，不再是完整節點清單；每位玩家的入點由後端決定。
+- **快照一致性**：每輪探活以全新的不可變節點檢視原子替換，讀寫以 `RWMutex` 保護
+  （`go test -race` 綠）。啟動即先探一輪，並種下初始檢視，使首個回應不為空。
+
+---
+
+## 後臺（可視化配置 / 登入 / 動態管理）
+
+`/admin` 提供有登入保護的網頁後臺（同源、**不經 CORS**、內嵌單頁、零外部資源）。
+
+- **首次設定**：後臺尚未設定帳密時，**啟動日誌會印出一次性 setup token**；開啟
+  `/admin`，貼上 token 並建立管理員帳密（PBKDF2-SHA256 雜湊持久化，永不明文儲存）。
+- **登入 / session**：登入後以 HttpOnly、`SameSite=Strict` cookie 維持 session；變更請求
+  另做同源檢查（縱深防禦）。
+- **動態管理**（皆即時持久化到 `config.json` 並套用，**免重啟**）：
+  - **節點**：新增 / 編輯 / 刪除 / 停用；改動即時替換探活清單並觸發重探。
+  - **設定**：候選上限、CORS 來源、地理標頭、探活週期 / 逾時（週期 / 逾時於下次重啟生效）。
+  - **即時狀態**：節點健康點 / 延遲 / 負載 / 後端建議入點，5 秒自動刷新。
+  - 變更管理員密碼、立即重探。
+
+> 後臺為維運介面，請置於可信網路 / 反代之後，並以 TLS 提供（cookie 於 https 下自動加
+> `Secure`）。setup token 只印於伺服器日誌，僅維運者可見。
 
 ---
 
@@ -129,10 +173,13 @@ go test -race ./...
 
 ```
 backend/
-  cmd/router/main.go        進入點（訊號取消 + 優雅關閉）
-  internal/config/          設定檔（JSON）+ flags
+  cmd/router/main.go        進入點（訊號取消 + 優雅關閉 + 掛載後臺）
+  internal/config/          設定檔（JSON）+ flags；即時 Store（持久化 + 變更通知）
   internal/play/            契約型別（對齊前端）+ Recommend 挑選
-  internal/router/          背景探活 prober + 不可變快照
-  internal/server/          HTTP 路由 + CORS
+  internal/geo/             座標 / haversine / 國家質心 / 反代地理標頭解析
+  internal/dispatch/        後端主導分流：健康→就近→負載排序、候選收斂
+  internal/router/          背景探活 prober + 節點檢視 + 動態重載
+  internal/server/          HTTP 路由 + CORS（per-request 讀 Store）
+  internal/admin/           後臺：PBKDF2 登入 / session / 動態管理 API + 內嵌 UI
   config.example.json       設定範例
 ```
