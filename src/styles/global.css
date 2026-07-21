@@ -1,0 +1,105 @@
+@import "./tokens.css";
+
+/* ---- reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Lenis 平滑捲動接管時的必要樣式；未載入時無副作用 */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+body {
+  font-family: var(--sr-font-sans);
+  background: var(--sr-bg);
+  color: var(--sr-text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid var(--sr-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---- utilities ---- */
+.sr-container {
+  width: 100%;
+  max-width: var(--sr-maxw);
+  margin-inline: auto;
+  padding-inline: var(--sr-gutter);
+}
+
+.sr-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 漸層字（字標 / 標題共用） */
+.sr-gradient-text {
+  background: var(--sr-wordmark-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/*
+  全站 reduced-motion 基線：關閉所有裝飾性動態。
+  JS 端的 Pixi / GSAP / Lenis 也會各自偵測此偏好並降級（沿用遊戲慣例）。
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
