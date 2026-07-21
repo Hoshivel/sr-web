@@ -76,6 +76,61 @@ export function initScrollReveal(options: ScrollRevealOptions = {}): () => void 
   return () => io.disconnect();
 }
 
+export interface MagneticOptions {
+  /** 目標選擇器（預設 `[data-magnetic]`）。 */
+  selector?: string;
+  /** 位移強度（游標偏移量的比例，0–1）。 */
+  strength?: number;
+  /** 觸發半徑外的最大位移夾限（px）。 */
+  max?: number;
+}
+
+/**
+ * 磁吸按鈕：游標在元素上時，元素朝游標方向微幅位移（ease-back 交給 CSS transition）。
+ * - reduced-motion 或非精細指標（觸控）→ 不啟用。
+ * - 位移以 inline transform 表現；離開時清除。
+ * @returns cleanup 函式。
+ */
+export function initMagnetic(options: MagneticOptions = {}): () => void {
+  if (typeof document === "undefined" || prefersReducedMotion()) return () => {};
+  // 觸控裝置沒有懸停語意，跳過（同時省效能）
+  if (window.matchMedia && !window.matchMedia("(pointer: fine)").matches) {
+    return () => {};
+  }
+
+  const selector = options.selector ?? "[data-magnetic]";
+  const strength = options.strength ?? 0.3;
+  const max = options.max ?? 18;
+  const els = Array.from(document.querySelectorAll<HTMLElement>(selector));
+  if (els.length === 0) return () => {};
+
+  const clamp = (v: number) => Math.max(-max, Math.min(max, v));
+  const cleanups: Array<() => void> = [];
+
+  for (const el of els) {
+    const onMove = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const dx = clamp((e.clientX - (r.left + r.width / 2)) * strength);
+      const dy = clamp((e.clientY - (r.top + r.height / 2)) * strength);
+      el.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+    };
+    const onLeave = () => {
+      el.style.transform = "";
+    };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    cleanups.push(() => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+      el.style.transform = "";
+    });
+  }
+
+  return () => {
+    for (const c of cleanups) c();
+  };
+}
+
 export interface SmoothScrollHandle {
   /** 底層 Lenis 實例（reduced-motion 時為 null，維持原生捲動）。 */
   lenis: Lenis | null;

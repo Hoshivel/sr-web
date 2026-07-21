@@ -83,10 +83,11 @@ const xDefault = Astro.site
     <Footer locale={locale} path={logicalPath} />
 
     <script>
-      // reveal-on-scroll 啟動（純 IntersectionObserver，不牽動 Lenis/GSAP/Pixi）。
-      // 平滑捲動與捲動電影於 Phase 3 另行 boot。
-      import { initScrollReveal } from "@/lib/motion";
+      // 輕量互動啟動：reveal-on-scroll（IntersectionObserver）＋磁吸按鈕。
+      // 皆為純 vanilla、reduced-motion 友善；不牽動 Lenis/GSAP/Pixi（那些於各自 island / Phase 3 boot）。
+      import { initScrollReveal, initMagnetic } from "@/lib/motion";
       initScrollReveal();
+      initMagnetic();
     </script>
   </body>
 </html>
