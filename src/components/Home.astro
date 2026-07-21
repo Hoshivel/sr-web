@@ -31,6 +31,8 @@ const learnHref = "#world";
     </div>
     <!-- 底部漸隱，讓 Hero 融入後續區塊 -->
     <div class="hero__scrim" aria-hidden="true"></div>
+    <!-- 中央徑向壓暗：保證字標 / 標語在虛空之上仍清晰可讀 -->
+    <div class="hero__veil" aria-hidden="true"></div>
 
     <div class="sr-container hero__content">
       <div class="hero__mark" data-reveal>
@@ -110,6 +112,17 @@ const learnHref = "#world";
       var(--sr-void) 100%
     );
   }
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background: radial-gradient(
+      50% 46% at 50% 44%,
+      rgba(6, 7, 11, 0.58),
+      transparent 68%
+    );
+  }
 
   .hero__content {
     position: relative;
@@ -143,6 +156,7 @@ const learnHref = "#world";
     letter-spacing: var(--sr-tracking-wide);
     line-height: 1;
     padding-inline: 0.2em;
+    filter: drop-shadow(0 2px 24px rgba(122, 162, 255, 0.28));
   }
   .hero__latin {
     color: var(--sr-text-muted);

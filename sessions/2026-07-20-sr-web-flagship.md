@@ -2,7 +2,7 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：**Phase 2 Hero 進行中**（2a 結構/CTA/磁吸起手）。Phase 1 品牌基元已完成並 push、build 綠；使用者同步驗收 Phase 1、Phase 2 逐階段推送供即時回饋。
+- 進度摘要：**Phase 2 Hero 完成並 push、build 綠，待使用者視覺簽核**（分層虛空：Pixi VoidField ＋ Starfield 星座 ＋ ◈ 脈動 ＋ 漸層字標 ＋ Play/Learn 磁吸 CTA ＋ 可讀性 veil）。依計畫在 Phase 2/3 邊界暫停待簽核，再進 Phase 3 捲動電影。
 - 相關：branch `claude/sr-web-plan-continue-od8l0n`（前身 `claude/sr-web-animation-planning-u1vujx` 已併入 main）
 - **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
@@ -11,7 +11,7 @@
 1. 讀本檔（目標 / 進度 / 待辦 / `Editing`）與 `docs/plan.md`（完整計畫）。
 2. `Editing = idle` → 工作區一致、無半編輯檔；可直接從「待辦」最上面一項開始。
 3. `npm install` → `npm run build` 應綠燈；`npm run dev` 起本地開發。
-4. 下一步：**Phase 2 Hero**（Pixi 程序化虛空 + Starfield 移植 + CTA；見 `docs/plan.md`）。依計畫應**先交付 Hero 預覽供視覺簽核**再進 Phase 3+。
+4. 下一步：**Phase 3 捲動電影框架 + 碎裂區**（見 `docs/plan.md`）。**但 Phase 2 Hero 待使用者視覺簽核**——簽核（或給修改意見）後再進 Phase 3。
 
 ## 目標 / 需求
 （實時更新；新增需求往下追加並標註時間）
@@ -38,12 +38,22 @@
 ### 進行中
 - [ ]（無 —— Phase 1 全數完成並 push，停在 Phase 1/2 里程碑邊界）
 
-### Phase 2 冷接手備忘（下次起手用）
-- Starfield 可移植源：`ShatteredRealms/frontend/src/ui/Starfield.tsx`（canvas 星場＋游標星座，已支援 reduced-motion；stars `rgba(206,218,255)`、links `rgba(122,162,255)`、DPR≤2）→ 做成 React island，`client:visible` 注水。
-- 已就緒接口：`src/lib/motion.ts` 的 `useReducedMotion`（島內判降級）、`initSmoothScroll`/`registerScrollTrigger`（Phase 3 捲動電影）；`.sr-btn --primary/--ghost` 供 Hero CTA；`Home.astro` 即 Hero 容器（用 locale prop）。
-- Hero 錨點/CTA 已備：header/footer 導覽指向 `#world`/`#gameplay`/`#chapters`/`#characters`/`#play`——Phase 2+ 區塊接上這些 id。
+### Phase 2 Hero 驗收方式（給使用者）
+`npm install && npm run dev` → 開 `/`（繁）、`/zh-cn`、`/en`，逐項看：
+1. **虛空**：背景有緩慢漂浮的發光碎片（菱形）＋柔和星雲輝光（Pixi）。滑鼠移動時碎片場輕微視差平移。
+2. **星座**：游標附近的星以細線連到游標與彼此、游標處有柔光暈（Starfield 疊於虛空上）。
+3. **字標**：◈ 標記緩慢脈動；漸層「碎界」清晰（中央 veil 壓暗保證可讀）；標語、Play(實心)/Learn(描邊) CTA。
+4. **磁吸**：滑鼠靠近 CTA，按鈕朝游標微幅吸附、離開回彈。
+5. **降級**：系統開「減少動態」→ 無漂移/無視差（星場靜態單幀、Pixi 不啟用）；**手機（≤720px）不載入 Pixi**（只有 CSS 底＋星場，省整包）。
+6. 有任何視覺/動效意見即回饋 → 調整後再進 Phase 3。
+
+### Phase 3 冷接手備忘（簽核後起手）
+- 目標：Lenis 平滑捲動 + GSAP/ScrollTrigger pin/scrub 骨架；「碎裂 The Shattering」區（招牌「褪色」溶解 set-piece）。接於 `Home.astro` Hero `</section>` 之後，用 `id="world"`（header/footer `#world` 已指向）。
+- 已就緒接口：`src/lib/motion.ts` 的 `initSmoothScroll`（Lenis 動態載入）、`registerScrollTrigger`（GSAP 動態載入、可與 Lenis 同步）；`[data-reveal]` 進場基線；`.sr-section` 區塊節奏。
+- 可移植/參考：遊戲 `ui/TunnelTransition.tsx` + styles.css `.scene-transition`（warp 轉場）。
 
 ### 已完成（精簡摘要）
+- [x] Phase 2d 整合打磨：Hero 中央可讀性 `.hero__veil`（徑向壓暗、z 介於 scrim 與 content）＋字標 `drop-shadow` 輝光；plan/README 標 Phase 2 完成（待簽核）。build 綠。
 - [x] Phase 2c Pixi 程序化虛空：`src/components/hero/VoidField.tsx`——漂浮發光菱形碎片（additive、深度→大小/亮度/速度/視差、閃爍、邊界環繞）＋星雲柔光（離屏徑向漸層貼圖、additive、緩脈動）＋游標視差（僅 `pointer:fine`、lerp 平移碎片場）。Pixi 動態 import → 獨立 chunk（~247KB gz，僅 client:visible 注水時抓取）。降級：reduced-motion 完全不啟用；**窄視窗（≤720px）完全不載入 Pixi**（省整包，保留 CSS 底＋Starfield）；WebGL 失敗 try/catch 靜默退場；離開時 destroy app＋自建貼圖。Home 掛載於 Starfield 下方、`.sr-voidfield` 宿主填滿背景層。Pixi v8 API（async init/`app.canvas`/`blendMode="add"`/`generateTexture`/`Texture.from(canvas)`/Ticker 回呼/`destroy`）全 typecheck 過、三路由 SSR 出宿主、build 綠。
 - [x] Phase 2b Starfield island：移植遊戲 `Starfield.tsx` → `src/components/hero/Starfield.tsx`（standalone、改用共用 `prefersReducedMotion`、星/連線色沿用品牌、DPR≤2、游標星座＋光暈、邊界環繞、reduced-motion 只畫靜態單幀）。Hero `.hero__bg` 內 `client:visible` 掛載、SSR 出 `<canvas>`（版面穩定）、指標穿透。首次為站點引入 React runtime（~44KB gz，僅此島注水）＋Starfield chunk 1.76KB gz。三路由皆含、build 綠。
 - [x] Phase 2a Hero 結構/CTA/磁吸：`Home.astro` 改寫為分層 Hero（`.hero__bg` 徑向虛空＋預留 canvas 注入點/`:global(canvas)` 鋪滿指標穿透、`.hero__scrim` 底部漸隱、content 層）；◈ CSS 脈動、漸層字標、標語、Play(primary)＋Learn(ghost) CTA（`data-magnetic`）、捲動指示點。`motion.ts` 加 `initMagnetic`（reduced-motion＋`pointer:fine` 守衛、位移夾限、ease-back 交 CSS）；Layout boot 併入 reveal＋magnetic（仍 tree-shake 內聯、0 重 JS）。build 綠、三路由 CTA/文案正確。
@@ -63,7 +73,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 2c 已落地並 build 綠；Pixi v8 API 全數 typecheck 過。**因採 build-only 驗證，Pixi 實機渲染需使用者 `npm run dev` 目視確認**——見「驗收方式」。下一步 2d 整合打磨 + 文件。）
+- 半完成 / 風險：—（Phase 2 全數完成並 push、build 綠；停在 Phase 2/3 邊界待視覺簽核）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。

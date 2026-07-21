@@ -112,7 +112,7 @@
 
 - **Phase 0 — 骨架** ✅：Astro5 + React + strict TS；GSAP/Lenis/Pixi；base layout、tokens、favicon(`◈`)、session log；`npm run build` 綠燈、佔位頁 0 JS。
 - **Phase 1 — 品牌基元** ✅：tokens 完善（間距/字級/陰影/backdrop/glyph 尺度）、SVG 標記 `Mark` + `Wordmark` 鎖定組、字符系統（◈❄✶◆）、程序化 OG 圖（og.svg→og.png）、動效工具（`src/lib/motion.ts`：reveal/Lenis/GSAP 動態載入 + `useReducedMotion` hook）、Header/Footer、i18n 三語字典 + 連結式語言切換 + `/`、`/zh-cn`、`/en` 路由（含 hreflang）。`npm run build` 綠。
-- **Phase 2 — Hero**：Pixi 程序化虛空 + 移植 Starfield/星座 + 漸層字標 + CTA + 磁吸按鈕。**交付 Hero 預覽供視覺定調簽核**再往下。
+- **Phase 2 — Hero** ✅（**待視覺簽核**）：分層 Hero＝Pixi 程序化虛空（`VoidField`：漂浮碎片＋星雲＋游標視差，動態載入、reduced-motion/窄視窗降級）＋移植 Starfield 星座（`client:visible` island）＋◈ 脈動＋漸層字標＋標語＋Play/Learn 磁吸 CTA＋捲動指示＋中央可讀性 veil。`npm run build` 綠。**依計畫在此暫停，交付 Hero 預覽供視覺定調簽核再進 Phase 3。**
 - **Phase 3 — 捲動電影框架 + 碎裂區**：Lenis+ScrollTrigger pin/scrub、「褪色」溶解 set-piece。
 - **Phase 4 — 玩法 + 英雄**：四合一 scroll-reveal、角色卡（換裝槽）。
 - **Phase 5 — 主題曲 / World Tree**：物理複用、章節氛圍 morph。
