@@ -12,43 +12,86 @@ import (
 	"time"
 
 	"github.com/moehoshio/sr-web/backend/internal/config"
+	"github.com/moehoshio/sr-web/backend/internal/dispatch"
 	"github.com/moehoshio/sr-web/backend/internal/play"
 )
 
-// Router 持有節點設定與最新探活快照。快照為不可變值：每輪探活以全新的
-// play.Response 原子替換，讀者取到的舊值不會被後續探活變動（-race 安全）。
+// Router 持有節點設定與最新探活結果。最新結果以 []dispatch.Node（節點即時檢視＋
+// 靜態地理座標）保存，每輪探活整批原子替換（RWMutex），讀者取到的舊值不會被後續
+// 探活變動（-race 安全）。停用（Disabled）的節點不探活、不納入結果。
 type Router struct {
-	regions  []config.Region
 	client   *http.Client
 	interval time.Duration
 	now      func() time.Time // 可注入，測試用
 
-	mu   sync.RWMutex
-	snap play.Response
+	mu        sync.RWMutex
+	regions   []config.Region // 目前正在探活的（啟用）節點設定
+	nodes     []dispatch.Node // 最新即時檢視（配對地理座標）
+	updatedAt string
 }
 
-// New 建立 Router，並以「全部節點未探活（unhealthy）」種下初始快照，使 Run 尚未
-// 完成第一輪前，/api/play.json 也能回傳已設定的節點清單（前端不會拿到空回應）。
+// New 建立 Router，並以「全部節點未探活（unhealthy）」種下初始結果，使 Run 尚未
+// 完成第一輪前，回應也能反映已設定的節點清單（前端不會拿到空回應）。
 func New(cfg config.Config) *Router {
 	r := &Router{
-		regions:  cfg.Regions,
 		interval: cfg.ProbeInterval,
 		now:      time.Now,
 		client:   &http.Client{Timeout: cfg.ProbeTimeout},
 	}
-	init := make([]play.Region, len(cfg.Regions))
-	for i, rc := range cfg.Regions {
-		init[i] = play.Region{ID: rc.ID, Host: rc.Host, URL: rc.URL}
-	}
-	r.snap = play.Response{Regions: init, UpdatedAt: r.timestamp()}
+	r.regions = activeRegions(cfg.Regions)
+	r.nodes = seedNodes(r.regions)
+	r.updatedAt = r.timestamp()
 	return r
 }
 
-// Snapshot 回傳最新的探活快照，可安全並行呼叫。
+// activeRegions 過濾掉停用（Disabled）的節點。
+func activeRegions(in []config.Region) []config.Region {
+	out := make([]config.Region, 0, len(in))
+	for _, rc := range in {
+		if !rc.Disabled {
+			out = append(out, rc)
+		}
+	}
+	return out
+}
+
+// seedNodes 以未探活（unhealthy）狀態種出節點檢視（配對地理座標）。
+func seedNodes(regions []config.Region) []dispatch.Node {
+	nodes := make([]dispatch.Node, len(regions))
+	for i, rc := range regions {
+		coord, ok := rc.Coord()
+		nodes[i] = dispatch.Node{
+			Region:   play.Region{ID: rc.ID, Host: rc.Host, URL: rc.URL},
+			Coord:    coord,
+			HasCoord: ok,
+		}
+	}
+	return nodes
+}
+
+// Snapshot 回傳「全部啟用節點」的即時快照（未收斂），含後端建議節點 id。供後臺與
+// 內部使用；對外的收斂分流由 DispatchNodes ＋ dispatch.Select 完成。
 func (r *Router) Snapshot() play.Response {
+	nodes, updatedAt := r.DispatchNodes()
+	regions := make([]play.Region, len(nodes))
+	for i, n := range nodes {
+		regions[i] = n.Region
+	}
+	return play.Response{
+		Regions:       regions,
+		UpdatedAt:     updatedAt,
+		RecommendedID: play.Recommend(regions),
+	}
+}
+
+// DispatchNodes 回傳最新的節點即時檢視（配對座標）與快照時間，供 dispatch.Select
+// 為特定用戶收斂候選。回傳為副本，可安全並行呼叫。
+func (r *Router) DispatchNodes() ([]dispatch.Node, string) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.snap
+	out := make([]dispatch.Node, len(r.nodes))
+	copy(out, r.nodes)
+	return out, r.updatedAt
 }
 
 // Run 週期性探活所有節點直到 ctx 取消；一啟動即先探一輪，讓首個快照反映真實狀態。
@@ -66,35 +109,40 @@ func (r *Router) Run(ctx context.Context) {
 	}
 }
 
-// probeAll 並行探活所有節點，組出新的快照並原子替換。
+// probeAll 並行探活所有啟用節點，組出新的節點檢視並原子替換。
 func (r *Router) probeAll(ctx context.Context) {
-	regions := make([]play.Region, len(r.regions))
+	r.mu.RLock()
+	regions := r.regions
+	r.mu.RUnlock()
+
+	nodes := make([]dispatch.Node, len(regions))
 	var wg sync.WaitGroup
-	for i, rc := range r.regions {
+	for i, rc := range regions {
 		wg.Add(1)
 		go func(i int, rc config.Region) {
 			defer wg.Done()
 			p := probeRegion(ctx, r.client, healthURL(rc))
+			coord, ok := rc.Coord()
 			// 各 goroutine 寫入互不重疊的索引，wg.Wait 建立 happens-before。
-			regions[i] = play.Region{
-				ID:        rc.ID,
-				Host:      rc.Host,
-				URL:       rc.URL,
-				Healthy:   p.healthy,
-				LatencyMS: p.latencyMS,
-				Load:      p.load,
+			nodes[i] = dispatch.Node{
+				Region: play.Region{
+					ID:        rc.ID,
+					Host:      rc.Host,
+					URL:       rc.URL,
+					Healthy:   p.healthy,
+					LatencyMS: p.latencyMS,
+					Load:      p.load,
+				},
+				Coord:    coord,
+				HasCoord: ok,
 			}
 		}(i, rc)
 	}
 	wg.Wait()
 
-	snap := play.Response{
-		Regions:       regions,
-		UpdatedAt:     r.timestamp(),
-		RecommendedID: play.Recommend(regions),
-	}
 	r.mu.Lock()
-	r.snap = snap
+	r.nodes = nodes
+	r.updatedAt = r.timestamp()
 	r.mu.Unlock()
 }
 

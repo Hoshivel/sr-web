@@ -82,3 +82,35 @@ func TestHealthURLDefaultsToHealthz(t *testing.T) {
 		t.Errorf("healthURL override = %q", got)
 	}
 }
+
+func TestDisabledRegionsExcluded(t *testing.T) {
+	cfg := config.Config{
+		Regions: []config.Region{
+			{ID: "a", Host: "a", URL: "https://a/"},
+			{ID: "b", Host: "b", URL: "https://b/", Disabled: true},
+		},
+		ProbeInterval: time.Minute,
+		ProbeTimeout:  time.Second,
+	}
+	r := New(cfg)
+	snap := r.Snapshot()
+	if len(snap.Regions) != 1 || snap.Regions[0].ID != "a" {
+		t.Errorf("disabled region should be excluded, got %+v", snap.Regions)
+	}
+}
+
+func TestDispatchNodesCarryCoords(t *testing.T) {
+	cfg := config.Config{
+		Regions:       []config.Region{{ID: "hk1", Host: "hk1", URL: "https://hk1/", Lat: 22.32, Lon: 114.17}},
+		ProbeInterval: time.Minute,
+		ProbeTimeout:  time.Second,
+	}
+	r := New(cfg)
+	nodes, ts := r.DispatchNodes()
+	if len(nodes) != 1 || !nodes[0].HasCoord || nodes[0].Coord.Lat != 22.32 {
+		t.Errorf("coord not carried into dispatch node: %+v", nodes)
+	}
+	if ts == "" {
+		t.Errorf("updatedAt empty")
+	}
+}

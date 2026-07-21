@@ -22,6 +22,10 @@
 3. **角色立繪接入**（Part 3）：sr 原始倉庫（ShatteredRealms）已補上立繪 `portraits/<charId>.png`；接入 sr-web 英雄卡換裝槽。
    - 目前僅 `hakuto` 立繪已推送；其餘（shadow/sekien/aoiro）**在其他任務完成後 pull 一次**，有則接入、無則結束任務。
    - 角色 slug 對照：白棠=`hakuto`❄、暗影=`shadow`☾、赤焰=`sekien`❂、青蘿=`aoiro`❦（源 `design/characters/portrait-prompts.md`）。
+4. **（2026-07-21 新增）Play iframe 可調整尺寸與版面重排**（Part 4）：
+   - 嵌入視窗尺寸可切換：**正常 / 寬屏（劇場模式）/ 全屏**；可選支援使用者拖拽調整（非必須）。
+   - 新增「**在新分頁打開**」按鈕：直接開新頁訪問目標節點 URL。
+   - 版面：**節點改為橫向可滑動卡片**置於嵌入視窗**上方**；嵌入視窗**下方**放模式切換與 NewTab 等按鈕。
 
 ## 進度
 ### 待辦
@@ -29,13 +33,14 @@
 - [ ] Phase B：config 即時 Store（thread-safe、持久化、變更通知）＋ router/server 改讀 Store
 - [ ] Phase C：後臺 admin（PBKDF2 登入 / session cookie / setup 引導）＋ 動態管理 API（節點 CRUD、設定）＋內嵌後臺 UI
 - [ ] Phase D：文件（backend/README、config.example、root README）
-- [ ] Phase E：前端——採用 `recommendedId`（後端主導入點）＋ 英雄卡立繪換裝槽接 `hakuto.png`
+- [ ] Phase E：前端——(a) 採用 `recommendedId`（後端主導入點）；(b) 英雄卡立繪換裝槽接 `hakuto.png`；(c) Play 版面重排（節點橫向卡片置頂）＋iframe 尺寸模式（正常/劇場/全屏）＋新分頁開啟按鈕
 - [ ] Phase F：pull ShatteredRealms，接入新到的立繪（shadow/sekien/aoiro），若無則結束
 
 ### 進行中
-- [ ] Phase A
+- [ ] Phase B（config 即時 Store）
 
 ### 已完成（精簡摘要）
+- [x] **Phase A：後端主導地理分流（收斂候選）**。新增 `internal/geo`（Coord/haversine/內建~50國質心/`Resolve` 反代標頭解析，僅 TrustProxyHeaders 時採信；100% cov）＋`internal/dispatch`（`Select`：健康→就近→負載排序、候選上限、`recommendedId`；90.7% cov）。config 加 `Region.Lat/Lon/Country/Disabled`＋`Coord()`、`GeoConfig`＋`Settings()`、`MaxCandidates`(預設3)、`Admin`(欄位＋`Configured()`，供 Phase C)。router 存 `[]dispatch.Node`（配座標）、過濾 Disabled、加 `DispatchNodes()`；`Snapshot()` 仍回全部（供後臺）。server `handlePlay` 改 per-request：`geo.Resolve`→`dispatch.Select`→只回前 N。`config.example.json` 補 geo/coords/maxCandidates。全綠（`go build/vet/gofmt/test -race`）；smoke 驗證 SG→[sg1,hk1,jp1]、US→[jp1,hk1,sg1]、cap 生效。
 - [x] 通盤閱讀後端（config/play/router/server）＋前端（play.ts/PlayLauncher/Characters）＋立繪來源與 manifest；基準 build/test 綠；規劃六階段。
 
 ## 設計要點
@@ -53,7 +58,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—
+- 半完成 / 風險：—（Phase A 全數落地、測試綠、smoke 驗證；工作區一致）
 
 ## 筆記 / 決策
 - go 1.24.7 → `crypto/pbkdf2` 已入 stdlib，可零第三方相依做密碼雜湊。

@@ -158,3 +158,75 @@ func TestCORSPreflight(t *testing.T) {
 		t.Errorf("preflight status = %d, want 204", resp.StatusCode)
 	}
 }
+
+func newGeoServer(regions []config.Region, max int) *httptest.Server {
+	cfg := config.Config{
+		Regions:       regions,
+		MaxCandidates: max,
+		Geo:           config.GeoConfig{TrustProxyHeaders: true}.Settings(),
+		ProbeInterval: time.Minute,
+		ProbeTimeout:  time.Second,
+	}
+	rt := router.New(cfg)
+	return httptest.NewServer(New(cfg, rt).Handler())
+}
+
+func TestPlayGeoSelectionAndCap(t *testing.T) {
+	regions := []config.Region{
+		{ID: "hk1", Host: "hk1", URL: "https://hk1/", Country: "HK"},
+		{ID: "jp1", Host: "jp1", URL: "https://jp1/", Country: "JP"},
+		{ID: "sg1", Host: "sg1", URL: "https://sg1/", Country: "SG"},
+		{ID: "us1", Host: "us1", URL: "https://us1/", Country: "US"},
+	}
+	ts := newGeoServer(regions, 2)
+	defer ts.Close()
+
+	req, _ := http.NewRequest(http.MethodGet, ts.URL+"/api/play.json", nil)
+	req.Header.Set("CF-IPCountry", "SG")
+	resp, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	var got play.Response
+	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(got.Regions) != 2 {
+		t.Fatalf("want 2 candidates (capped), got %d: %+v", len(got.Regions), got.Regions)
+	}
+	if got.Regions[0].ID != "sg1" {
+		t.Errorf("nearest to SG should be sg1 first, got %s", got.Regions[0].ID)
+	}
+	if got.RecommendedID != "sg1" {
+		t.Errorf("recommendedId = %q, want sg1 (backend-chosen entry point)", got.RecommendedID)
+	}
+	// 不應暴露所有 4 個節點（收斂）。
+	if len(got.Regions) == len(regions) {
+		t.Errorf("should not return all nodes")
+	}
+}
+
+func TestPlayCapWithoutGeo(t *testing.T) {
+	regions := []config.Region{
+		{ID: "a", Host: "a", URL: "https://a/"},
+		{ID: "b", Host: "b", URL: "https://b/"},
+		{ID: "c", Host: "c", URL: "https://c/"},
+	}
+	// 無 geo 設定 → trust off；候選仍收斂到 MaxCandidates。
+	cfg := config.Config{Regions: regions, MaxCandidates: 2, ProbeInterval: time.Minute, ProbeTimeout: time.Second}
+	rt := router.New(cfg)
+	ts := httptest.NewServer(New(cfg, rt).Handler())
+	defer ts.Close()
+
+	resp := get(t, ts, "/api/play.json", "")
+	defer resp.Body.Close()
+	var got play.Response
+	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(got.Regions) != 2 {
+		t.Errorf("cap without geo = %d, want 2", len(got.Regions))
+	}
+}

@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/moehoshio/sr-web/backend/internal/config"
+	"github.com/moehoshio/sr-web/backend/internal/dispatch"
+	"github.com/moehoshio/sr-web/backend/internal/geo"
 	"github.com/moehoshio/sr-web/backend/internal/router"
 )
 
@@ -47,15 +49,20 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("ok"))
 }
 
-// handlePlay 回傳即時的節點快照（play.Response）。這是即時分流資料，設 no-store
-// 避免中介 / 瀏覽器快取住路由決策。
+// handlePlay 回傳為此用戶收斂後的候選節點（play.Response）。後端依用戶地理座標
+// （反代 / CDN geo 標頭）就近排序，只回傳前 MaxCandidates 個候選＋建議入點 id——
+// 不再全敞開所有節點。這是即時、依請求而異的分流決策，故設 no-store 避免被快取。
 func (s *Server) handlePlay(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeErr(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
+	nodes, updatedAt := s.rt.DispatchNodes()
+	client, ok := geo.Resolve(r.Header, s.cfg.Geo)
+	resp := dispatch.Select(nodes, client, ok, s.cfg.MaxCandidates, updatedAt)
+
 	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, s.rt.Snapshot())
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // cors 包裹 Play API。未設定 allowlist 時放行任意來源（dev）；設定後只有清單內的
