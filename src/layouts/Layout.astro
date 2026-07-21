@@ -1,0 +1,44 @@
+---
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang?: string;
+}
+
+const {
+  title = "碎界 Shattered Realms",
+  description = "破碎星空之下，啟程未竟之旅。碎界是一款架空世界觀的 2D 回合制策略遊戲，融合棋類策略、RPG 成長、MOBA 技能設計與開放世界探索。",
+  lang = "zh-Hant",
+} = Astro.props;
+
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).href
+  : Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical} />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#06070b" />
+
+    <!-- Open Graph（og 圖於 Phase 1 產生）-->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="zh_Hant" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

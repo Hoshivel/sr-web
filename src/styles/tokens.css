@@ -1,0 +1,98 @@
+/*
+  碎界 sr-web —— 設計 tokens
+  色盤蒸餾自遊戲 frontend/src/styles.css（原檔 1,380 個 inline hex、0 個變數）。
+  這裡把它收斂成一套具語意的 CSS 變數，作為全站唯一色彩/動效來源。
+*/
+:root {
+  color-scheme: dark;
+
+  /* ---- 底層 void → base ---- */
+  --sr-void: #06070b;
+  --sr-bg: #0b0d12;
+  --sr-bg-raise: #0c0e15;
+  --sr-bg-deep: #070810;
+
+  /* ---- 面板 surfaces ---- */
+  --sr-surface-1: #12151d;
+  --sr-surface-2: #161a22;
+  --sr-surface-3: #1b2030;
+  --sr-surface-4: #232834;
+
+  /* ---- 邊框 ---- */
+  --sr-border: #2a2f3a;
+  --sr-border-strong: #3a4150;
+
+  /* ---- 文字 ---- */
+  --sr-text: #e6e9ef;
+  --sr-text-bright: #eef1f8;
+  --sr-text-muted: #8b93a7;
+  --sr-text-dim: #69728a;
+
+  /* ---- 強調 accents ---- */
+  --sr-accent: #8fa9ff; /* periwinkle 主品牌色 */
+  --sr-accent-blue: #6ab0ff;
+  --sr-accent-blue-2: #5b8cff;
+  --sr-accent-ice: #9cc4ff;
+  --sr-violet: #7a5bff;
+  --sr-violet-light: #b89bff;
+  --sr-gold: #ffd479;
+  --sr-gold-2: #ffd784;
+  --sr-success: #6ad08a;
+  --sr-danger: #ff6a6a;
+
+  /* ---- 星場 / 星座（與遊戲 Starfield 一致）---- */
+  --sr-star: #cedaff; /* rgba(206,218,255) */
+  --sr-link: #7aa2ff; /* rgba(122,162,255) */
+
+  /* ---- 章節強調 chapter accents（可被 [data-chapter] 覆寫）---- */
+  --sr-chapter: var(--sr-accent);
+  --sr-chapter-snowpass: #7fd0ff; /* 风雪過境 冰藍 */
+  --sr-chapter-starseal: #b48dff; /* 星痕紀元 星紫 */
+
+  /* ---- 漸層 gradients ---- */
+  --sr-wordmark-grad: linear-gradient(120deg, #cdd7ff, #8fa9ff 45%, #b89bff);
+  --sr-accent-grad: linear-gradient(
+    120deg,
+    var(--sr-accent-ice),
+    var(--sr-accent) 45%,
+    var(--sr-violet-light)
+  );
+
+  /* ---- 發光 glow ---- */
+  --sr-glow-accent: 0 0 24px rgba(143, 169, 255, 0.35);
+  --sr-glow-soft: 0 0 48px rgba(122, 162, 255, 0.16);
+
+  /* ---- 字型 typography ---- */
+  --sr-font-sans: system-ui, -apple-system, "Segoe UI", Roboto,
+    "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --sr-font-display: var(--sr-font-sans);
+  --sr-tracking-wide: 0.14em;
+  --sr-tracking-wider: 0.28em;
+
+  /* ---- 版面 layout ---- */
+  --sr-maxw: 1200px;
+  --sr-gutter: clamp(1.25rem, 4vw, 4rem);
+  --sr-radius: 14px;
+  --sr-radius-lg: 22px;
+
+  /* ---- 動效 motion ---- */
+  --sr-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --sr-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --sr-dur-fast: 180ms;
+  --sr-dur: 420ms;
+  --sr-dur-slow: 800ms;
+
+  /* ---- z 層 ---- */
+  --sr-z-bg: 0;
+  --sr-z-content: 10;
+  --sr-z-header: 100;
+  --sr-z-overlay: 1000;
+}
+
+/* 章節氛圍：滾動時切換 data-chapter，--sr-chapter 隨之 morph */
+[data-chapter="snowpass"] {
+  --sr-chapter: var(--sr-chapter-snowpass);
+}
+[data-chapter="starseal"] {
+  --sr-chapter: var(--sr-chapter-starseal);
+}

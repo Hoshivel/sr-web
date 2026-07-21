@@ -1,0 +1,77 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+// Phase 0 佔位首屏 —— 只驗證 scaffold / tokens / 字標管線。
+// 真正的 Pixi 程序化 Hero 於 Phase 2 取代此區塊。
+---
+
+<Layout>
+  <main class="hero-placeholder">
+    <div class="sr-container hero-inner">
+      <div class="mark" aria-hidden="true">◈</div>
+      <h1 class="wordmark sr-gradient-text">碎界</h1>
+      <p class="latin">SHATTERED REALMS</p>
+      <p class="tagline">破碎星空之下，啟程未竟之旅</p>
+      <p class="note">Phase 0 scaffold · 旗艦動效建置中</p>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .hero-placeholder {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    background:
+      radial-gradient(
+        60% 50% at 50% 30%,
+        rgba(122, 162, 255, 0.12),
+        transparent 70%
+      ),
+      radial-gradient(
+        45% 40% at 70% 80%,
+        rgba(122, 91, 255, 0.1),
+        transparent 70%
+      ),
+      var(--sr-void);
+  }
+  .hero-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .mark {
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    color: var(--sr-accent);
+    text-shadow: var(--sr-glow-accent);
+    margin-bottom: 0.5rem;
+  }
+  .wordmark {
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: clamp(3.5rem, 14vw, 8rem);
+    letter-spacing: var(--sr-tracking-wide);
+    line-height: 1;
+    padding-inline: 0.2em;
+  }
+  .latin {
+    color: var(--sr-text-muted);
+    letter-spacing: var(--sr-tracking-wider);
+    font-size: clamp(0.7rem, 2vw, 0.95rem);
+    text-transform: uppercase;
+  }
+  .tagline {
+    margin-top: 1.2rem;
+    color: var(--sr-text);
+    letter-spacing: 0.06em;
+    font-size: clamp(1rem, 2.6vw, 1.35rem);
+  }
+  .note {
+    margin-top: 2.5rem;
+    color: var(--sr-text-dim);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+</style>

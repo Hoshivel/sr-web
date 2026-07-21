@@ -13,3 +13,20 @@ sr是一個架空世界觀的 2D 回合制策略遊戲。融合棋類策略、RP
 這個後端測活，分流，負載均衡。 實時管理和提供。
 
 前端官網訪問 -> 點擊play -> 請求後端服務 -> 提供一個可用的遊戲url -> 前端接收，嵌入顯示該url。
+
+---
+
+## 開發 / 冷接手
+
+- **技術棧**：Astro + React islands（strict TS）、GSAP + ScrollTrigger + Lenis、Pixi.js。程序化動態即視覺識別。
+- **權威計畫**：[`docs/plan.md`](./docs/plan.md)（完整實作計畫、網站結構、分階段里程碑、API 契約）。
+- **會話日誌 / 進度**：[`sessions/`](./sessions/)（目標、待辦、`Editing` 狀態；沿用 ShatteredRealms 家族的 AGENTS.md 慣例）。
+
+```bash
+npm install      # 安裝相依
+npm run dev      # 本地開發（Astro）
+npm run build    # astro check && astro build（strict TS，驗收門檻）
+npm run preview  # 預覽已建置的靜態站
+```
+
+目前進度：Phase 0 骨架完成（tokens / layout / favicon，`npm run build` 綠燈）。下一步見 `docs/plan.md`。
