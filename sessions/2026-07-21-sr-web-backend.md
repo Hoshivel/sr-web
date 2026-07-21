@@ -21,11 +21,10 @@
 
 ## 進度
 ### 待辦
-- [ ] 測試（config / probe / router / server / play.Recommend）+ `go test -race` 驗證綠燈
-- [ ] backend/README + 更新 root README / plan / 本日誌
+- [ ] backend/README + 更新 root README / plan / 本日誌（收尾）
 
 ### 進行中
-- [ ] 撰寫測試（下一批）
+- [ ] 文件收尾（下一批）
 
 ### 已完成（精簡摘要）
 - [x] backend/ Go module 骨架（module `github.com/moehoshio/sr-web/backend`、go 1.24、**零第三方相依**）＋ `.gitignore`（忽略維運 config.json / 二進位）＋ `config.example.json`（prod 範例：allowedOrigins=sr.oha.li、三節點 healthUrl）。
@@ -35,6 +34,7 @@
 - [x] `internal/server`：`/healthz`（純文字 ok）＋ `GET /api/play.json`（＋ `/api/play` alias，`Cache-Control: no-store`）＋ CORS（allowlist 空=放行任意；設定則收斂，對齊遊戲後端）。`cmd/router/main.go` 進入點（訊號取消＋優雅關閉＋ReadHeaderTimeout）。
 - [x] 驗證：`go build/vet ./...`＋`gofmt -l` 全綠；smoke（`-port 8099`）——`/healthz`＝ok、`/api/play.json` 回正確契約形狀、CORS `*`/OPTIONS 204/no-store、config 自動產生皆確認。
 - [x] 建立本日誌。
+- [x] 測試（表格式）：config（產生預設/檔載入/flags 覆蓋/非正值 fallback）、play.Recommend（健康>延遲>負載＋全不健康 fallback＋空）、router probe（純文字 ok/JSON load/players+capacity/503/不可達/clamp）、router（種子快照/分類+recommend/healthURL 預設）、server（/healthz、契約解碼、alias、405、CORS allowlist/dev-any/preflight）。`go test -race ./...` 全綠；覆蓋率 play 100% / server 95% / router 87% / config 84%。
 
 ## 設計要點
 - **契約（不可改，前端依賴）**：`PlayResponse = { regions: PlayRegion[]; updatedAt: string }`；
