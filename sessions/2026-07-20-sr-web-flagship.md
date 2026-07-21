@@ -2,8 +2,8 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：Phase 0 骨架完成、`npm run build` 綠燈、已 push；使用者要求此處停手交接。下一步 Phase 1 品牌基元。
-- 相關：branch `claude/sr-web-animation-planning-u1vujx`
+- 進度摘要：Phase 1 品牌基元進行中（tokens 完善 / 動效工具 / 字符系統起手）。Phase 0 骨架已完成並 push。
+- 相關：branch `claude/sr-web-plan-continue-od8l0n`（前身 `claude/sr-web-animation-planning-u1vujx` 已併入 main）
 - **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
 
@@ -37,9 +37,10 @@
 - [ ] Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）
 
 ### 進行中
-- [ ] （無，Phase 0 已收尾）
+- [ ] Phase 1b/1c/1d 起手：品牌元件 + i18n → header/footer + 語言切換 → OG 圖。
 
 ### 已完成（精簡摘要）
+- [x] Phase 1a 品牌基元（tokens/動效工具/字符系統）：`tokens.css` 加間距/字級/陰影/backdrop/glyph 尺度與 spring ease、reveal token；`global.css` 加 `.sr-section`/`.sr-eyebrow`/字符系統偽元素類/`[data-reveal]` 進場基線（`html.sr-js` 守衛→無 JS 不藏內容；reduced-motion 強制呈現）。新增 `src/lib/motion.ts`（`prefersReducedMotion`/`initScrollReveal` stagger/`initSmoothScroll` Lenis 動態載入/`registerScrollTrigger` GSAP 動態載入）＋`src/lib/useReducedMotion.ts`（React hook，初值對齊 SSR 免注水不一致）。Layout 加 `sr-js` inline flag ＋ reveal boot。`npm run build` 綠；reveal 腳本 tree-shake 後 ~1KB 內聯、Lenis/GSAP 未進首屏。
 - [x] Phase 0 骨架：Astro5 + @astrojs/react + strict TS；裝 GSAP/Lenis/Pixi.js（422 pkgs）。
 - [x] 設計 tokens：`src/styles/tokens.css`（色盤蒸餾自遊戲 styles.css，語意變數化）+ `global.css`（reset、utilities、reduced-motion 基線）。
 - [x] `src/layouts/Layout.astro`（SEO/OG meta、lang=zh-Hant）、`src/pages/index.astro`（佔位字標 Hero）、`public/favicon.svg`（◈ 標記）。
@@ -52,7 +53,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—
+- 半完成 / 風險：—（Phase 1a 已落地並 build 綠）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。

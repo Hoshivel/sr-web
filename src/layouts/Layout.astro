@@ -23,6 +23,10 @@ const canonical = Astro.site
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 盡早標記 JS 可用：reveal 內容只在有 JS 時預先隱藏，避免無 JS 環境被永久藏住 -->
+    <script is:inline>
+      document.documentElement.classList.add("sr-js");
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonical} />
     <meta name="generator" content={Astro.generator} />
@@ -40,5 +44,12 @@ const canonical = Astro.site
   </head>
   <body>
     <slot />
+
+    <script>
+      // reveal-on-scroll 啟動（純 IntersectionObserver，不牽動 Lenis/GSAP/Pixi）。
+      // 平滑捲動與捲動電影於 Phase 3 另行 boot。
+      import { initScrollReveal } from "@/lib/motion";
+      initScrollReveal();
+    </script>
   </body>
 </html>
