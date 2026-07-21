@@ -114,7 +114,7 @@
 - **Phase 1 — 品牌基元** ✅：tokens 完善（間距/字級/陰影/backdrop/glyph 尺度）、SVG 標記 `Mark` + `Wordmark` 鎖定組、字符系統（◈❄✶◆）、程序化 OG 圖（og.svg→og.png）、動效工具（`src/lib/motion.ts`：reveal/Lenis/GSAP 動態載入 + `useReducedMotion` hook）、Header/Footer、i18n 三語字典 + 連結式語言切換 + `/`、`/zh-cn`、`/en` 路由（含 hreflang）。`npm run build` 綠。
 - **Phase 2 — Hero** ✅（**待視覺簽核**）：分層 Hero＝Pixi 程序化虛空（`VoidField`：漂浮碎片＋星雲＋游標視差，動態載入、reduced-motion/窄視窗降級）＋移植 Starfield 星座（`client:visible` island）＋◈ 脈動＋漸層字標＋標語＋Play/Learn 磁吸 CTA＋捲動指示＋中央可讀性 veil。`npm run build` 綠。**依計畫在此暫停，交付 Hero 預覽供視覺定調簽核再進 Phase 3。**
 - **Phase 3 — 捲動電影框架 + 碎裂區** ✅：`src/lib/scrollCinema.ts` 單例 boot（Lenis 平滑捲動 + GSAP/ScrollTrigger 同步 + 錨點平滑捲動）；碎裂區 `Shattering.astro`（#world）pin+scrub 讓種子化殘片由凝聚向虛空四散＋淡出＋去飽和（招牌「褪色」溶解），招牌句「碎裂不是天罰，是天地最後一次自救」。reduced-motion 全程降級為靜態。`npm run build` 綠（Lenis/GSAP 動態 chunk）。
-- **Phase 4 — 玩法 + 英雄**：四合一 scroll-reveal、角色卡（換裝槽）。
+- **Phase 4 — 玩法 + 英雄** ✅（**待視覺簽核**）：玩法四柱 `Gameplay.astro`（#gameplay）＝棋類策略/RPG 成長/MOBA 技能/開放探索 scroll-reveal grid，各帶程序化 inline-SVG 母題（蜂巢六邊形/成長條/技能環/地景）＋元素色頂線＋hover 浮起；英雄卡 `Characters.astro`（#characters）＝白棠/暗影/赤焰/青蘿，元素徽記（❄☾❂❦）＋種子化星座佔位＝**換裝槽**（日後疊 `.hero-card__art` 立繪）＋元素 tag/漸層名/題詞/玩法幻想＋桌機指標微傾。三語文案（`gameplay.*`/`char.*`）蒸餾自遊戲角色 lore 與玩法規則。reduced-motion/觸控全降級、無新增首屏重 JS。`npm run build` 綠。
 - **Phase 5 — 主題曲 / World Tree**：物理複用、章節氛圍 morph。
 - **Phase 6 — Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽**。
 - **Phase 7 — 打磨**：效能、a11y、行動、SEO/OG、跨瀏覽器、部署。

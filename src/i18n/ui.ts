@@ -81,6 +81,48 @@ const zhHant = {
   "world.lead": "當星痕斷裂，大地失去固定的形狀，世界碎成漂浮於虛空的殘片。",
   "world.body":
     "這不是終結——碎裂，是天地保存自身的最後手段。殘片各自漂散，靜待被重新拼合；你將率領探索隊，在虛空中尋回失落的大地。",
+
+  // 玩法 Gameplay（#gameplay）—— 四合一
+  "gameplay.eyebrow": "玩法",
+  "gameplay.titleA": "四種玩法，",
+  "gameplay.titleB": "融於同一張六角棋盤",
+  "gameplay.lead":
+    "棋類策略的縝密、RPG 成長的養成、MOBA 技能的爽快、開放世界的探索——在回合制的六角戰場上合而為一。",
+  "gameplay.tactics.name": "棋類策略",
+  "gameplay.tactics.desc":
+    "在六角棋盤上調度站位：行動點（AP）分配、地形高低與視線、戰爭迷霧下的資訊博弈，每一步都是取捨。",
+  "gameplay.growth.name": "RPG 成長",
+  "gameplay.growth.desc":
+    "局內升級解鎖核心技能，從被動、主動到終極逐階綻放；蒐集素材合成裝備，養出屬於你的角色曲線。",
+  "gameplay.skills.name": "MOBA 技能",
+  "gameplay.skills.desc":
+    "核心技能與卡牌技能雙軌並行，操作 EP、烈焰等專屬資源，以狀態、控制與爆發改寫戰局。",
+  "gameplay.explore.name": "開放探索",
+  "gameplay.explore.desc":
+    "地形會回應你的技能——烈焰燒出焦土、河遇火化蒸汽、冰霜消融；野怪棲息、星使流轉，戰場是活的世界。",
+
+  // 英雄 Characters（#characters）—— 程序化佔位＋換裝槽
+  "char.eyebrow": "英雄",
+  "char.titleA": "領路的英雄，",
+  "char.titleB": "各執一種碎界之力",
+  "char.lead": "他們是探索隊的先鋒——冰霜、暗影、烈焰、劇毒，四種截然不同的玩法幻想。",
+  "char.slotNote": "立繪待接 · 程序化佔位",
+  "char.hakuto.name": "白棠",
+  "char.hakuto.epithet": "雪境之棠",
+  "char.hakuto.element": "冰霜 · 純淨",
+  "char.hakuto.fantasy": "高 EP 的後排法系，以冰霜疊加至凍結，把敵人牢牢定在原地。",
+  "char.shadow.name": "暗影",
+  "char.shadow.epithet": "影之君主",
+  "char.shadow.element": "暗影 · 侵蝕",
+  "char.shadow.fantasy": "高機動刺客，用黑暗堆疊侵蝕、生成影子，〈萬影歸一〉一擊收割全場。",
+  "char.sekien.name": "赤焰",
+  "char.sekien.epithet": "炎陽之子",
+  "char.sekien.element": "烈焰 · 重生",
+  "char.sekien.fantasy": "弓劍雙形態切換，累積餘燼重燃烈焰；瀕死化作鳳凰，燃盡重生。",
+  "char.aoiro.name": "青蘿",
+  "char.aoiro.epithet": "噬星荊棘",
+  "char.aoiro.element": "劇毒 · 藤蔓",
+  "char.aoiro.fantasy": "以神經毒素層層進階，於臨界引爆〈神經崩潰〉；藤蔓封鎖，連射傾瀉。",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -118,6 +160,46 @@ const zhCN: Record<UIKey, string> = {
   "world.lead": "当星痕断裂，大地失去固定的形状，世界碎成漂浮于虚空的残片。",
   "world.body":
     "这不是终结——碎裂，是天地保存自身的最后手段。残片各自漂散，静待被重新拼合；你将率领探索队，在虚空中寻回失落的大地。",
+
+  "gameplay.eyebrow": "玩法",
+  "gameplay.titleA": "四种玩法，",
+  "gameplay.titleB": "融于同一张六角棋盘",
+  "gameplay.lead":
+    "棋类策略的缜密、RPG 成长的养成、MOBA 技能的爽快、开放世界的探索——在回合制的六角战场上合而为一。",
+  "gameplay.tactics.name": "棋类策略",
+  "gameplay.tactics.desc":
+    "在六角棋盘上调度站位：行动点（AP）分配、地形高低与视线、战争迷雾下的信息博弈，每一步都是取舍。",
+  "gameplay.growth.name": "RPG 成长",
+  "gameplay.growth.desc":
+    "局内升级解锁核心技能，从被动、主动到终极逐阶绽放；搜集素材合成装备，养出属于你的角色曲线。",
+  "gameplay.skills.name": "MOBA 技能",
+  "gameplay.skills.desc":
+    "核心技能与卡牌技能双轨并行，操作 EP、烈焰等专属资源，以状态、控制与爆发改写战局。",
+  "gameplay.explore.name": "开放探索",
+  "gameplay.explore.desc":
+    "地形会回应你的技能——烈焰烧出焦土、河遇火化蒸汽、冰霜消融；野怪栖息、星使流转，战场是活的世界。",
+
+  "char.eyebrow": "英雄",
+  "char.titleA": "领路的英雄，",
+  "char.titleB": "各执一种碎界之力",
+  "char.lead": "他们是探索队的先锋——冰霜、暗影、烈焰、剧毒，四种截然不同的玩法幻想。",
+  "char.slotNote": "立绘待接 · 程序化占位",
+  "char.hakuto.name": "白棠",
+  "char.hakuto.epithet": "雪境之棠",
+  "char.hakuto.element": "冰霜 · 纯净",
+  "char.hakuto.fantasy": "高 EP 的后排法系，以冰霜叠加至冻结，把敌人牢牢定在原地。",
+  "char.shadow.name": "暗影",
+  "char.shadow.epithet": "影之君主",
+  "char.shadow.element": "暗影 · 侵蚀",
+  "char.shadow.fantasy": "高机动刺客，用黑暗叠加侵蚀、生成影子，〈万影归一〉一击收割全场。",
+  "char.sekien.name": "赤焰",
+  "char.sekien.epithet": "炎阳之子",
+  "char.sekien.element": "烈焰 · 重生",
+  "char.sekien.fantasy": "弓剑双形态切换，累积余烬重燃烈焰；濒死化作凤凰，燃尽重生。",
+  "char.aoiro.name": "青萝",
+  "char.aoiro.epithet": "噬星荆棘",
+  "char.aoiro.element": "剧毒 · 藤蔓",
+  "char.aoiro.fantasy": "以神经毒素层层进阶，于临界引爆〈神经崩溃〉；藤蔓封锁，连射倾泻。",
 };
 
 const en: Record<UIKey, string> = {
@@ -156,6 +238,51 @@ const en: Record<UIKey, string> = {
     "When the star-seal broke, the land lost its fixed shape and the world scattered into fragments adrift in the void.",
   "world.body":
     "This is not the end. The shattering was how the world preserved itself — the fragments drift apart, waiting to be pieced back together. You will lead the expedition that reclaims the lost lands.",
+
+  "gameplay.eyebrow": "Gameplay",
+  "gameplay.titleA": "Four genres, ",
+  "gameplay.titleB": "fused on a single hex board",
+  "gameplay.lead":
+    "The precision of board tactics, the growth of an RPG, the punch of MOBA skills, the freedom of an open world — united on a turn-based hex battlefield.",
+  "gameplay.tactics.name": "Board Tactics",
+  "gameplay.tactics.desc":
+    "Maneuver across a hex grid: budget action points (AP), exploit height and line of sight, and out-read your opponent through the fog of war — every step is a trade-off.",
+  "gameplay.growth.name": "RPG Growth",
+  "gameplay.growth.desc":
+    "Level up mid-match to unlock core skills from passive to ultimate, and craft gear from gathered materials to shape your own build.",
+  "gameplay.skills.name": "MOBA Skills",
+  "gameplay.skills.desc":
+    "Run core skills and card skills in parallel, manage resources like EP and Flame, and turn the fight with status, control and burst.",
+  "gameplay.explore.name": "Open Exploration",
+  "gameplay.explore.desc":
+    "Terrain answers your skills — flame scorches the earth, fire on water turns to steam, frost melts away; wild monsters roam and envoys wander a living battlefield.",
+
+  "char.eyebrow": "Characters",
+  "char.titleA": "The heroes who lead, ",
+  "char.titleB": "each wielding a shard of power",
+  "char.lead":
+    "They are the vanguard of the expedition — frost, shadow, flame and venom, four utterly different gameplay fantasies.",
+  "char.slotNote": "Art incoming · procedural placeholder",
+  "char.hakuto.name": "Hakuto",
+  "char.hakuto.epithet": "Bloom of the Snowbound Realm",
+  "char.hakuto.element": "Frost · Purity",
+  "char.hakuto.fantasy":
+    "A backline caster on a deep EP pool, stacking frost into freeze to lock enemies in place.",
+  "char.shadow.name": "Dark Shadow",
+  "char.shadow.epithet": "Lord of Shadows",
+  "char.shadow.element": "Shadow · Erosion",
+  "char.shadow.fantasy":
+    "A high-mobility assassin who stacks erosion into shadows, then reaps the whole board with All Shadows as One.",
+  "char.sekien.name": "Sekien",
+  "char.sekien.epithet": "Son of the Blazing Sun",
+  "char.sekien.element": "Flame · Rebirth",
+  "char.sekien.fantasy":
+    "Shifts between bow and sword, banking Ember to rekindle Flame — and rises from death as a phoenix.",
+  "char.aoiro.name": "Aoiro",
+  "char.aoiro.epithet": "Star-Devouring Bramble",
+  "char.aoiro.element": "Venom · Vines",
+  "char.aoiro.fantasy":
+    "Escalates neurotoxin stage by stage to detonate Neural Collapse; walls the board with vines and pours out rapid-fire.",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {

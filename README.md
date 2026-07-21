@@ -29,4 +29,4 @@ npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
 
-目前進度：**Phase 3 捲動電影 + 碎裂區完成**（`npm run build` 綠燈）。已完成 Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影，招牌句「碎裂不是天罰，是天地最後一次自救」）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視 Hero 與碎裂區 scrub**。下一步 **Phase 4 玩法四合一 + 英雄卡**——見 `docs/plan.md`。
+目前進度：**Phase 4 玩法四合一 + 英雄卡完成**（`npm run build` 綠燈）。已完成 Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）、Phase 4（玩法四柱 scroll-reveal＋程序化 SVG 母題；白棠/暗影/赤焰/青蘿英雄卡＋元素徽記＋種子化星座＋換裝槽＋指標微傾）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視 Hero、碎裂區 scrub、玩法/英雄進場**。下一步 **Phase 5 主題曲 / World Tree**——見 `docs/plan.md`。

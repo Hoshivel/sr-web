@@ -2,7 +2,7 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：**Phase 3 捲動電影 + 碎裂區完成並 push、build 綠**（Lenis 平滑捲動＋錨點平滑＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）。Phase 2 Hero 已簽核。下一步 Phase 4 玩法四合一 + 英雄卡。
+- 進度摘要：**Phase 4 玩法四合一 + 英雄卡完成並 push、build 綠**（玩法四柱 scroll-reveal＋程序化 SVG 母題；英雄卡白棠/暗影/赤焰/青蘿＋元素徽記＋種子化星座＋換裝槽＋指標微傾）。下一步 Phase 5 主題曲 / World Tree。
 - 相關：branch `claude/sr-web-plan-continue-od8l0n`（前身 `claude/sr-web-animation-planning-u1vujx` 已併入 main）
 - **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
@@ -11,7 +11,7 @@
 1. 讀本檔（目標 / 進度 / 待辦 / `Editing`）與 `docs/plan.md`（完整計畫）。
 2. `Editing = idle` → 工作區一致、無半編輯檔；可直接從「待辦」最上面一項開始。
 3. `npm install` → `npm run build` 應綠燈；`npm run dev` 起本地開發。
-4. 下一步：**Phase 4 玩法四合一 + 英雄卡**（見 `docs/plan.md`）。Phase 1–3 已完成並簽核/推送。
+4. 下一步：**Phase 5 主題曲 / World Tree**（見 `docs/plan.md`）。Phase 1–4 已完成/推送（Phase 2 Hero 已簽核；Phase 3–4 待視覺簽核）。
 
 ## 目標 / 需求
 （實時更新；新增需求往下追加並標註時間）
@@ -28,25 +28,27 @@
 
 ## 進度
 ### 待辦
-- [ ] **Phase 4 玩法四合一 + 英雄卡**（棋類策略/RPG/MOBA/開放探索 scroll-reveal；白棠/暗影/赤焰/青蘿卡片＋換裝槽）
 - [ ] Phase 5 主題曲 / World Tree + 章節氛圍 morph
 - [ ] Phase 6 Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽
 - [ ] Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）
 
 ### 進行中
-- [ ]（無 —— Phase 3 全數完成並 push，停在 Phase 3/4 邊界）
+- [ ]（無 —— Phase 4 全數完成並 push，停在 Phase 4/5 邊界）
 
-### 驗收方式（Hero + 碎裂區，`npm run dev` → `/`、`/zh-cn`、`/en`）
+### 驗收方式（Hero + 碎裂區 + 玩法 + 英雄，`npm run dev` → `/`、`/zh-cn`、`/en`）
 - **Hero**：漂浮發光碎片＋星雲（Pixi）；游標星座＋光暈（Starfield）；◈ 脈動、漸層字標、Play/Learn **磁吸** CTA。
 - **碎裂區**（往下捲）：區塊 pin 住，殘片隨捲動向虛空**四散＋褪色**（去飽和淡出），招牌句「碎裂不是天罰，是天地最後一次自救」。導覽/CTA 錨點**平滑捲動**（Lenis）。
-- **降級**：開「減少動態」→ 全站靜態（無虛空/無 scrub/原生捲動）；**手機（≤720px）不載入 Pixi**。
+- **玩法區**（#gameplay，點 header「玩法」）：四柱（棋類策略/RPG 成長/MOBA 技能/開放探索）**逐一 stagger 進場**，各帶程序化 SVG 母題（六邊形蜂巢/成長條/技能環/地景）與元素色頂線；hover 卡片浮起＋光暈。
+- **英雄區**（#characters，點 header「英雄」）：四英雄卡（白棠❄/暗影☾/赤焰❂/青蘿❦）進場，換裝槽以元素徽記＋星座佔位（徽記浮動、hover 顯「立繪待接」）；桌機**指標移動時卡片微傾**（3D parallax）。
+- **降級**：開「減少動態」→ 全站靜態（無虛空/無 scrub/原生捲動、母題與徽記靜止、卡片不傾）；**手機（≤720px）不載入 Pixi**、觸控裝置不啟用磁吸/微傾。
 
-### Phase 4 冷接手備忘（下次起手）
-- 目標：玩法四合一 scroll-reveal（棋類策略/RPG 成長/MOBA 技能/開放探索）＋英雄卡（白棠/暗影/赤焰/青蘿，程序化佔位＋換裝槽）。接於 `Home.astro` 碎裂區之後，`id="gameplay"`、`id="characters"`（header/footer 已指向）。
-- 文案源（遊戲 i18n）：`char.hakuto/shadow/sekien/aoiro.name`＋`.lore`（三語，見 `frontend/src/i18n/translations.ts` 行 ~1538/3199/4946）；玩法四支柱說明見 line ~451/2108/3760。→ 新增 `gameplay.*`、`char.*` 到 `src/i18n/ui.ts`。
-- 已就緒接口：`[data-reveal]`（stagger 進場）、`.sr-section`/`.sr-eyebrow`/`.sr-btn`、`bootScrollCinema`（如需 scroll 綁定）、glyph 系統（元素光暈）。換裝槽＝角色卡預留 `media` 區位（日後換立繪）。
+### Phase 5 冷接手備忘（下次起手）
+- 目標：主題曲 / World Tree——章節氛圍隨捲動 morph（snowpass 冰藍 ❄ → starseal 星紫 ✶），可複用遊戲 `ui/meta/Entry.tsx`「碎界樹」spring-damper 物理。接於 `Home.astro` 英雄卡之後，`id="chapters"`（header/footer 已指向）。
+- 已就緒接口：`[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`（tokens.css 已備）；`bootScrollCinema()`（Lenis＋ScrollTrigger 單例，可綁 scrub/pin）；glyph 系統 `.sr-glyph-snowpass`/`.sr-glyph-starseal`。文案源：遊戲 `theme.*.tagline`、章節名 `Snowbound Passage`/`Age of Starmarks`（已定於 ui.ts 之外，需新增 `chapters.*` 鍵）。
+- 待決：World Tree 走「複用 Entry.tsx 物理（React island）」或「純捲動氛圍 morph」二選一——Phase 5 起手時定。
 
 ### 已完成（精簡摘要）
+- [x] Phase 4 玩法四合一 + 英雄卡：`src/i18n/ui.ts` 加 `gameplay.*`（四柱 name/desc＋eyebrow/title/lead）＋`char.*`（四英雄 name/epithet/element/fantasy＋eyebrow/title/lead/slotNote），三語齊備（文案蒸餾自遊戲 `translations.ts` 角色 lore 與 `rules.*` 玩法規則）。`Gameplay.astro`（#gameplay）＝四柱（棋類策略/RPG 成長/MOBA 技能/開放探索）grid，各帶程序化 inline-SVG 母題（tactics 蜂巢六邊形〔frontmatter 程序生成頂點〕/growth 成長條/skills 技能環/explore 地景），元素色 `--el`＋頂緣細線＋hover 浮起；進場靠 `[data-reveal]`（Layout 已 boot），母題 CSS 微動、reduced-motion 全關。`Characters.astro`（#characters）＝四英雄卡（白棠❄/暗影☾/赤焰❂/青蘿❦），換裝槽＝`.hero-card__portrait`（元素徽記＋種子化星座 SVG〔各英雄不同 seed〕＋徽記浮動＋hover 顯 slotNote「立繪待接」，日後疊 `.hero-card__art` 立繪即換裝）＋元素 tag/漸層名/題詞/玩法幻想；指標微傾 3D parallax（scoped script，reduced-motion＋非精細指標守衛）。掛於 `Home.astro` 碎裂區後。三路由 SSR 出 #gameplay/#characters＋在地文案（簡繁英）、母題 sprite/徽記/星座皆落 HTML、build 綠。無新增首屏重 JS（純 CSS/SVG＋2.7KB gz tilt chunk）。
 - [x] Phase 3c 打磨/文件：`bootScrollCinema` 內接 Lenis 錨點平滑捲動（攔截 `a[href^="#"]`→`lenis.scrollTo`、pushState；目標不存在則退回原生）→ header/footer 導覽與 hero 捲動提示皆平滑。plan/README 標 Phase 3 完成。build 綠。
 - [x] Phase 3b 碎裂溶解電影：Shattering `<script>` 呼叫 `bootScrollCinema` → pin(#world)+scrub(140%) 時間軸：殘片 `xPercent/yPercent` 補置中、由凝聚態 scrub 至四散（讀 inline `--dx/--dy/--r1`）＋淡出至 opacity 0.04，殘片層 `grayscale(0.7)`（褪色）。文案維持可讀。reduced-motion→boot 回 null 略過。Lenis(5.3KB gz)/GSAP+ScrollTrigger(~46KB gz) 動態 chunk；smooth scroll 於 Phase 3 起上線。三路由引用 script、build 綠。
 - [x] Phase 3a 捲動框架 + 碎裂區靜態：三語 `world.*` 文案（招牌句「碎裂不是天罰，是天地最後一次自救」＋lead/body，源自遊戲碎界 lore）。`src/lib/scrollCinema.ts` 單例 boot（Lenis+ScrollTrigger 各一、與 Lenis 同步；reduced-motion 回 null；Lenis/GSAP 動態載入）。`src/components/sections/Shattering.astro`（id=world、`data-scroll-cinema`）：種子化 34 片殘片（凝聚態＋各自四散目標 `--dx/--dy/--r1`）＋眉標/雙行招牌句(漸層)/lead/body（含 `::before` 底襯保可讀）。Home 掛於 Hero 後。三路由 SSR 出 #world＋殘片＋在地文案、build 綠。
@@ -70,7 +72,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 3 全數完成並 push、build 綠；下一步 Phase 4）
+- 半完成 / 風險：—（Phase 4 全數完成並 push、build 綠；下一步 Phase 5）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。
