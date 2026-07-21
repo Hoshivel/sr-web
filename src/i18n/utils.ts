@@ -20,6 +20,7 @@ export {
   HTML_LANG,
   OG_LOCALE,
   LOCALE_LABEL,
+  LOCALE_SHORT,
   type Locale,
   type UIKey,
 } from "./ui";

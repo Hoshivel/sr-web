@@ -1,0 +1,113 @@
+---
+/*
+  站尾 Footer —— brand（full 鎖定組）＋ 導覽 ＋ 語言切換 ＋ 致謝。
+*/
+import Wordmark from "@/components/brand/Wordmark.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+  path?: string;
+}
+const { locale, path = "/" } = Astro.props;
+const t = useTranslations(locale);
+const year = new Date().getFullYear();
+
+const nav = [
+  { href: "#world", label: t("nav.world") },
+  { href: "#gameplay", label: t("nav.gameplay") },
+  { href: "#chapters", label: t("nav.chapters") },
+  { href: "#characters", label: t("nav.characters") },
+  { href: "#play", label: t("nav.play") },
+];
+---
+
+<footer class="sr-footer">
+  <div class="sr-container sr-footer__inner">
+    <div class="sr-footer__brand">
+      <Wordmark locale={locale} variant="full" />
+      <p class="sr-footer__summary" data-reveal>{t("footer.summary")}</p>
+    </div>
+
+    <nav class="sr-footer__nav" aria-label={t("nav.gameplay")}>
+      {nav.map((item) => (
+        <a class="sr-footer__link" href={item.href}>{item.label}</a>
+      ))}
+    </nav>
+
+    <div class="sr-footer__lang">
+      <span class="sr-eyebrow">{t("footer.langLabel")}</span>
+      <LanguageSwitcher locale={locale} path={path} />
+    </div>
+  </div>
+
+  <div class="sr-container sr-footer__base">
+    <p class="sr-footer__note">{t("footer.note")}</p>
+    <p class="sr-footer__rights">
+      <span class="sr-glyph sr-glyph-mark" aria-hidden="true"></span>
+      © {year} {t("footer.rights")}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .sr-footer {
+    border-top: 1px solid var(--sr-border);
+    background: var(--sr-bg-deep);
+    padding-block: var(--sr-space-16) var(--sr-space-8);
+  }
+  .sr-footer__inner {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr auto;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: start;
+  }
+  .sr-footer__summary {
+    margin-top: var(--sr-space-4);
+    max-width: 42ch;
+    color: var(--sr-text-muted);
+    font-size: var(--sr-text-sm);
+  }
+  .sr-footer__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .sr-footer__link {
+    color: var(--sr-text-muted);
+    font-size: var(--sr-text-sm);
+    transition: color var(--sr-dur-fast) var(--sr-ease-out);
+    width: fit-content;
+  }
+  .sr-footer__link:hover {
+    color: var(--sr-text-bright);
+  }
+  .sr-footer__lang {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .sr-footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: var(--sr-space-12);
+    padding-top: var(--sr-space-6);
+    border-top: 1px solid var(--sr-border);
+    color: var(--sr-text-dim);
+    font-size: var(--sr-text-xs);
+  }
+  .sr-footer__rights {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  @media (max-width: 760px) {
+    .sr-footer__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

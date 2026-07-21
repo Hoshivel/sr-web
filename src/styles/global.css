@@ -103,6 +103,49 @@ button {
   color: var(--sr-text-muted);
 }
 
+/* 按鈕基元（品牌一致的 CTA；hero / header / play 共用） */
+.sr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.62rem 1.15rem;
+  border-radius: var(--sr-radius-pill);
+  font-size: var(--sr-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform var(--sr-dur-fast) var(--sr-ease-out),
+    box-shadow var(--sr-dur-fast) var(--sr-ease-out),
+    border-color var(--sr-dur-fast) var(--sr-ease-out),
+    color var(--sr-dur-fast) var(--sr-ease-out);
+}
+.sr-btn:hover {
+  transform: translateY(-1px);
+}
+.sr-btn:active {
+  transform: translateY(0);
+}
+.sr-btn--primary {
+  color: #0a0c12;
+  background: var(--sr-accent-grad);
+  box-shadow: var(--sr-glow-accent);
+}
+.sr-btn--primary:hover {
+  box-shadow: 0 0 30px rgba(143, 169, 255, 0.5);
+}
+.sr-btn--ghost {
+  color: var(--sr-text);
+  border: 1px solid var(--sr-border-strong);
+  background: rgba(255, 255, 255, 0.02);
+}
+.sr-btn--ghost:hover {
+  border-color: var(--sr-accent);
+  color: var(--sr-text-bright);
+}
+
 /*
   字符系統：以偽元素輸出品牌 Unicode 字符（◈ ❄ ✶ ◆）。
   裝飾性用途；語意名稱交給 aria-label / sr-visually-hidden。

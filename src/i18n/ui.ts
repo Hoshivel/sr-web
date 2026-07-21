@@ -39,6 +39,13 @@ export const LOCALE_LABEL: Record<Locale, string> = {
   en: "English",
 };
 
+/** 精簡標籤（header 語言切換器用；完整名放 title/aria-label）。 */
+export const LOCALE_SHORT: Record<Locale, string> = {
+  "zh-Hant": "繁",
+  "zh-CN": "简",
+  en: "EN",
+};
+
 // zh-Hant 為鍵的權威來源；其餘語言以 Record<UIKey, string> 強制對齊。
 const zhHant = {
   "site.name": "碎界",
