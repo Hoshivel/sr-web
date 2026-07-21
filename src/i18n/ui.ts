@@ -150,6 +150,24 @@ const zhHant = {
   "theme.starseal.tagline": "星辰已經消失，只剩下痕跡。",
   "theme.starseal.story":
     "世界曾由「星痕」維繫——河流、山脈、森林乃至命運皆刻於天空星痕。某日星痕破碎，大地失去固定形態；你作為觀星者，踏上重塑世界法則的旅程。",
+
+  // 開始遊戲 Play（#play）
+  "play.eyebrow": "開始遊戲",
+  "play.titleA": "選一個節點，",
+  "play.titleB": "踏入六角戰場",
+  "play.lead":
+    "分流器探活各區節點、擇優連線；選定後即以 iframe 嵌入該節點的即時對戰畫面。本次為前端展示，未接真實分流後端。",
+  "play.serversTitle": "節點",
+  "play.recommended": "建議",
+  "play.enter": "進入戰場",
+  "play.disconnect": "離線",
+  "play.idleHint": "選好節點 → 進入戰場",
+  "play.mockNote": "節點清單與連線皆為 mock；契約已寫死，未來 Go 分流後端可無痛替換。",
+  "play.shotsTitle": "戰場一瞥",
+  "play.shotNote": "截圖待接",
+  "play.region.hk1": "香港",
+  "play.region.jp1": "東京",
+  "play.region.sg1": "新加坡",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -253,6 +271,23 @@ const zhCN: Record<UIKey, string> = {
   "theme.starseal.tagline": "星辰已经消失，只剩下痕迹。",
   "theme.starseal.story":
     "世界曾由「星痕」维系——河流、山脉、森林乃至命运皆刻于天空星痕。某日星痕破碎，大地失去固定形态；你作为观星者，踏上重塑世界法则的旅程。",
+
+  "play.eyebrow": "开始游戏",
+  "play.titleA": "选一个节点，",
+  "play.titleB": "踏入六角战场",
+  "play.lead":
+    "分流器探活各区节点、择优连线；选定后即以 iframe 嵌入该节点的即时对战画面。本次为前端展示，未接真实分流后端。",
+  "play.serversTitle": "节点",
+  "play.recommended": "建议",
+  "play.enter": "进入战场",
+  "play.disconnect": "离线",
+  "play.idleHint": "选好节点 → 进入战场",
+  "play.mockNote": "节点清单与连线皆为 mock；契约已写死，未来 Go 分流后端可无痛替换。",
+  "play.shotsTitle": "战场一瞥",
+  "play.shotNote": "截图待接",
+  "play.region.hk1": "香港",
+  "play.region.jp1": "东京",
+  "play.region.sg1": "新加坡",
 };
 
 const en: Record<UIKey, string> = {
@@ -363,6 +398,23 @@ const en: Record<UIKey, string> = {
   "theme.starseal.tagline": "The stars are gone; only their marks remain.",
   "theme.starseal.story":
     "The world was once held by the star-seal — rivers, mountains, forests, even fate, inscribed in the sky. When it shattered, the land lost its fixed shape; as a Stargazer you set out to reshape the world's laws.",
+
+  "play.eyebrow": "Play",
+  "play.titleA": "Pick a node, ",
+  "play.titleB": "step onto the hex battlefield",
+  "play.lead":
+    "The router health-checks each regional node and connects you to the best one; your pick is then embedded live via iframe. This is a front-end showcase — no real routing backend yet.",
+  "play.serversTitle": "Nodes",
+  "play.recommended": "Best",
+  "play.enter": "Enter the battlefield",
+  "play.disconnect": "Disconnect",
+  "play.idleHint": "Pick a node → enter",
+  "play.mockNote": "The node list and connection are mocked; the contract is fixed so a future Go routing backend drops in unchanged.",
+  "play.shotsTitle": "Battlefield glimpses",
+  "play.shotNote": "Screenshots incoming",
+  "play.region.hk1": "Hong Kong",
+  "play.region.jp1": "Tokyo",
+  "play.region.sg1": "Singapore",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {

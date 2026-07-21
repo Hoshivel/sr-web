@@ -11,6 +11,7 @@ import Shattering from "@/components/sections/Shattering.astro";
 import Gameplay from "@/components/sections/Gameplay.astro";
 import Chapters from "@/components/sections/Chapters.astro";
 import Characters from "@/components/sections/Characters.astro";
+import Play from "@/components/sections/Play.astro";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -71,6 +72,9 @@ const learnHref = "#world";
   <Chapters locale={locale} />
 
   <Characters locale={locale} />
+
+  <!-- Phase 6：開始遊戲 Play（mock 分流 + iframe 即時展示 + 截圖換裝槽） -->
+  <Play locale={locale} />
 </main>
 
 <style>

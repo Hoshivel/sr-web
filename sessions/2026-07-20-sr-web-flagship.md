@@ -2,7 +2,7 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：**Phase 5 主題曲 / 碎界樹完成並 push、build 綠**（複用遊戲 Entry.tsx spring-damper 物理→官網版 React island：拖曳拋擲節點、彎曲擺動枝條＋盤根、formation 耦合；3 節點碎界◈/風雪過境❄/星痕紀元✶＋章節詳情卡＋章節氛圍 morph 冰藍↔星紫；seed 決定性、響應式、SSR 靜態樹）。下一步 Phase 6 Play 啟動器（mock）＋即時 Pixi 展示。
+- 進度摘要：**Phase 6 Play 啟動器 + iframe 即時展示完成並 push、build 綠**（mock 分流節點清單 health/latency/load ← 靜態 `/api/play.json`；選節點→**iframe 嵌入**同源 `/play/session/` mock 對戰頁＝即時 Pixi 六角戰場＋遙測 HUD；截圖換裝槽）。下一步 Phase 7 打磨（效能/a11y/行動/SEO/部署）。
 - 相關：branch `claude/sr-web-plan-continue-od8l0n`（前身 `claude/sr-web-animation-planning-u1vujx` 已併入 main）
 - **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
@@ -11,7 +11,7 @@
 1. 讀本檔（目標 / 進度 / 待辦 / `Editing`）與 `docs/plan.md`（完整計畫）。
 2. `Editing = idle` → 工作區一致、無半編輯檔；可直接從「待辦」最上面一項開始。
 3. `npm install` → `npm run build` 應綠燈；`npm run dev` 起本地開發。
-4. 下一步：**Phase 6 Play 啟動器（mock）＋即時 Pixi 展示**（見 `docs/plan.md`）。Phase 1–5 已完成/推送（Phase 2 Hero 已簽核；Phase 3–5 待視覺簽核）。
+4. 下一步：**Phase 7 打磨**（效能/a11y/行動/SEO/部署，見 `docs/plan.md`）。Phase 1–6 已完成/推送（Phase 2 Hero 已簽核；Phase 3–6 待視覺簽核）。這是計畫最後一個功能階段——Phase 7 後全站功能齊備。
 
 ## 目標 / 需求
 （實時更新；新增需求往下追加並標註時間）
@@ -28,11 +28,10 @@
 
 ## 進度
 ### 待辦
-- [ ] Phase 6 Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽
-- [ ] Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）
+- [ ] Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）—— 計畫最後階段
 
 ### 進行中
-- [ ]（無 —— Phase 5 全數完成並 push，停在 Phase 5/6 邊界）
+- [ ]（無 —— Phase 6 全數完成並 push，停在 Phase 6/7 邊界）
 
 ### 驗收方式（Hero + 碎裂區 + 玩法 + 英雄，`npm run dev` → `/`、`/zh-cn`、`/en`）
 - **Hero**：漂浮發光碎片＋星雲（Pixi）；游標星座＋光暈（Starfield）；◈ 脈動、漸層字標、Play/Learn **磁吸** CTA。
@@ -40,15 +39,18 @@
 - **玩法區**（#gameplay，點 header「玩法」）：四柱（棋類策略/RPG 成長/MOBA 技能/開放探索）**逐一 stagger 進場**，各帶程序化 SVG 母題（六邊形蜂巢/成長條/技能環/地景）與元素色頂線；hover 卡片浮起＋光暈。
 - **英雄區**（#characters，點 header「英雄」）：四英雄卡（白棠❄/暗影☾/赤焰❂/青蘿❦）進場，換裝槽以元素徽記＋星座佔位（徽記浮動、hover 顯「立繪待接」）；桌機**指標移動時卡片微傾**（3D parallax）。
 - **主題曲/碎界樹**（#chapters，點 header「主題曲」）：三節點碎界◈/風雪過境❄/星痕紀元✶ 在星流中**漂浮飄動**（spring-damper），枝條/盤根隨之彎曲擺動；**拖曳節點可拋擲**（放手保留動量、彈簧拉回、撞邊回彈），整棵樹如編隊一起晃（formation 耦合）；**點按節點展開章節卡**（起源/第一章/第二章＋題詞＋故事＋已上線/即將 狀態），**hover/選取時全區氛圍色 morph**（碎界青紫→風雪冰藍→星痕星紫）。
-- **降級**：開「減少動態」→ 全站靜態（無虛空/無 scrub/原生捲動、母題與徽記靜止、卡片不傾、**碎界樹靜態不漂/不可拖，點按仍展開章節卡**）；**手機（≤720px）不載入 Pixi**、觸控裝置不啟用磁吸/微傾（碎界樹觸控可拖，空白處縱向捲動照常）。
+- **Play 區**（#play，點 header/hero「開始遊戲」）：分流器列出節點（香港/東京/新加坡，探活綠點/壅塞金點＋延遲 ms＋負載條，自動預選建議節點）；按「進入戰場」→ 右側 **iframe 嵌入**同源對戰頁＝**即時 Pixi 六角戰場**（發光格盤＋掃描光束＋元素單位）＋遙測 HUD（節點/延遲/負載/STANDBY→LIVE）。下方「戰場一瞥」＝三格程序化截圖換裝槽（日後疊真截圖）。
+- **降級**：開「減少動態」→ 全站靜態（無虛空/無 scrub/原生捲動、母題與徽記靜止、卡片不傾、碎界樹靜態不漂/不可拖但可點、**Play 對戰頁 Pixi 不啟用→靜態六角底襯**）；**手機（≤720px）不載入 Hero Pixi**、觸控不啟用磁吸/微傾；Play 節點清單於前端 fetch `/api/play.json` 後注入（載入時顯骨架）。
 
-### Phase 6 冷接手備忘（下次起手）
-- 目標：Play 啟動器（mock）＋即時 Pixi 六角格展示＋media 換裝槽。接於 `Home.astro` 碎界樹之後（或適當位置），`id="play"`（header/footer「開始遊戲」CTA、hero Play 皆指向 `#play`）。
-- Play 契約（plan.md §Play 流程）：island 呼叫 `GET /api/play`（或 `/api/servers`），本次由靜態 JSON / Astro endpoint 回 mock regions（`hk1.svc.oha.li`/`jp1.svc.oha.li`，欄位 `region/url/healthy/latencyMs/load`）→ 挑一個 → iframe 嵌入或 redirect（**iframe vs redirect 待 Phase 6 前定**）。寫死契約讓未來 Go 分流後端無痛替換。
-- 即時展示：無截圖 → 小型 Pixi 六角格即時展示（複用 Hero 的 Pixi 動態載入模式：`client:visible`＋窄視窗降級＋reduced-motion 靜態）。
-- 已就緒接口：Pixi 動態 import 模式（見 `VoidField.tsx`）、`useReducedMotion` hook、`.sr-btn`/`.sr-section`/`[data-reveal]`、glyph 系統。media 換裝槽沿用 Characters 的 `.hero-card__art` 疊圖手法。
+### Phase 7 冷接手備忘（下次起手 · 計畫最後階段）
+- 目標：打磨——效能 / a11y / 行動 / SEO / 部署。全站功能已齊（Hero→碎裂→玩法→碎界樹→英雄→Play）。
+- 效能：檢視多 Pixi context（Hero VoidField＋Play iframe HexField）於桌機併存的負載；`inlineStylesheets:auto` 已開；確認 Lighthouse 桌機 perf≥90、無 CLS（island 晚注水處已給定尺寸：Hero canvas SSR、碎界樹 SSR 靜態樹、Play view aspect-ratio、iframe 有框）。
+- a11y：跑一輪鍵盤/對比/aria（碎界樹節點鍵盤只切卡不可拖＝可接受；Play 節點 role=option；iframe 有 title）。行動：窄視窗各區手測。
+- SEO：`sitemap`（可加 `@astrojs/sitemap`）、確認 `/play/session/` 已 noindex（已加）、OG 圖已就緒。部署：`sr.oha.li`；若 `sr.oha.li` 跨源嵌入真實遊戲後端，需把其 https origin 加入遊戲後端 `allowedOrigins`（見 play.ts 註）。
+- 契約備忘：Play 真實化只需把 `/api/play.json`（或 fetch 目標）換成 Go 後端、`region.url` 指向真實遊戲主機；前端 `iframe.src = region.url` 不改。
 
 ### 已完成（精簡摘要）
+- [x] Phase 6 Play 啟動器 + iframe 即時展示 + 截圖換裝槽：`src/lib/play.ts`（契約型別 `PlayRegion`/`PlayResponse`＋`MOCK_PLAY` 三節點 hk1/jp1/sg1〔含一壅塞〕＋`recommendRegion`）＋`src/pages/api/play.json.ts`（`prerender` 靜態 endpoint→`/api/play.json`）。`PlayLauncher.tsx`（island，client:visible）：fetch `/api/play.json`→列節點（探活綠/金點＋延遲＋負載條＋建議徽記，自動預選 recommend）→選節點即 iframe 顯示該節點對戰頁（idle），按「進入戰場」加 `&connect=1`→LIVE；fetch 失敗退回內建 mock。`src/pages/play/session.astro`（iframe 同源 mock 對戰頁，極簡獨立文件、noindex）：`HexField.tsx`（Pixi 六角戰場即時展示——程序化發光格盤＋掃描光束＋元素單位 token，複用 VoidField 動態 import/DPR≤2/resize 重建/try-catch 降級、reduced-motion 不啟用）＋語言中性遙測 HUD（查詢參數於 client 端讀）＋靜態六角底襯 fallback。`Play.astro`（#play 殼：eyebrow/title/lead＋launcher＋「戰場一瞥」三格程序化截圖換裝槽〔種子星點＋glyph，日後疊 `.play-shot__art`〕）。i18n 加 `play.*` 三語（含 region.hk1/jp1/sg1）。掛於 `Home.astro` Characters 後。契約寫死：真實 Go 分流後端回同形狀時前端不改（`iframe.src = region.url`）。四頁 build（3 locale＋session＋endpoint）綠、astro check 0 errors、SSR launcher 顯骨架（節點 client 注入）、HexField/PlayLauncher 各自 chunk。
 - [x] Phase 5 主題曲 / 碎界樹：`src/i18n/ui.ts` 加 `chapters.*`（eyebrow/title/lead/hint/status.*/close）＋`theme.{shattered,snowpass,starseal}.{name,kicker,tagline,story}`，三語齊備（文案源＝遊戲 `theme.json` 標題/tagline＋`translations.ts` `theme.*.story`；英文章節名依 theme.json＝Snowbound Passage / Age of Starmarks）。`WorldTree.tsx`（React island，改編自遊戲 `ui/meta/Entry.tsx`）：複用 spring-damper 物理（SPRING_K/C＋LINK_K formation 耦合）＋拖曳拋擲（動量/彈簧/撞邊回彈）＋彎曲擺動枝條＋盤根 tendril；改進為官網版——去後端/store/account 依賴（自足、吃 sr-web i18n）、**seed 決定性佈局**（mulberry32，SSR/client 一致無 hydration 不符）、**響應式**（物理跑 600×480 viewBox 設計座標，節點 left/top% 定位、枝條 SVG 自動縮放、拖曳輸入以 stage 實寬換算）、**章節氛圍 morph**（active＝選取>hover 節點色驅動 `--wt-accent`、CSS 過場）、reduced-motion 靜態不漂/不可拖（點按仍展開卡）、觸控可拖＋空白處縱向捲動（`.wt-node` touch-action none／stage pan-y）。`WorldTree.css`（wt- 前綴、隨 island chunk）＋`Chapters.astro`（#chapters 殼：eyebrow/title/lead＋island＋hint）。掛於 `Home.astro` Gameplay 後、Characters 前（合 header/footer 導覽序 world→gameplay→chapters→characters）。三路由 SSR 出靜態樹（3 節點就錨點定位＋9 path 已畫 d＋在地章節名，詳情卡 SSR 不出＝state 空）、CSS 進 head 無 FOUC、島 8.2KB gz（client:visible 延遲抓）、build 綠。
 - [x] Phase 4 玩法四合一 + 英雄卡：`src/i18n/ui.ts` 加 `gameplay.*`（四柱 name/desc＋eyebrow/title/lead）＋`char.*`（四英雄 name/epithet/element/fantasy＋eyebrow/title/lead/slotNote），三語齊備（文案蒸餾自遊戲 `translations.ts` 角色 lore 與 `rules.*` 玩法規則）。`Gameplay.astro`（#gameplay）＝四柱（棋類策略/RPG 成長/MOBA 技能/開放探索）grid，各帶程序化 inline-SVG 母題（tactics 蜂巢六邊形〔frontmatter 程序生成頂點〕/growth 成長條/skills 技能環/explore 地景），元素色 `--el`＋頂緣細線＋hover 浮起；進場靠 `[data-reveal]`（Layout 已 boot），母題 CSS 微動、reduced-motion 全關。`Characters.astro`（#characters）＝四英雄卡（白棠❄/暗影☾/赤焰❂/青蘿❦），換裝槽＝`.hero-card__portrait`（元素徽記＋種子化星座 SVG〔各英雄不同 seed〕＋徽記浮動＋hover 顯 slotNote「立繪待接」，日後疊 `.hero-card__art` 立繪即換裝）＋元素 tag/漸層名/題詞/玩法幻想；指標微傾 3D parallax（scoped script，reduced-motion＋非精細指標守衛）。掛於 `Home.astro` 碎裂區後。三路由 SSR 出 #gameplay/#characters＋在地文案（簡繁英）、母題 sprite/徽記/星座皆落 HTML、build 綠。無新增首屏重 JS（純 CSS/SVG＋2.7KB gz tilt chunk）。
 - [x] Phase 3c 打磨/文件：`bootScrollCinema` 內接 Lenis 錨點平滑捲動（攔截 `a[href^="#"]`→`lenis.scrollTo`、pushState；目標不存在則退回原生）→ header/footer 導覽與 hero 捲動提示皆平滑。plan/README 標 Phase 3 完成。build 綠。
@@ -74,7 +76,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 5 全數完成並 push、build 綠；下一步 Phase 6）
+- 半完成 / 風險：—（Phase 6 全數完成並 push、build 綠；下一步 Phase 7 打磨＝計畫最後階段）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。

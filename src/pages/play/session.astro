@@ -1,0 +1,215 @@
+---
+/*
+  /play/session/ —— Play 對戰頁（供 Play 啟動器以 iframe 嵌入的同源 mock 畫面）。
+  極簡獨立文件（無 header/footer/SEO）：程序化六角戰場（HexField Pixi）＋ 語言中性
+  遙測 HUD（節點代號 / 延遲 ms / 負載 % / LIVE·STANDBY）。
+  查詢參數（region/host/ping/load/connect）於靜態站無法在伺服器端讀 → 由頁內 script
+  以 location.search 於 client 端填入。真實後端時，此頁由真實遊戲 client 取代（見 play.ts）。
+*/
+import HexField from "@/components/hero/HexField.tsx";
+import "@/styles/global.css";
+
+// 靜態底襯六角（決定性）：Pixi 未啟用 / 未注水 / reduced-motion 時仍見盤面。
+const SQRT3 = Math.sqrt(3);
+function hexPoints(cx: number, cy: number, s: number): string {
+  const p: string[] = [];
+  for (let k = 0; k < 6; k++) {
+    const a = (Math.PI / 3) * k;
+    p.push(`${(cx + s * Math.cos(a)).toFixed(1)},${(cy + s * Math.sin(a)).toFixed(1)}`);
+  }
+  return p.join(" ");
+}
+const S = 22;
+const COLS = 6;
+const ROWS = 4;
+const cells: string[] = [];
+for (let c = 0; c < COLS; c++) {
+  for (let r = 0; r < ROWS; r++) {
+    const cx = S + c * 1.5 * S;
+    const cy = (SQRT3 / 2) * S + r * SQRT3 * S + (c % 2 ? (SQRT3 / 2) * S : 0);
+    cells.push(hexPoints(cx, cy, S * 0.94));
+  }
+}
+const vbW = S + (COLS - 1) * 1.5 * S + S;
+const vbH = (SQRT3 / 2) * S + (ROWS - 1) * SQRT3 * S + (SQRT3 / 2) * S + (SQRT3 / 2) * S;
+---
+
+<!doctype html>
+<html lang="zh-Hant" data-session>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Shattered Realms — Session</title>
+  </head>
+  <body class="pg-body">
+    <div class="pg-view">
+      <!-- 靜態底襯（Pixi 疊於其上；WebGL 失效 / reduced-motion 時作為畫面） -->
+      <svg class="pg-fallback" viewBox={`0 0 ${vbW.toFixed(1)} ${vbH.toFixed(1)}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        {cells.map((pts) => <polygon points={pts} />)}
+      </svg>
+
+      <HexField client:load />
+
+      <!-- 遙測 HUD（語言中性；由 script 填值） -->
+      <div class="pg-hud">
+        <div class="pg-hud__top">
+          <span class="pg-mark" aria-hidden="true">◈</span>
+          <span class="pg-title">SHATTERED REALMS</span>
+          <span class="pg-status" data-status>
+            <span class="pg-dot"></span><span data-status-text>STANDBY</span>
+          </span>
+        </div>
+        <div class="pg-hud__tele">
+          <span class="pg-chip"><b data-region>—</b><small data-host>—</small></span>
+          <span class="pg-chip">PING <b data-ping>—</b> ms</span>
+          <span class="pg-chip">LOAD <b data-load>—</b> %</span>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      // 讀 iframe 查詢參數 → 填 HUD（靜態站僅能於 client 端讀）。
+      (function () {
+        var q = new URLSearchParams(location.search);
+        var region = (q.get("region") || "").toUpperCase();
+        var host = q.get("host") || "";
+        var ping = q.get("ping") || "";
+        var load = q.get("load") || "";
+        var connected = q.get("connect") === "1";
+        var set = function (sel, val) {
+          var el = document.querySelector(sel);
+          if (el) el.textContent = val;
+        };
+        set("[data-region]", region || "—");
+        set("[data-host]", host || "");
+        set("[data-ping]", ping || "—");
+        set("[data-load]", load || "—");
+        set("[data-status-text]", connected ? "LIVE" : "STANDBY");
+        var st = document.querySelector("[data-status]");
+        if (st && connected) st.classList.add("is-live");
+        document.body.classList.toggle("is-connected", connected);
+      })();
+    </script>
+
+    <style is:global>
+      html,
+      body {
+        height: 100%;
+      }
+      .pg-body {
+        margin: 0;
+        min-height: 100%;
+        background: radial-gradient(80% 70% at 50% 40%, #0b0f1a, var(--sr-void));
+        overflow: hidden;
+      }
+      .pg-view {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+      }
+      /* 靜態底襯與 Pixi canvas 皆鋪滿 */
+      .pg-fallback,
+      .pg-view :global(.sr-hexfield),
+      .pg-view :global(canvas) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .pg-fallback {
+        fill: none;
+        stroke: rgba(143, 169, 255, 0.18);
+        stroke-width: 1;
+      }
+      /* HUD */
+      .pg-hud {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(0.6rem, 2.2vw, 1.1rem);
+        pointer-events: none;
+      }
+      .pg-hud__top {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .pg-mark {
+        color: var(--sr-accent);
+        font-size: 1.1rem;
+        text-shadow: var(--sr-glow-accent);
+      }
+      .pg-title {
+        font-family: var(--sr-font-sans);
+        font-size: 0.72rem;
+        letter-spacing: 0.22em;
+        color: var(--sr-text);
+      }
+      .pg-status {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.66rem;
+        letter-spacing: 0.16em;
+        color: var(--sr-text-muted);
+        border: 1px solid var(--sr-border);
+        border-radius: var(--sr-radius-pill);
+        padding: 0.2rem 0.6rem;
+        background: rgba(6, 7, 11, 0.5);
+      }
+      .pg-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--sr-text-dim);
+      }
+      .pg-status.is-live {
+        color: var(--sr-success);
+        border-color: color-mix(in srgb, var(--sr-success) 50%, var(--sr-border));
+      }
+      .pg-status.is-live .pg-dot {
+        background: var(--sr-success);
+        box-shadow: 0 0 10px var(--sr-success);
+        animation: pg-pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pg-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+      .pg-hud__tele {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .pg-chip {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.3rem;
+        font-size: 0.64rem;
+        letter-spacing: 0.1em;
+        color: var(--sr-text-muted);
+        border: 1px solid var(--sr-border);
+        border-radius: var(--sr-radius-sm);
+        padding: 0.22rem 0.5rem;
+        background: rgba(6, 7, 11, 0.5);
+      }
+      .pg-chip b {
+        color: var(--sr-text-bright);
+        font-variant-numeric: tabular-nums;
+      }
+      .pg-chip small {
+        color: var(--sr-text-dim);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pg-status.is-live .pg-dot {
+          animation: none;
+        }
+      }
+    </style>
+  </body>
+</html>
