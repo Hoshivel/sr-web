@@ -78,7 +78,11 @@ func (r *Router) SetRegions(regs []config.Region) {
 	r.updatedAt = r.timestamp()
 	r.mu.Unlock()
 
-	// 非阻塞觸發重探（緩衝 1；已有待處理訊號時略過）。
+	r.Reprobe()
+}
+
+// Reprobe 非阻塞觸發一次立即重探（緩衝 1；已有待處理訊號時略過）。供後臺「立即刷新」。
+func (r *Router) Reprobe() {
 	select {
 	case r.reprobe <- struct{}{}:
 	default:
