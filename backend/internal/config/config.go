@@ -166,24 +166,36 @@ func defaultFile() File {
 }
 
 // Load 由 CLI args 與設定檔解析出執行期設定（優先序 CLI > 檔 > 預設）。副作用：
-// 設定檔不存在時會以預設值產生一份。
+// 設定檔不存在時會以預設值產生一份。保留供不需即時修改的呼叫方 / 測試使用；需要
+// 動態管理（後臺）者用 LoadStore。
 func Load(args []string) (Config, error) {
+	file, listenAddr, path, notes, err := resolve(args)
+	if err != nil {
+		return Config{}, err
+	}
+	return deriveConfig(file, listenAddr, path, notes), nil
+}
+
+// resolve 解析 flags 與設定檔（缺檔則產生預設），套用 flag 對 listen 的覆寫，回傳
+// 有效的 File、監聽位址與載入訊息。File 保留檔內原值（listen 不受 flag 汙染，供
+// 後續持久化）。
+func resolve(args []string) (file File, listenAddr, path string, notes []string, err error) {
 	fs := flag.NewFlagSet("sr-web-router", flag.ContinueOnError)
 	var (
 		flagConfig = fs.String("config", "", "設定檔路徑（.json）；預設取工作目錄的 config.json")
 		flagIP     = fs.String("ip", "", "監聽 IP（空＝所有介面）")
 		flagPort   = fs.Int("port", 0, "監聽埠")
 	)
-	if err := fs.Parse(args); err != nil {
-		return Config{}, err
+	if perr := fs.Parse(args); perr != nil {
+		return File{}, "", "", nil, perr
 	}
 	set := map[string]bool{}
 	fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
 
-	file := defaultFile()
-	path, notes, err := loadFile(*flagConfig, &file)
+	file = defaultFile()
+	path, notes, err = loadFile(*flagConfig, &file)
 	if err != nil {
-		return Config{}, err
+		return File{}, "", "", nil, err
 	}
 
 	ip, port := file.Listen.IP, file.Listen.Port
@@ -193,7 +205,11 @@ func Load(args []string) (Config, error) {
 	if set["port"] {
 		port = *flagPort
 	}
+	return file, net.JoinHostPort(ip, strconv.Itoa(port)), path, notes, nil
+}
 
+// deriveConfig 由 File 純函式地推導執行期 Config（補預設、轉型別）。
+func deriveConfig(file File, listenAddr, path string, notes []string) Config {
 	interval := time.Duration(file.ProbeIntervalSeconds) * time.Second
 	if interval <= 0 {
 		interval = defaultProbeIntervalS * time.Second
@@ -206,9 +222,8 @@ func Load(args []string) (Config, error) {
 	if maxCandidates <= 0 {
 		maxCandidates = defaultMaxCandidates
 	}
-
 	return Config{
-		ListenAddr:     net.JoinHostPort(ip, strconv.Itoa(port)),
+		ListenAddr:     listenAddr,
 		AllowedOrigins: file.AllowedOrigins,
 		ProbeInterval:  interval,
 		ProbeTimeout:   timeout,
@@ -217,7 +232,7 @@ func Load(args []string) (Config, error) {
 		Regions:        file.Regions,
 		Path:           path,
 		Notes:          notes,
-	}, nil
+	}
 }
 
 // loadFile 尋找/讀取設定檔（不存在則以預設值產生），並把檔中的值疊到 *file 上。

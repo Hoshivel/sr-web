@@ -21,11 +21,12 @@ import (
 )
 
 func main() {
-	cfg, err := config.Load(os.Args[1:])
+	store, err := config.LoadStore(os.Args[1:])
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-	for _, n := range cfg.Notes {
+	cfg := store.Config()
+	for _, n := range store.Notes() {
 		log.Print(n)
 	}
 
@@ -34,12 +35,14 @@ func main() {
 	defer stop()
 
 	rt := router.New(cfg)
+	// 後臺動態增刪改節點時，即時替換探活清單並重探。
+	store.OnRegionsChange(rt.SetRegions)
 	go rt.Run(ctx)
 
-	srv := server.New(cfg, rt)
+	srv := server.New(store, rt)
 	httpSrv := &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           srv.Handler(),
+		Handler:           srv.Handler(nil), // 後臺於 Phase C 掛入
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

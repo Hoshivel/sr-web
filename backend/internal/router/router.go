@@ -23,6 +23,7 @@ type Router struct {
 	client   *http.Client
 	interval time.Duration
 	now      func() time.Time // 可注入，測試用
+	reprobe  chan struct{}    // 節點清單變動時觸發立即重探（緩衝 1，合併多次訊號）
 
 	mu        sync.RWMutex
 	regions   []config.Region // 目前正在探活的（啟用）節點設定
@@ -37,11 +38,51 @@ func New(cfg config.Config) *Router {
 		interval: cfg.ProbeInterval,
 		now:      time.Now,
 		client:   &http.Client{Timeout: cfg.ProbeTimeout},
+		reprobe:  make(chan struct{}, 1),
 	}
 	r.regions = activeRegions(cfg.Regions)
 	r.nodes = seedNodes(r.regions)
 	r.updatedAt = r.timestamp()
 	return r
+}
+
+// SetRegions 以新的節點設定即時替換探活清單（後臺動態管理用）。保留仍存在節點的
+// 最近一次探活狀態、為新節點種下未探活狀態，並觸發一次立即重探刷新。
+func (r *Router) SetRegions(regs []config.Region) {
+	active := activeRegions(regs)
+	r.mu.Lock()
+	prev := make(map[string]dispatch.Node, len(r.nodes))
+	for _, n := range r.nodes {
+		prev[n.Region.ID] = n
+	}
+	nodes := make([]dispatch.Node, len(active))
+	for i, rc := range active {
+		coord, ok := rc.Coord()
+		if old, exists := prev[rc.ID]; exists {
+			// 保留上次探活的健康 / 延遲 / 負載，更新可能改動的 host/url/座標。
+			old.Region.Host = rc.Host
+			old.Region.URL = rc.URL
+			old.Coord = coord
+			old.HasCoord = ok
+			nodes[i] = old
+			continue
+		}
+		nodes[i] = dispatch.Node{
+			Region:   play.Region{ID: rc.ID, Host: rc.Host, URL: rc.URL},
+			Coord:    coord,
+			HasCoord: ok,
+		}
+	}
+	r.regions = active
+	r.nodes = nodes
+	r.updatedAt = r.timestamp()
+	r.mu.Unlock()
+
+	// 非阻塞觸發重探（緩衝 1；已有待處理訊號時略過）。
+	select {
+	case r.reprobe <- struct{}{}:
+	default:
+	}
 }
 
 // activeRegions 過濾掉停用（Disabled）的節點。
@@ -104,6 +145,8 @@ func (r *Router) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-t.C:
+			r.probeAll(ctx)
+		case <-r.reprobe:
 			r.probeAll(ctx)
 		}
 	}
