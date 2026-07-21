@@ -1,146 +1,146 @@
 /*
   Play 啟動器樣式（play- 前綴、隨 island chunk 載入）。
-  左：分流器面板（節點清單＋探活/延遲/負載）；右：iframe 對戰視窗。
+  版面由上而下：橫向可滑動節點卡片（.play-nodes-bar）→ 嵌入視窗（.play-view）→
+  可拖拽把手（.play-resize）→ 控制列（.play-controls：進入 / 尺寸模式 / 新分頁）。
 */
 
-.play-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
-  gap: clamp(1rem, 2.4vw, 1.8rem);
-  align-items: start;
-}
-
-/* ---- 左：面板 ---- */
-.play-panel {
-  border: 1px solid var(--sr-border);
-  border-radius: var(--sr-radius-lg);
-  background: var(--sr-surface-1);
-  padding: var(--sr-space-4);
-}
-.play-panel__title {
-  font-size: var(--sr-text-xs);
-  letter-spacing: var(--sr-tracking-wider);
-  text-transform: uppercase;
-  color: var(--sr-text-muted);
-}
-.play-nodes {
-  list-style: none;
-  margin: var(--sr-space-3) 0 0;
-  padding: 0;
+.play-launcher {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.85rem;
 }
 
-.play-node {
-  position: relative;
-  width: 100%;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
+/* ---- 節點：橫向可滑動卡片 ---- */
+.play-nodes-bar {
+  display: flex;
   gap: 0.7rem;
-  padding: 0.7rem 0.8rem;
+  overflow-x: auto;
+  padding: 0.35rem 0.15rem 0.7rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sr-border-strong) transparent;
+}
+.play-nodes-bar::-webkit-scrollbar {
+  height: 6px;
+}
+.play-nodes-bar::-webkit-scrollbar-thumb {
+  background: var(--sr-border-strong);
+  border-radius: var(--sr-radius-pill);
+}
+
+.play-ncard {
+  position: relative;
+  flex: 0 0 auto;
+  width: 13.5rem;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
   text-align: left;
   border: 1px solid var(--sr-border);
   border-radius: var(--sr-radius);
   background: var(--sr-surface-2);
+  cursor: pointer;
   transition:
     border-color var(--sr-dur-fast) var(--sr-ease-out),
     background var(--sr-dur-fast) var(--sr-ease-out),
     transform var(--sr-dur-fast) var(--sr-ease-out);
 }
-.play-node:hover {
+.play-ncard:hover {
   border-color: var(--sr-border-strong);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
-.play-node.is-selected {
+.play-ncard.is-selected {
   border-color: var(--sr-accent);
   background: color-mix(in srgb, var(--sr-accent) 10%, var(--sr-surface-2));
   box-shadow: var(--sr-ring-accent);
 }
-.play-node.is-degraded {
-  opacity: 0.7;
+.play-ncard.is-degraded {
+  opacity: 0.72;
 }
-.play-node--skeleton {
-  height: 3.4rem;
-  border: 1px solid var(--sr-border);
-  border-radius: var(--sr-radius);
+.play-ncard--skeleton {
+  width: 13.5rem;
+  height: 5.4rem;
   background: linear-gradient(90deg, var(--sr-surface-2), var(--sr-surface-3), var(--sr-surface-2));
   background-size: 200% 100%;
   animation: play-shimmer 1.4s ease-in-out infinite;
+  cursor: default;
 }
 @keyframes play-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-.play-node__dot {
+.play-ncard__top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.play-ncard__top b {
+  font-size: var(--sr-text-sm);
+  color: var(--sr-text-bright);
+  font-weight: 600;
+}
+.play-ncard__dot {
+  flex: 0 0 auto;
   width: 9px;
   height: 9px;
   border-radius: 50%;
   background: var(--sr-success);
   box-shadow: 0 0 10px color-mix(in srgb, var(--sr-success) 70%, transparent);
 }
-.play-node__dot.is-degraded {
+.play-ncard__dot.is-degraded {
   background: var(--sr-gold);
   box-shadow: 0 0 10px color-mix(in srgb, var(--sr-gold) 60%, transparent);
 }
-
-.play-node__id {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.25;
-  min-width: 0;
-}
-.play-node__id b {
-  font-size: var(--sr-text-sm);
-  color: var(--sr-text-bright);
-  font-weight: 600;
-}
-.play-node__id small {
+.play-ncard__host {
   font-size: 0.72rem;
   color: var(--sr-text-dim);
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.play-node__stat {
+.play-ncard__stat {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.1rem;
 }
-.play-node__ping {
+.play-ncard__ping {
   font-size: var(--sr-text-sm);
   color: var(--sr-text);
   font-variant-numeric: tabular-nums;
 }
-.play-node__ping i {
+.play-ncard__ping i {
   font-style: normal;
   font-size: 0.66rem;
   color: var(--sr-text-dim);
   margin-left: 0.1rem;
 }
-.play-node__load {
-  display: block;
-  width: 3.4rem;
+.play-ncard__load {
+  flex: 1;
+  max-width: 5.5rem;
   height: 4px;
   border-radius: var(--sr-radius-pill);
   background: var(--sr-surface-4);
   overflow: hidden;
 }
-.play-node__load-bar {
+.play-ncard__load > span {
   display: block;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--sr-accent), var(--sr-violet-light));
 }
-.play-node.is-degraded .play-node__load-bar {
+.play-ncard.is-degraded .play-ncard__load > span {
   background: linear-gradient(90deg, var(--sr-gold), var(--sr-danger));
 }
-
-.play-node__rec {
+.play-ncard__rec {
   position: absolute;
-  top: -0.6rem;
+  top: -0.55rem;
   right: 0.6rem;
   font-size: 0.6rem;
   letter-spacing: 0.08em;
@@ -152,30 +152,10 @@
   box-shadow: var(--sr-glow-accent);
 }
 
-.play-actions {
-  margin-top: var(--sr-space-4);
-  display: flex;
-  gap: 0.6rem;
-}
-.play-enter {
-  flex: 1;
-  padding: 0.72rem 1.2rem;
-}
-.play-enter:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(0.3);
-}
-.play-note {
-  margin-top: var(--sr-space-3);
-  font-size: var(--sr-text-xs);
-  line-height: var(--sr-leading);
-  color: var(--sr-text-dim);
-}
-
-/* ---- 右：iframe 對戰視窗 ---- */
+/* ---- 嵌入視窗（iframe） ---- */
 .play-view {
   position: relative;
+  width: 100%;
   aspect-ratio: 16 / 10;
   border: 1px solid var(--sr-border);
   border-radius: var(--sr-radius-lg);
@@ -198,7 +178,6 @@
 .play-frame--empty {
   background: var(--sr-bg-deep);
 }
-/* 待命遮罩：連線前的邀請標籤（不擋 iframe 內容太多） */
 .play-view__idle {
   position: absolute;
   inset: auto 0 0 0;
@@ -222,8 +201,122 @@
   backdrop-filter: var(--sr-blur);
 }
 
-@media (max-width: 780px) {
-  .play-grid {
-    grid-template-columns: 1fr;
+/* 劇場模式：高身沉浸舞台（容器寬度、更高）。 */
+.play-launcher.size-theater .play-view {
+  aspect-ratio: auto;
+  height: min(80vh, 880px);
+}
+/* 全屏模式：原生 Fullscreen API 生效。 */
+.play-view:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}
+
+/* ---- 拖拽把手：調整視窗高度 ---- */
+.play-resize {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  margin-top: -0.35rem;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.play-resize__grip {
+  width: 46px;
+  height: 4px;
+  border-radius: var(--sr-radius-pill);
+  background: var(--sr-border-strong);
+  transition: background var(--sr-dur-fast) var(--sr-ease-out), width var(--sr-dur-fast) var(--sr-ease-out);
+}
+.play-resize:hover .play-resize__grip {
+  background: var(--sr-accent);
+  width: 62px;
+}
+/* 拖拽時遮住 iframe 指標，避免它吞掉 pointermove */
+.play-launcher.is-dragging {
+  user-select: none;
+}
+.play-launcher.is-dragging .play-frame {
+  pointer-events: none;
+}
+
+/* ---- 控制列 ---- */
+.play-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.play-controls__spacer {
+  flex: 1 1 auto;
+}
+.play-enter {
+  padding: 0.62rem 1.3rem;
+}
+.play-enter:disabled,
+.play-newtab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+/* 尺寸模式分段按鈕 */
+.play-sizes {
+  display: inline-flex;
+  border: 1px solid var(--sr-border);
+  border-radius: var(--sr-radius-pill);
+  overflow: hidden;
+  background: var(--sr-surface-2);
+}
+.play-size-btn {
+  padding: 0.45rem 0.9rem;
+  font-size: var(--sr-text-xs);
+  color: var(--sr-text-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--sr-dur-fast) var(--sr-ease-out), background var(--sr-dur-fast) var(--sr-ease-out);
+}
+.play-size-btn + .play-size-btn {
+  border-left: 1px solid var(--sr-border);
+}
+.play-size-btn:hover {
+  color: var(--sr-text-bright);
+}
+.play-size-btn.is-active {
+  color: #0a0c12;
+  background: var(--sr-accent-grad);
+  font-weight: 600;
+}
+
+.play-note {
+  margin-top: 0.1rem;
+  font-size: var(--sr-text-xs);
+  line-height: var(--sr-leading);
+  color: var(--sr-text-dim);
+}
+
+@media (max-width: 560px) {
+  .play-ncard {
+    width: 11.5rem;
+  }
+  .play-controls {
+    gap: 0.5rem;
+  }
+  .play-enter {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-ncard,
+  .play-ncard--skeleton,
+  .play-resize__grip {
+    transition: none;
+    animation: none;
   }
 }

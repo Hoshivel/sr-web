@@ -31,6 +31,11 @@ export interface PlayResponse {
   regions: PlayRegion[];
   /** 回應產生時間（ISO）；真實後端為即時，mock 為建置時。 */
   updatedAt: string;
+  /**
+   * 後端為此用戶選定的最終入點 id（分流決策）。真實後端依 IP 就近＋探活計算後回傳
+   * 收斂的候選清單（regions）＋此建議入點；前端**優先採用**此入點作預選。mock 省略。
+   */
+  recommendedId?: string;
 }
 
 // mock：三個節點（含一個壅塞節點以展示探活/負載差異）。url 指向同源展示頁，
@@ -44,9 +49,20 @@ export const MOCK_PLAY: PlayResponse = {
   updatedAt: new Date().toISOString(),
 };
 
-/** 建議節點：健康節點中延遲最低者（前端預選、後端亦可標記）。 */
+/** 建議節點：健康節點中延遲最低者（前端後備挑選；後端未給 recommendedId 時採用）。 */
 export function recommendRegion(regions: PlayRegion[]): PlayRegion | null {
   const healthy = regions.filter((r) => r.healthy);
   const pool = healthy.length > 0 ? healthy : regions;
   return pool.reduce<PlayRegion | null>((best, r) => (!best || r.latencyMs < best.latencyMs ? r : best), null);
+}
+
+/**
+ * 決定預選入點：**優先採用後端的 `recommendedId`**（後端主導分流），其次前端後備
+ * `recommendRegion`，再退回第一個節點。回傳選定節點的 id（無節點則 null）。
+ */
+export function pickEntryId(res: PlayResponse): string | null {
+  if (res.recommendedId && res.regions.some((r) => r.id === res.recommendedId)) {
+    return res.recommendedId;
+  }
+  return recommendRegion(res.regions)?.id ?? res.regions[0]?.id ?? null;
 }

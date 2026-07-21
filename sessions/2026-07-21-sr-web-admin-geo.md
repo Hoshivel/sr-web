@@ -37,9 +37,11 @@
 - [ ] Phase F：pull ShatteredRealms，接入新到的立繪（shadow/sekien/aoiro），若無則結束
 
 ### 進行中
-- [ ] Phase D（文件）＋ Phase E（前端）
+- [ ] Phase F（pull ShatteredRealms 接更多立繪）
 
 ### 已完成（精簡摘要）
+- [x] **Phase E：前端**。(a) 契約 `play.ts` 加 `recommendedId?`＋`pickEntryId`（**優先採用後端建議入點**）；`PlayLauncher` fetch 後以 `pickEntryId` 預選。(b) 英雄卡換裝槽接 `hakuto` 立繪：sharp 由 ShatteredRealms 原圖（1024×1536 透明）生成 `public/art/portraits/hakuto.webp`（720w，151KB）；`Characters.astro` 有 art 者疊 `<img class="hero-card__art">`（object-fit contain、置底、元素光暈 drop-shadow、hover 微放），無 art 者維持程序化佔位＋slotNote。(c) Play 版面重排：節點改**橫向可滑動卡片**置頂 → 嵌入視窗 → 控制列（進入/離線 + 尺寸模式**正常/劇場/全屏** + **新分頁開啟**）；劇場＝高身沉浸舞台、全屏＝原生 Fullscreen API（Esc 還原）、另加**拖拽把手調整高度**；i18n 三語補 `play.viewSize/size.*/newTab`。`npm run build`（astro check + build）綠、5 頁、PlayLauncher chunk 5KB。**待使用者視覺簽核**。
+- [x] **Phase D：文件**。backend/README 更新（地理分流收斂 + 後臺章節 + 設定表 + 結構）＋root README 後端 bullet。
 - [x] **Phase C：後臺（可視化配置 / 登入 / 動態管理）**。新增 `internal/admin`：PBKDF2-SHA256 密碼雜湊（stdlib）＋記憶體 session（隨機 token、HttpOnly/SameSite=Strict cookie、滑動續期）；首次未設定→啟動印一次性 setup token 引導建立帳密。路由（同源、不經 CORS、Go1.22 method-mux）：session/setup/login/logout＋state（即時節點狀態合併）＋節點 CRUD（新增/更新/刪除/停用）＋settings＋改密碼＋reprobe，皆經 Store 持久化並即時套用（router 重探）。變更請求做同源檢查（縱深防禦）。內嵌品牌化單頁後臺 `ui.html`（零外部資源、深色 sr 主題、節點表＋即時健康點＋表單，5s 自動刷新）。main 掛入 `Handler(admin)`。測試：auth（雜湊/驗證/session/過期）＋端到端 HTTP（setup 403/400/200、登入、CRUD、停用、設定、改密碼、登出 401、跨源 403、頁面）全綠、`-race` 綠。live smoke（loopback）：setup→動態加節點（router 即時納入）→cap3/4→401→持久化，全數確認。
 - [x] **Phase B：即時設定 Store（持久化＋節點變動通知）＋ router 動態重載**。`config.Store` 包住 File，讀取回副本、變更於鎖內套用→驗證→持久化→原子替換＋節點變動通知；`UpsertRegion/DeleteRegion/SetRegionDisabled/UpdateSettings/SetAdmin`。router 加 `SetRegions`（即時替換探活清單、保留既有健康、觸發重探）＋`Reprobe`。server 改持 `*config.Store`，CORS/geo/候選上限 per-request 讀取。全綠。
 - [x] **Phase A：後端主導地理分流（收斂候選）**。新增 `internal/geo`（Coord/haversine/內建~50國質心/`Resolve` 反代標頭解析，僅 TrustProxyHeaders 時採信；100% cov）＋`internal/dispatch`（`Select`：健康→就近→負載排序、候選上限、`recommendedId`；90.7% cov）。config 加 `Region.Lat/Lon/Country/Disabled`＋`Coord()`、`GeoConfig`＋`Settings()`、`MaxCandidates`(預設3)、`Admin`(欄位＋`Configured()`，供 Phase C)。router 存 `[]dispatch.Node`（配座標）、過濾 Disabled、加 `DispatchNodes()`；`Snapshot()` 仍回全部（供後臺）。server `handlePlay` 改 per-request：`geo.Resolve`→`dispatch.Select`→只回前 N。`config.example.json` 補 geo/coords/maxCandidates。全綠（`go build/vet/gofmt/test -race`）；smoke 驗證 SG→[sg1,hk1,jp1]、US→[jp1,hk1,sg1]、cap 生效。

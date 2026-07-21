@@ -38,12 +38,13 @@ function constellation(seed: number) {
   return { stars, path };
 }
 
-// 四位英雄：id → 元素徽記字符 + 元素強調色（inline --el）。文案由 i18n 提供。
+// 四位英雄：id → 元素徽記字符 + 元素強調色（inline --el）+ 立繪（art，已接者）。
+// 文案由 i18n 提供。art 為 null＝立繪待接（程序化佔位）；有值＝疊上正式立繪換裝槽。
 const heroes = [
-  { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01 },
-  { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0 },
-  { id: "sekien", glyph: "❂", el: "var(--sr-gold)", seed: 0xf1a3e },
-  { id: "aoiro", glyph: "❦", el: "var(--sr-success)", seed: 0xa01a0 },
+  { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01, art: "/art/portraits/hakuto.webp" },
+  { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0, art: null },
+  { id: "sekien", glyph: "❂", el: "var(--sr-gold)", seed: 0xf1a3e, art: null },
+  { id: "aoiro", glyph: "❦", el: "var(--sr-success)", seed: 0xa01a0, art: null },
 ] as const;
 ---
 
@@ -62,16 +63,30 @@ const heroes = [
       const c = constellation(h.seed);
       return (
         <li class="hero-card" style={`--el:${h.el}`} data-hero={h.id} data-reveal>
-          {/* 換裝槽：程序化立繪佔位。日後疊 <img class="hero-card__art"> 即可換上正式立繪 */}
-          <div class="hero-card__portrait">
+          {/* 換裝槽：正式立繪（已接者）疊在程序化元素光暈＋星座之上；未接者維持佔位 */}
+          <div class={`hero-card__portrait${h.art ? " has-art" : ""}`}>
             <svg class="hero-card__stars" viewBox="0 0 100 130" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
               <path d={c.path} class="hero-card__constellation" />
               {c.stars.map((s) => (
                 <circle cx={s.x} cy={s.y} r={s.r} />
               ))}
             </svg>
-            <span class="hero-card__sigil" aria-hidden="true">{h.glyph}</span>
-            <span class="hero-card__slot-note">{t("char.slotNote")}</span>
+            {h.art ? (
+              <img
+                class="hero-card__art"
+                src={h.art}
+                alt={t(`char.${h.id}.name`)}
+                width="720"
+                height="1080"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <>
+                <span class="hero-card__sigil" aria-hidden="true">{h.glyph}</span>
+                <span class="hero-card__slot-note">{t("char.slotNote")}</span>
+              </>
+            )}
           </div>
 
           <div class="hero-card__body">
@@ -162,14 +177,27 @@ const heroes = [
       radial-gradient(75% 60% at 50% 32%, color-mix(in srgb, var(--el) 26%, transparent), transparent 72%),
       linear-gradient(180deg, var(--sr-bg-deep), var(--sr-surface-1));
   }
-  /* 日後正式立繪：疊此層即覆蓋佔位（換裝槽） */
+  /* 已接立繪：透明底全身立繪疊在元素光暈＋星座之上（換裝槽） */
   .hero-card__portrait :global(.hero-card__art) {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center bottom;
     z-index: 3;
+    filter: drop-shadow(0 8px 26px color-mix(in srgb, var(--el) 32%, transparent));
+    transition: transform var(--sr-dur-slow, 0.5s) var(--sr-ease-out);
+  }
+  .hero-card:hover .hero-card__art {
+    transform: translateY(-2%) scale(1.03);
+  }
+  /* 有立繪的卡：加強元素光暈與底部立足暈染 */
+  .hero-card__portrait.has-art {
+    background:
+      radial-gradient(78% 66% at 50% 26%, color-mix(in srgb, var(--el) 30%, transparent), transparent 74%),
+      radial-gradient(60% 22% at 50% 100%, color-mix(in srgb, var(--el) 28%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--sr-bg-deep), var(--sr-surface-1));
   }
   .hero-card__stars {
     position: absolute;
