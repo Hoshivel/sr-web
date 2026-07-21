@@ -29,4 +29,4 @@ npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
 
-目前進度：**Phase 2 Hero 完成、待視覺簽核**（`npm run build` 綠燈）。Phase 1 品牌基元已完成——設計 tokens、SVG 標記／字標、字符系統、程序化 OG 圖、動效工具、Header／Footer、三語 i18n（`/`、`/zh-cn`、`/en`）＋語言切換。Phase 2 Hero＝Pixi 程序化虛空（`VoidField`，動態載入、行動/reduced-motion 降級）＋移植 Starfield 星座＋◈ 脈動＋漸層字標＋Play/Learn 磁吸 CTA。**請以 `npm run dev` 目視 Hero 動效簽核**，再進 Phase 3（捲動電影）——見 `docs/plan.md`。
+目前進度：**Phase 3 捲動電影 + 碎裂區完成**（`npm run build` 綠燈）。已完成 Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影，招牌句「碎裂不是天罰，是天地最後一次自救」）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視 Hero 與碎裂區 scrub**。下一步 **Phase 4 玩法四合一 + 英雄卡**——見 `docs/plan.md`。

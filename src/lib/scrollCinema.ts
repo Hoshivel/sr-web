@@ -21,8 +21,28 @@ export interface ScrollCinema extends ScrollTriggerBundle {
 let booted: Promise<ScrollCinema | null> | null = null;
 
 /**
+ * 頁內錨點平滑捲動：攔截 `a[href^="#"]` 點擊，改用 Lenis 平滑捲到目標。
+ * 找不到目標（如尚未長出的區塊）→ 不攔截，退回原生行為。
+ */
+function wireAnchorScroll(lenis: Lenis): void {
+  document.addEventListener("click", (e) => {
+    const anchor = (e.target as HTMLElement | null)?.closest?.(
+      'a[href^="#"]',
+    ) as HTMLAnchorElement | null;
+    if (!anchor) return;
+    const hash = anchor.getAttribute("href");
+    if (!hash || hash === "#") return;
+    const target = document.querySelector(hash);
+    if (!target) return;
+    e.preventDefault();
+    lenis.scrollTo(target as HTMLElement);
+    history.pushState(null, "", hash);
+  });
+}
+
+/**
  * 啟動（或取得已啟動的）捲動電影環境。多次呼叫回傳同一個 promise，
- * 確保 Lenis 只建一次、ScrollTrigger 只註冊/同步一次。
+ * 確保 Lenis 只建一次、ScrollTrigger 只註冊/同步一次、錨點只接一次。
  * @returns reduced-motion 時為 null。
  */
 export function bootScrollCinema(): Promise<ScrollCinema | null> {
@@ -31,6 +51,7 @@ export function bootScrollCinema(): Promise<ScrollCinema | null> {
     if (typeof window === "undefined" || prefersReducedMotion()) return null;
     const { lenis } = await initSmoothScroll();
     const { gsap, ScrollTrigger } = await registerScrollTrigger(lenis);
+    if (lenis) wireAnchorScroll(lenis);
     return { gsap, ScrollTrigger, lenis };
   })();
   return booted;
