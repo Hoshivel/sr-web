@@ -15,17 +15,19 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/moehoshio/sr-web/backend/internal/admin"
 	"github.com/moehoshio/sr-web/backend/internal/config"
 	"github.com/moehoshio/sr-web/backend/internal/router"
 	"github.com/moehoshio/sr-web/backend/internal/server"
 )
 
 func main() {
-	cfg, err := config.Load(os.Args[1:])
+	store, err := config.LoadStore(os.Args[1:])
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-	for _, n := range cfg.Notes {
+	cfg := store.Config()
+	for _, n := range store.Notes() {
 		log.Print(n)
 	}
 
@@ -34,12 +36,21 @@ func main() {
 	defer stop()
 
 	rt := router.New(cfg)
+	// 後臺動態增刪改節點時，即時替換探活清單並重探。
+	store.OnRegionsChange(rt.SetRegions)
 	go rt.Run(ctx)
 
-	srv := server.New(cfg, rt)
+	// 後臺（可視化配置 / 登入 / 動態管理）。未設定帳密時，首個請求進 setup 引導；
+	// setup token 印於下方日誌。
+	adminH := admin.New(store, rt)
+	for _, n := range adminH.Notes() {
+		log.Print(n)
+	}
+
+	srv := server.New(store, rt)
 	httpSrv := &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           srv.Handler(),
+		Handler:           srv.Handler(adminH.Handler()),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

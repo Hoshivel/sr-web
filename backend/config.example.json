@@ -8,24 +8,40 @@
   ],
   "probeIntervalSeconds": 10,
   "probeTimeoutSeconds": 3,
+  "maxCandidates": 3,
+  "geo": {
+    "trustProxyHeaders": true,
+    "latHeader": "CF-IPLatitude",
+    "lonHeader": "CF-IPLongitude",
+    "countryHeader": "CF-IPCountry"
+  },
   "regions": [
     {
       "id": "hk1",
       "host": "hk1.svc.oha.li",
       "url": "https://hk1.svc.oha.li/",
-      "healthUrl": "https://hk1.svc.oha.li/healthz"
+      "healthUrl": "https://hk1.svc.oha.li/healthz",
+      "lat": 22.32,
+      "lon": 114.17,
+      "country": "HK"
     },
     {
       "id": "jp1",
       "host": "jp1.svc.oha.li",
       "url": "https://jp1.svc.oha.li/",
-      "healthUrl": "https://jp1.svc.oha.li/healthz"
+      "healthUrl": "https://jp1.svc.oha.li/healthz",
+      "lat": 35.68,
+      "lon": 139.69,
+      "country": "JP"
     },
     {
       "id": "sg1",
       "host": "sg1.svc.oha.li",
       "url": "https://sg1.svc.oha.li/",
-      "healthUrl": "https://sg1.svc.oha.li/healthz"
+      "healthUrl": "https://sg1.svc.oha.li/healthz",
+      "lat": 1.35,
+      "lon": 103.82,
+      "country": "SG"
     }
   ]
 }

@@ -8,22 +8,25 @@ import (
 	"strings"
 
 	"github.com/moehoshio/sr-web/backend/internal/config"
+	"github.com/moehoshio/sr-web/backend/internal/dispatch"
+	"github.com/moehoshio/sr-web/backend/internal/geo"
 	"github.com/moehoshio/sr-web/backend/internal/router"
 )
 
-// Server 持有設定與分流 router。
+// Server 持有即時設定 Store 與分流 router。設定（CORS 來源 / 地理 / 候選上限）皆
+// 於每次請求時向 Store 讀取，故後臺動態調整即時生效。
 type Server struct {
-	cfg config.Config
-	rt  *router.Router
+	store *config.Store
+	rt    *router.Router
 }
 
 // New 建立 Server。
-func New(cfg config.Config, rt *router.Router) *Server {
-	return &Server{cfg: cfg, rt: rt}
+func New(store *config.Store, rt *router.Router) *Server {
+	return &Server{store: store, rt: rt}
 }
 
-// Handler 回傳已註冊所有路由的根 HTTP handler。
-func (s *Server) Handler() http.Handler {
+// Handler 回傳已註冊所有路由的根 HTTP handler。admin 可為 nil（未掛載後臺）。
+func (s *Server) Handler(admin http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.handleHealth)
 
@@ -33,6 +36,12 @@ func (s *Server) Handler() http.Handler {
 	api.HandleFunc("/api/play.json", s.handlePlay)
 	api.HandleFunc("/api/play", s.handlePlay)
 	mux.Handle("/api/", s.cors(api))
+
+	// 後臺（同源、不經 CORS）。掛在 /admin/ 之下。
+	if admin != nil {
+		mux.Handle("/admin", admin)
+		mux.Handle("/admin/", admin)
+	}
 
 	return mux
 }
@@ -47,15 +56,20 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("ok"))
 }
 
-// handlePlay 回傳即時的節點快照（play.Response）。這是即時分流資料，設 no-store
-// 避免中介 / 瀏覽器快取住路由決策。
+// handlePlay 回傳為此用戶收斂後的候選節點（play.Response）。後端依用戶地理座標
+// （反代 / CDN geo 標頭）就近排序，只回傳前 MaxCandidates 個候選＋建議入點 id——
+// 不再全敞開所有節點。這是即時、依請求而異的分流決策，故設 no-store 避免被快取。
 func (s *Server) handlePlay(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeErr(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
+	nodes, updatedAt := s.rt.DispatchNodes()
+	client, ok := geo.Resolve(r.Header, s.store.Geo())
+	resp := dispatch.Select(nodes, client, ok, s.store.MaxCandidates(), updatedAt)
+
 	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, s.rt.Snapshot())
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // cors 包裹 Play API。未設定 allowlist 時放行任意來源（dev）；設定後只有清單內的
@@ -63,9 +77,10 @@ func (s *Server) handlePlay(w http.ResponseWriter, r *http.Request) {
 func (s *Server) cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if len(s.cfg.AllowedOrigins) == 0 {
+		allowed := s.store.AllowedOrigins()
+		if len(allowed) == 0 {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
-		} else if origin != "" && s.originAllowed(origin) {
+		} else if origin != "" && originAllowed(allowed, origin) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Vary", "Origin")
 		}
@@ -79,10 +94,10 @@ func (s *Server) cors(next http.Handler) http.Handler {
 	})
 }
 
-// originAllowed 回報一個瀏覽器來源是否在設定的 allowlist 內（含 scheme 的精確比對，
+// originAllowed 回報一個瀏覽器來源是否在 allowlist 內（含 scheme 的精確比對，
 // 忽略尾端斜線與大小寫）。
-func (s *Server) originAllowed(origin string) bool {
-	for _, o := range s.cfg.AllowedOrigins {
+func originAllowed(allowlist []string, origin string) bool {
+	for _, o := range allowlist {
 		if strings.EqualFold(strings.TrimRight(o, "/"), strings.TrimRight(origin, "/")) {
 			return true
 		}

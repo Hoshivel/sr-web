@@ -94,3 +94,80 @@ func TestNonPositiveProbeFallsBackToDefault(t *testing.T) {
 		t.Errorf("ProbeTimeout = %v, want 3s fallback", cfg.ProbeTimeout)
 	}
 }
+
+func TestRegionCoord(t *testing.T) {
+	// 精確座標優先。
+	if c, ok := (Region{Lat: 22.32, Lon: 114.17}).Coord(); !ok || c.Lat != 22.32 || c.Lon != 114.17 {
+		t.Errorf("explicit coord = %+v ok=%v", c, ok)
+	}
+	// 無精確座標 → 以國別碼近似。
+	if c, ok := (Region{Country: "JP"}).Coord(); !ok || c.Lat == 0 {
+		t.Errorf("country fallback = %+v ok=%v, want JP centroid", c, ok)
+	}
+	// 皆無 → 不可用。
+	if _, ok := (Region{}).Coord(); ok {
+		t.Errorf("no coord and no country should be unusable")
+	}
+	// 未知國別碼且無座標 → 不可用。
+	if _, ok := (Region{Country: "ZZ"}).Coord(); ok {
+		t.Errorf("unknown country should be unusable")
+	}
+}
+
+func TestGeoConfigSettings(t *testing.T) {
+	g := GeoConfig{
+		TrustProxyHeaders: true,
+		CountryCoords:     map[string][2]float64{"xx": {10, 20}},
+	}
+	s := g.Settings()
+	if !s.TrustProxyHeaders {
+		t.Errorf("trust flag not carried")
+	}
+	if s.LatHeader != "CF-IPLatitude" { // 補預設
+		t.Errorf("default lat header not filled: %q", s.LatHeader)
+	}
+	if c, ok := s.CountryCoords["XX"]; !ok || c.Lat != 10 || c.Lon != 20 { // 鍵轉大寫
+		t.Errorf("custom country coord = %+v ok=%v", c, ok)
+	}
+}
+
+func TestMaxCandidatesDefault(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	// 預設產生的檔 MaxCandidates=3。
+	cfg, err := Load([]string{"-config", path})
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.MaxCandidates != 3 {
+		t.Errorf("default MaxCandidates = %d, want 3", cfg.MaxCandidates)
+	}
+	// 非正值 → 退回預設。
+	raw, _ := json.Marshal(File{MaxCandidates: 0})
+	_ = os.WriteFile(path, raw, 0o644)
+	cfg, _ = Load([]string{"-config", path})
+	if cfg.MaxCandidates != 3 {
+		t.Errorf("MaxCandidates=0 should fall back to 3, got %d", cfg.MaxCandidates)
+	}
+}
+
+func TestAdminConfigured(t *testing.T) {
+	if (Admin{}).Configured() {
+		t.Errorf("empty admin should be unconfigured")
+	}
+	if (Admin{Username: "a"}).Configured() {
+		t.Errorf("username-only should be unconfigured")
+	}
+	if !(Admin{Username: "a", PasswordHash: "h", Salt: "s"}).Configured() {
+		t.Errorf("full admin should be configured")
+	}
+}
+
+func TestDefaultRegionsHaveCoords(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	cfg, _ := Load([]string{"-config", path})
+	for _, r := range cfg.Regions {
+		if _, ok := r.Coord(); !ok {
+			t.Errorf("default region %s missing usable coord", r.ID)
+		}
+	}
+}

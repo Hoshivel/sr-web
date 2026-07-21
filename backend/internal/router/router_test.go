@@ -82,3 +82,90 @@ func TestHealthURLDefaultsToHealthz(t *testing.T) {
 		t.Errorf("healthURL override = %q", got)
 	}
 }
+
+func TestDisabledRegionsExcluded(t *testing.T) {
+	cfg := config.Config{
+		Regions: []config.Region{
+			{ID: "a", Host: "a", URL: "https://a/"},
+			{ID: "b", Host: "b", URL: "https://b/", Disabled: true},
+		},
+		ProbeInterval: time.Minute,
+		ProbeTimeout:  time.Second,
+	}
+	r := New(cfg)
+	snap := r.Snapshot()
+	if len(snap.Regions) != 1 || snap.Regions[0].ID != "a" {
+		t.Errorf("disabled region should be excluded, got %+v", snap.Regions)
+	}
+}
+
+func TestDispatchNodesCarryCoords(t *testing.T) {
+	cfg := config.Config{
+		Regions:       []config.Region{{ID: "hk1", Host: "hk1", URL: "https://hk1/", Lat: 22.32, Lon: 114.17}},
+		ProbeInterval: time.Minute,
+		ProbeTimeout:  time.Second,
+	}
+	r := New(cfg)
+	nodes, ts := r.DispatchNodes()
+	if len(nodes) != 1 || !nodes[0].HasCoord || nodes[0].Coord.Lat != 22.32 {
+		t.Errorf("coord not carried into dispatch node: %+v", nodes)
+	}
+	if ts == "" {
+		t.Errorf("updatedAt empty")
+	}
+}
+
+func TestSetRegionsReplacesAndPreservesHealth(t *testing.T) {
+	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("ok"))
+	}))
+	defer up.Close()
+
+	cfg := config.Config{
+		Regions:       []config.Region{{ID: "a", Host: "a", URL: "https://a/", HealthURL: up.URL}},
+		ProbeInterval: time.Minute,
+		ProbeTimeout:  2 * time.Second,
+	}
+	r := New(cfg)
+	r.probeAll(context.Background())
+	if !r.Snapshot().Regions[0].Healthy {
+		t.Fatalf("precondition: a should be healthy after probe")
+	}
+
+	// 動態替換：保留 a、新增 b、更新 a 的 host。
+	r.SetRegions([]config.Region{
+		{ID: "a", Host: "a-new", URL: "https://a/", HealthURL: up.URL},
+		{ID: "b", Host: "b", URL: "https://b/"},
+	})
+	snap := r.Snapshot()
+	if len(snap.Regions) != 2 {
+		t.Fatalf("after SetRegions regions = %d, want 2", len(snap.Regions))
+	}
+	byID := map[string]play.Region{}
+	for _, rg := range snap.Regions {
+		byID[rg.ID] = rg
+	}
+	if !byID["a"].Healthy {
+		t.Errorf("a should retain healthy status across reload")
+	}
+	if byID["a"].Host != "a-new" {
+		t.Errorf("a host should update to a-new, got %q", byID["a"].Host)
+	}
+	if byID["b"].Healthy {
+		t.Errorf("newly added b should start unhealthy until probed")
+	}
+}
+
+func TestSetRegionsDropsDisabled(t *testing.T) {
+	r := New(config.Config{
+		Regions:       []config.Region{{ID: "a", Host: "a", URL: "https://a/"}},
+		ProbeInterval: time.Minute, ProbeTimeout: time.Second,
+	})
+	r.SetRegions([]config.Region{
+		{ID: "a", Host: "a", URL: "https://a/"},
+		{ID: "b", Host: "b", URL: "https://b/", Disabled: true},
+	})
+	if regs := r.Snapshot().Regions; len(regs) != 1 || regs[0].ID != "a" {
+		t.Errorf("disabled region should not be probed, got %+v", regs)
+	}
+}
