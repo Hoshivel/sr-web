@@ -3,7 +3,7 @@
 - 建立：2026-07-21
 - 狀態：待驗收（Phase A–F 全數完成、backend `go build/vet/gofmt/test -race` 全綠、frontend `npm run build` 綠；剩「使用者部署端到端 + 視覺簽核」；準備開 PR）
 - 進度摘要：**全六階段完成**。後端主導地理分流（收斂候選）＋即時 Store＋後臺（登入/動態管理）＋文件；前端採用後端建議入點＋**四角色立繪全接入**＋Play 版面重排（尺寸模式/新分頁）。ShatteredRealms 二次 pull 取得 `6ce10d0`（去假棋盤格背景），四立繪全數重生為 webp 接入。
-- 相關：branch `claude/session-qo9e4e`（cloud，每階段 push）；契約 `src/lib/play.ts`；後端 `backend/`；立繪來源 ShatteredRealms `frontend/public/art/portraits/*.png`
+- 相關：**PR #5**（https://github.com/moehoshio/sr-web/pull/5）；branch `claude/session-qo9e4e`（cloud，每階段 push）；契約 `src/lib/play.ts`；後端 `backend/`；立繪來源 ShatteredRealms `frontend/public/art/portraits/*.png`
 - Runtime: cloud（每階段 commit + push 到遠端 origin）
 
 ## 如何冷接手（Cold Resume）
