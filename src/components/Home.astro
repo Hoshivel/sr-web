@@ -5,6 +5,7 @@
   Phase 3+ 的捲動電影區塊接於本檔 Hero 之後。
 */
 import Mark from "@/components/brand/Mark.astro";
+import Starfield from "@/components/hero/Starfield.tsx";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -22,8 +23,10 @@ const learnHref = "#world";
 
 <main id="main">
   <section class="hero" id="top">
-    <!-- 背景層：程序化虛空。2b Starfield / 2c Pixi VoidField island 注入此處 -->
-    <div class="hero__bg" aria-hidden="true"></div>
+    <!-- 背景層：程序化虛空。2c Pixi VoidField 疊於 Starfield 之下 -->
+    <div class="hero__bg" aria-hidden="true">
+      <Starfield client:visible interactive density={1} />
+    </div>
     <!-- 底部漸隱，讓 Hero 融入後續區塊 -->
     <div class="hero__scrim" aria-hidden="true"></div>
 
