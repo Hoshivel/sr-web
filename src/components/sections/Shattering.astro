@@ -154,3 +154,67 @@ const shards = Array.from({ length: COUNT }, () => {
     margin-inline: auto;
   }
 </style>
+
+<script>
+  /*
+    碎裂溶解電影：pin 住區塊，隨捲動 scrub 讓殘片由凝聚態向虛空四散＋淡出，
+    殘片層同步去飽和 —— 招牌「褪色（Fading）」。文案維持可讀（靠 [data-reveal] 呈現）。
+    reduced-motion → bootScrollCinema 回 null，直接略過（保留凝聚態靜態）。
+  */
+  import { bootScrollCinema } from "@/lib/scrollCinema";
+
+  async function setup() {
+    const section = document.querySelector<HTMLElement>("#world");
+    if (!section) return;
+
+    const cinema = await bootScrollCinema();
+    if (!cinema) return;
+    const { gsap, ScrollTrigger } = cinema;
+
+    const shards = gsap.utils.toArray<HTMLElement>(".shard", section);
+    if (shards.length === 0) return;
+    const shardsWrap = section.querySelector<HTMLElement>(".shatter__shards");
+
+    const num = (el: HTMLElement, name: string) =>
+      parseFloat(el.style.getPropertyValue(name)) || 0;
+
+    // 以 xPercent/yPercent 重現 CSS 的 translate(-50%,-50%) 置中（GSAP 會接管 transform）
+    gsap.set(shards, { xPercent: -50, yPercent: -50 });
+    shards.forEach((el) => gsap.set(el, { rotation: num(el, "--r0") }));
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=140%",
+        pin: true,
+        scrub: 0.6,
+        anticipatePin: 1,
+      },
+    });
+
+    // 殘片：向虛空四散 ＋ 淡出
+    shards.forEach((el) => {
+      tl.to(
+        el,
+        {
+          x: num(el, "--dx"),
+          y: num(el, "--dy"),
+          rotation: num(el, "--r1"),
+          opacity: 0.04,
+          ease: "none",
+        },
+        0,
+      );
+    });
+
+    // 整體褪色：殘片層去飽和
+    if (shardsWrap) {
+      tl.to(shardsWrap, { filter: "grayscale(0.7)", ease: "none" }, 0);
+    }
+
+    ScrollTrigger.refresh();
+  }
+
+  void setup();
+</script>

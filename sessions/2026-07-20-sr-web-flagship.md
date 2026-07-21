@@ -53,6 +53,7 @@
 - 可移植/參考：遊戲 `ui/TunnelTransition.tsx` + styles.css `.scene-transition`（warp 轉場）。
 
 ### 已完成（精簡摘要）
+- [x] Phase 3b 碎裂溶解電影：Shattering `<script>` 呼叫 `bootScrollCinema` → pin(#world)+scrub(140%) 時間軸：殘片 `xPercent/yPercent` 補置中、由凝聚態 scrub 至四散（讀 inline `--dx/--dy/--r1`）＋淡出至 opacity 0.04，殘片層 `grayscale(0.7)`（褪色）。文案維持可讀。reduced-motion→boot 回 null 略過。Lenis(5.3KB gz)/GSAP+ScrollTrigger(~46KB gz) 動態 chunk；smooth scroll 於 Phase 3 起上線。三路由引用 script、build 綠。
 - [x] Phase 3a 捲動框架 + 碎裂區靜態：三語 `world.*` 文案（招牌句「碎裂不是天罰，是天地最後一次自救」＋lead/body，源自遊戲碎界 lore）。`src/lib/scrollCinema.ts` 單例 boot（Lenis+ScrollTrigger 各一、與 Lenis 同步；reduced-motion 回 null；Lenis/GSAP 動態載入）。`src/components/sections/Shattering.astro`（id=world、`data-scroll-cinema`）：種子化 34 片殘片（凝聚態＋各自四散目標 `--dx/--dy/--r1`）＋眉標/雙行招牌句(漸層)/lead/body（含 `::before` 底襯保可讀）。Home 掛於 Hero 後。三路由 SSR 出 #world＋殘片＋在地文案、build 綠。
 - [x] Phase 2d 整合打磨：Hero 中央可讀性 `.hero__veil`（徑向壓暗、z 介於 scrim 與 content）＋字標 `drop-shadow` 輝光；plan/README 標 Phase 2 完成（待簽核）。build 綠。
 - [x] Phase 2c Pixi 程序化虛空：`src/components/hero/VoidField.tsx`——漂浮發光菱形碎片（additive、深度→大小/亮度/速度/視差、閃爍、邊界環繞）＋星雲柔光（離屏徑向漸層貼圖、additive、緩脈動）＋游標視差（僅 `pointer:fine`、lerp 平移碎片場）。Pixi 動態 import → 獨立 chunk（~247KB gz，僅 client:visible 注水時抓取）。降級：reduced-motion 完全不啟用；**窄視窗（≤720px）完全不載入 Pixi**（省整包，保留 CSS 底＋Starfield）；WebGL 失敗 try/catch 靜默退場；離開時 destroy app＋自建貼圖。Home 掛載於 Starfield 下方、`.sr-voidfield` 宿主填滿背景層。Pixi v8 API（async init/`app.canvas`/`blendMode="add"`/`generateTexture`/`Texture.from(canvas)`/Ticker 回呼/`destroy`）全 typecheck 過、三路由 SSR 出宿主、build 綠。
@@ -74,7 +75,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 3a 已落地並 build 綠；下一步 3b GSAP pin/scrub 溶解電影。碎片場靜態＝凝聚態，3b 動 `--dx/--dy/--r1`/opacity/filter。）
+- 半完成 / 風險：—（Phase 3b 已落地並 build 綠；Lenis/GSAP 動態 chunk。**scrub 溶解需使用者 `npm run dev` 目視**。下一步 3c 文件收尾。）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。
