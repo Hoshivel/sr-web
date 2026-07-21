@@ -5,6 +5,7 @@
   Phase 3+ 的捲動電影區塊接於本檔 Hero 之後。
 */
 import Mark from "@/components/brand/Mark.astro";
+import VoidField from "@/components/hero/VoidField.tsx";
 import Starfield from "@/components/hero/Starfield.tsx";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
@@ -23,8 +24,9 @@ const learnHref = "#world";
 
 <main id="main">
   <section class="hero" id="top">
-    <!-- 背景層：程序化虛空。2c Pixi VoidField 疊於 Starfield 之下 -->
+    <!-- 背景層：程序化虛空。Pixi VoidField（WebGL）在下，Starfield（星座）疊於其上 -->
     <div class="hero__bg" aria-hidden="true">
+      <VoidField client:visible />
       <Starfield client:visible interactive density={1} />
     </div>
     <!-- 底部漸隱，讓 Hero 融入後續區塊 -->
@@ -82,13 +84,18 @@ const learnHref = "#world";
       ),
       var(--sr-void);
   }
-  /* 供 2b/2c 注入的 canvas 鋪滿背景層、指標穿透 */
+  /* 注入的 canvas 鋪滿背景層、指標穿透 */
   .hero__bg :global(canvas) {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
+  }
+  /* Pixi 虛空的宿主容器：填滿背景層（Pixi resizeTo 依此取尺寸） */
+  .hero__bg :global(.sr-voidfield) {
+    position: absolute;
+    inset: 0;
   }
 
   .hero__scrim {

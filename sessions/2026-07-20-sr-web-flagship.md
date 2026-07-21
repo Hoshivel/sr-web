@@ -44,6 +44,7 @@
 - Hero 錨點/CTA 已備：header/footer 導覽指向 `#world`/`#gameplay`/`#chapters`/`#characters`/`#play`——Phase 2+ 區塊接上這些 id。
 
 ### 已完成（精簡摘要）
+- [x] Phase 2c Pixi 程序化虛空：`src/components/hero/VoidField.tsx`——漂浮發光菱形碎片（additive、深度→大小/亮度/速度/視差、閃爍、邊界環繞）＋星雲柔光（離屏徑向漸層貼圖、additive、緩脈動）＋游標視差（僅 `pointer:fine`、lerp 平移碎片場）。Pixi 動態 import → 獨立 chunk（~247KB gz，僅 client:visible 注水時抓取）。降級：reduced-motion 完全不啟用；**窄視窗（≤720px）完全不載入 Pixi**（省整包，保留 CSS 底＋Starfield）；WebGL 失敗 try/catch 靜默退場；離開時 destroy app＋自建貼圖。Home 掛載於 Starfield 下方、`.sr-voidfield` 宿主填滿背景層。Pixi v8 API（async init/`app.canvas`/`blendMode="add"`/`generateTexture`/`Texture.from(canvas)`/Ticker 回呼/`destroy`）全 typecheck 過、三路由 SSR 出宿主、build 綠。
 - [x] Phase 2b Starfield island：移植遊戲 `Starfield.tsx` → `src/components/hero/Starfield.tsx`（standalone、改用共用 `prefersReducedMotion`、星/連線色沿用品牌、DPR≤2、游標星座＋光暈、邊界環繞、reduced-motion 只畫靜態單幀）。Hero `.hero__bg` 內 `client:visible` 掛載、SSR 出 `<canvas>`（版面穩定）、指標穿透。首次為站點引入 React runtime（~44KB gz，僅此島注水）＋Starfield chunk 1.76KB gz。三路由皆含、build 綠。
 - [x] Phase 2a Hero 結構/CTA/磁吸：`Home.astro` 改寫為分層 Hero（`.hero__bg` 徑向虛空＋預留 canvas 注入點/`:global(canvas)` 鋪滿指標穿透、`.hero__scrim` 底部漸隱、content 層）；◈ CSS 脈動、漸層字標、標語、Play(primary)＋Learn(ghost) CTA（`data-magnetic`）、捲動指示點。`motion.ts` 加 `initMagnetic`（reduced-motion＋`pointer:fine` 守衛、位移夾限、ease-back 交 CSS）；Layout boot 併入 reveal＋magnetic（仍 tree-shake 內聯、0 重 JS）。build 綠、三路由 CTA/文案正確。
 - [x] Phase 1d 程序化 OG 圖：`public/og.svg`（1200×630 native SVG，seeded 星場＋雙徑向輝光＋◈ 標記發光＋漸層字標 碎界／SHATTERED REALMS／標語／sr.oha.li，自成一體可縮放）＝可編輯源；以預裝 headless Chromium 經零邊距 HTML 包裹頁光柵化為 `public/og.png`（RGB、無底部裁切）。CJK 由容器內 WenQuanYi Zen Hei 渲染，實測無 tofu。Layout meta（1b 已接）引用 `/og.png`＋twitter:image；三路由 build 綠、assets 落 dist。（生成器 `make-og.mjs` 留暫存區，非倉庫產物。）
@@ -62,7 +63,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 2b 已落地並 build 綠；下一步 2c Pixi 虛空）
+- 半完成 / 風險：—（Phase 2c 已落地並 build 綠；Pixi v8 API 全數 typecheck 過。**因採 build-only 驗證，Pixi 實機渲染需使用者 `npm run dev` 目視確認**——見「驗收方式」。下一步 2d 整合打磨 + 文件。）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。
