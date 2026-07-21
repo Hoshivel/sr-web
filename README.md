@@ -29,4 +29,4 @@ npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
 
-目前進度：Phase 0 骨架完成（tokens / layout / favicon，`npm run build` 綠燈）。下一步見 `docs/plan.md`。
+目前進度：**Phase 1 品牌基元完成**（`npm run build` 綠燈）——設計 tokens、SVG 標記／字標鎖定組、字符系統、程序化 OG 圖、動效工具（reveal／Lenis／GSAP，均降級友善）、Header／Footer、三語 i18n（`/`、`/zh-cn`、`/en`，含 hreflang）與連結式語言切換。下一步 **Phase 2 Hero**（Pixi 程序化虛空 + Starfield 移植；依計畫先交付 Hero 預覽供視覺簽核）——見 `docs/plan.md`。

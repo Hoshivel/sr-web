@@ -2,7 +2,7 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：Phase 1 品牌基元進行中（tokens 完善 / 動效工具 / 字符系統起手）。Phase 0 骨架已完成並 push。
+- 進度摘要：**Phase 1 品牌基元完成並 push**（tokens／SVG 標記＋字標／字符系統／OG 圖／動效工具／Header・Footer／三語 i18n＋語言切換＋locale 路由；`npm run build` 綠）。下一步 Phase 2 Hero（計畫要求先交付 Hero 預覽供視覺簽核）。
 - 相關：branch `claude/sr-web-plan-continue-od8l0n`（前身 `claude/sr-web-animation-planning-u1vujx` 已併入 main）
 - **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
@@ -11,7 +11,7 @@
 1. 讀本檔（目標 / 進度 / 待辦 / `Editing`）與 `docs/plan.md`（完整計畫）。
 2. `Editing = idle` → 工作區一致、無半編輯檔；可直接從「待辦」最上面一項開始。
 3. `npm install` → `npm run build` 應綠燈；`npm run dev` 起本地開發。
-4. 下一步：**Phase 1 品牌基元**（見 `docs/plan.md` 分階段里程碑）。
+4. 下一步：**Phase 2 Hero**（Pixi 程序化虛空 + Starfield 移植 + CTA；見 `docs/plan.md`）。依計畫應**先交付 Hero 預覽供視覺簽核**再進 Phase 3+。
 
 ## 目標 / 需求
 （實時更新；新增需求往下追加並標註時間）
@@ -28,8 +28,7 @@
 
 ## 進度
 ### 待辦
-- [ ] Phase 1 品牌基元：tokens 完善、SVG 字標、字符系統、OG 圖、動效工具、header/footer、語言切換
-- [ ] Phase 2 Hero（Pixi 程序化虛空 + Starfield 移植 + 字標 + CTA）
+- [ ] **Phase 2 Hero**（Pixi 程序化虛空 + Starfield 移植 + CTA）→ **先交付預覽供視覺簽核**
 - [ ] Phase 3 捲動電影框架 + 碎裂區（褪色溶解 set-piece）
 - [ ] Phase 4 玩法四合一 + 英雄卡
 - [ ] Phase 5 主題曲 / World Tree + 章節氛圍 morph
@@ -37,7 +36,12 @@
 - [ ] Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）
 
 ### 進行中
-- [ ]（無 —— Phase 1 收尾中，見 1e）
+- [ ]（無 —— Phase 1 全數完成並 push，停在 Phase 1/2 里程碑邊界）
+
+### Phase 2 冷接手備忘（下次起手用）
+- Starfield 可移植源：`ShatteredRealms/frontend/src/ui/Starfield.tsx`（canvas 星場＋游標星座，已支援 reduced-motion；stars `rgba(206,218,255)`、links `rgba(122,162,255)`、DPR≤2）→ 做成 React island，`client:visible` 注水。
+- 已就緒接口：`src/lib/motion.ts` 的 `useReducedMotion`（島內判降級）、`initSmoothScroll`/`registerScrollTrigger`（Phase 3 捲動電影）；`.sr-btn --primary/--ghost` 供 Hero CTA；`Home.astro` 即 Hero 容器（用 locale prop）。
+- Hero 錨點/CTA 已備：header/footer 導覽指向 `#world`/`#gameplay`/`#chapters`/`#characters`/`#play`——Phase 2+ 區塊接上這些 id。
 
 ### 已完成（精簡摘要）
 - [x] Phase 1d 程序化 OG 圖：`public/og.svg`（1200×630 native SVG，seeded 星場＋雙徑向輝光＋◈ 標記發光＋漸層字標 碎界／SHATTERED REALMS／標語／sr.oha.li，自成一體可縮放）＝可編輯源；以預裝 headless Chromium 經零邊距 HTML 包裹頁光柵化為 `public/og.png`（RGB、無底部裁切）。CJK 由容器內 WenQuanYi Zen Hei 渲染，實測無 tofu。Layout meta（1b 已接）引用 `/og.png`＋twitter:image；三路由 build 綠、assets 落 dist。（生成器 `make-og.mjs` 留暫存區，非倉庫產物。）
