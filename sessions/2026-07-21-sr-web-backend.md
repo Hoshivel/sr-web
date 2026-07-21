@@ -1,8 +1,8 @@
 # Session：sr-web 後端（Play 分流 / 探活 / 負載均衡）
 
 - 建立：2026-07-21
-- 狀態：進行中
-- 進度摘要：新焦點——實作真實 Go 後端，替換 mock `/api/play.json`；規劃完成、開始搭骨架。
+- 狀態：待驗收（實作＋測試全數完成、`go build/vet/gofmt/test -race` 全綠、smoke 驗證；剩「使用者部署端到端驗收」）
+- 進度摘要：**後端完成**——`backend/` Go module（探活/分流/負載均衡）於 `/api/play.json` 回傳同契約即時快照，前端零改動。全綠並 push。
 - 相關：branch `claude/sr-web-backend-xrgz06`；契約 `src/lib/play.ts`；計畫 `docs/plan.md §Play 流程`；前身前端旗艦站 `sessions/2026-07-20-sr-web-flagship.md`
 - Runtime: cloud（每階段 commit + push 到遠端）
 
@@ -21,10 +21,16 @@
 
 ## 進度
 ### 待辦
-- [ ] backend/README + 更新 root README / plan / 本日誌（收尾）
+- [ ]（無——實作/測試/文件全數完成）
+
+### 驗收方式（使用者端到端）
+1. **自動化（已綠）**：`cd backend && go build ./... && go vet ./... && gofmt -l . && go test -race ./...`。
+2. **本機實跑**：`go run ./cmd/router` → `curl localhost:8090/healthz`（ok）、`curl localhost:8090/api/play.json`（契約 JSON）。把 `config.json` 的 `regions` 指向可達主機即見 `healthy:true`＋量得 `latencyMs`。
+3. **與前端整合**：反向代理 `sr.oha.li` 同源下 `/api/*`→後端、`/`→`dist/`；前端 `fetch('/api/play.json')` 即命中後端取代 mock（前端零改動）。`allowedOrigins` 設 `sr.oha.li`。
+4. **上線**：`region.url` 指真實遊戲主機；跨源 iframe 嵌入遊戲需另把 `sr.oha.li` 加入**遊戲後端** `allowedOrigins`（非本後端事）。
 
 ### 進行中
-- [ ] 文件收尾（下一批）
+- [ ]（無）
 
 ### 已完成（精簡摘要）
 - [x] backend/ Go module 骨架（module `github.com/moehoshio/sr-web/backend`、go 1.24、**零第三方相依**）＋ `.gitignore`（忽略維運 config.json / 二進位）＋ `config.example.json`（prod 範例：allowedOrigins=sr.oha.li、三節點 healthUrl）。
@@ -35,6 +41,7 @@
 - [x] 驗證：`go build/vet ./...`＋`gofmt -l` 全綠；smoke（`-port 8099`）——`/healthz`＝ok、`/api/play.json` 回正確契約形狀、CORS `*`/OPTIONS 204/no-store、config 自動產生皆確認。
 - [x] 建立本日誌。
 - [x] 測試（表格式）：config（產生預設/檔載入/flags 覆蓋/非正值 fallback）、play.Recommend（健康>延遲>負載＋全不健康 fallback＋空）、router probe（純文字 ok/JSON load/players+capacity/503/不可達/clamp）、router（種子快照/分類+recommend/healthURL 預設）、server（/healthz、契約解碼、alias、405、CORS allowlist/dev-any/preflight）。`go test -race ./...` 全綠；覆蓋率 play 100% / server 95% / router 87% / config 84%。
+- [x] 文件：`backend/README.md`（職責/快速開始/端點/設定表/探活-分流-負載/部署整合/驗證/結構）＋更新 root `README.md`（後端已實作、前後端 run 指令、部署 bullet）＋`docs/plan.md`（Play 流程加「真後端已實作」更新標注）。
 
 ## 設計要點
 - **契約（不可改，前端依賴）**：`PlayResponse = { regions: PlayRegion[]; updatedAt: string }`；
@@ -51,10 +58,10 @@
 > 動手改碼前先更新；落地並驗證後改回 idle。
 > 狀態 = editing 代表可能有半編輯檔；idle 代表工作區一致。
 
-- 狀態：editing
-- 目標檔案：`backend/internal/**/*_test.go`（config / play / router[probe] / server 測試）
-- 預計變更：加表格測試；`go test -race ./...` 綠。不改 source（除非測試揭露問題）。
-- 半完成 / 風險：source 已全數落地並 build/vet/gofmt/smoke 綠——目前工作區為一致可建置快照；僅缺自動化測試。
+- 狀態：idle
+- 目標檔案：—
+- 預計變更：—
+- 半完成 / 風險：—（實作＋測試＋文件全數落地並驗證綠；工作區一致，待使用者端到端驗收）
 
 ## 筆記 / 決策
 - 遊戲 `/healthz` 目前只回純文字 `ok`（見 ShatteredRealms `internal/server/server.go` `handleHealth`）→ load 目前無真實訊號，探活以 healthy/latency 為準；load 解析為向前相容設計，遊戲端日後可於健康端點附 `load` 即自動生效。

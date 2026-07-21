@@ -18,15 +18,20 @@ sr是一個架空世界觀的 2D 回合制策略遊戲。融合棋類策略、RP
 
 ## 開發 / 冷接手
 
-- **技術棧**：Astro + React islands（strict TS）、GSAP + ScrollTrigger + Lenis、Pixi.js。程序化動態即視覺識別。
+- **前端技術棧**：Astro + React islands（strict TS）、GSAP + ScrollTrigger + Lenis、Pixi.js。程序化動態即視覺識別。
+- **後端**（第 3 點的分流服務）：Go 1.24、零第三方相依，位於 [`backend/`](./backend/)。對遊戲節點探活 / 分流 / 負載均衡，於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的即時節點快照。詳見 [`backend/README.md`](./backend/README.md)。
 - **權威計畫**：[`docs/plan.md`](./docs/plan.md)（完整實作計畫、網站結構、分階段里程碑、API 契約）。
 - **會話日誌 / 進度**：[`sessions/`](./sessions/)（目標、待辦、`Editing` 狀態；沿用 ShatteredRealms 家族的 AGENTS.md 慣例）。
 
 ```bash
+# 前端（官網靜態站）
 npm install      # 安裝相依
 npm run dev      # 本地開發（Astro）
 npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
+
+# 後端（Play 分流服務）
+cd backend && go run ./cmd/router   # 首次執行產生 config.json；聽 :8090
 ```
 
 目前進度：**Phase 1–7 全數完成（計畫功能齊備）**，`npm run build` 綠燈。Phase 1 品牌基元、Phase 2 Hero（Pixi 虛空＋Starfield 星座＋磁吸 CTA，已簽核）、Phase 3（Lenis 平滑捲動＋GSAP ScrollTrigger 框架；碎裂區「褪色」pin/scrub 溶解電影）、Phase 4（玩法四柱＋程序化 SVG 母題；四英雄卡＋換裝槽＋指標微傾）、Phase 5（碎界樹——複用遊戲 Entry.tsx spring-damper 物理的官網版 island：拖曳拋擲、章節詳情卡、章節氛圍 morph）、Phase 6（Play 分流啟動器——mock 節點清單 ← 靜態 `/api/play.json`；選節點→iframe 嵌入同源對戰頁＝即時 Pixi 六角戰場＋遙測 HUD；截圖換裝槽）、Phase 7 打磨（sitemap＋robots、OG 補全、品牌化 404、可存取行動選單、Play 節點 aria-pressed、Pixi ticker 於分頁隱藏/離開視窗時暫停）。全站動效均 reduced-motion / 行動降級。**請以 `npm run dev` 目視各區並實測 Play 選點→進入戰場（iframe 即時 Pixi）與行動選單**（Phase 3–7 待視覺簽核）。
@@ -34,6 +39,6 @@ npm run preview  # 預覽已建置的靜態站
 ## 部署（sr.oha.li）
 
 - **建置產物**：`npm run build` → `dist/`（純靜態：HTML／JS chunk／CSS／`og.png`／`sitemap.xml`／`robots.txt`／mock `/api/play.json`）。上傳 `dist/` 到任何靜態主機（或 CDN）即可，站點網域設定為 `sr.oha.li`（`astro.config.mjs` 的 `site` 已指定，供 canonical／hreflang／sitemap 產生絕對 URL）。
-- **Play 接真後端**：把 `/api/play.json`（或改前端 fetch 目標）換成真實 Go 分流後端回傳同形狀 JSON（見 `src/lib/play.ts`），並將 `region.url` 指向真實遊戲主機；前端 `iframe.src = region.url` 不需改動。
+- **Play 接真後端**（已實作，見 [`backend/`](./backend/)）：以反向代理在 `sr.oha.li` 同源下把 `location /api/` 導到 Go 分流後端、`location /` 導到靜態 `dist/`。後端於 `/api/play.json` 回傳同形狀 JSON（見 `src/lib/play.ts`）取代預渲染的 mock 靜態檔——前端 `iframe.src = region.url` 零改動。把 `backend/config.json` 的 `region.url` 指向真實遊戲主機、`allowedOrigins` 設為 `sr.oha.li` 即可上線。
 - **CORS**：若 `sr.oha.li` 以 iframe 跨源嵌入遊戲後端，需把其 https origin 加入**遊戲後端** `allowedOrigins`（見 ShatteredRealms `docs/deployment.md §7`），否則 `/ws` 403。
 - **CI**：沿用家族慣例——若日後加 CI，以 branch 過濾只在 `main` 觸發（工作分支頻繁推送不付 CI 成本）。

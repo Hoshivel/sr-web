@@ -81,6 +81,11 @@
 
 ## Play 流程 —— 本次 mock，定義未來契約
 
+> **更新（2026-07-21）**：真實分流後端**已實作**，位於 `backend/`（Go、零第三方相依）。
+> 它於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的即時節點快照（背景探活 /
+> 分流 / 負載均衡），可無痛替換下述 mock 靜態端點、前端不改。細節見 `backend/README.md`
+> 與 `sessions/2026-07-21-sr-web-backend.md`。以下為原始契約設計（仍成立）。
+
 - Play island 呼叫 `GET /api/play`（或 `/api/servers`）。**本次**由靜態 JSON / Astro endpoint 回傳 mock regions（`hk1.svc.oha.li`、`jp1.svc.oha.li`），欄位 `region / url / healthy / latencyMs / load`。挑一個 → iframe 嵌入或 redirect。
 - **寫死 API 契約**，讓未來 Go「分流/探活/負載均衡」後端無痛替換、前端不改。
   - 遊戲伺服器**已有** `GET /healthz`（純文字 `ok`）可供未來後端輪詢。
