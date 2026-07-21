@@ -1,9 +1,10 @@
 ---
 /*
   站首 Header —— sticky 毛玻璃列。
-  brand（連首頁）＋ section 導覽（錨點，隨 Phase 2–6 區塊長出）＋ 語言切換 ＋ Play CTA。
+  brand（連首頁）＋ section 導覽（錨點）＋ 語言切換 ＋ Play CTA。
   首列 skip link 供鍵盤 / 螢幕閱讀器跳到主內容。
-  註：section 導覽在窄視窗收起（完整行動選單留待 Phase 7 打磨）。
+  行動裝置（≤760px）：section 導覽收進 hamburger 展開的下拉選單（Play 併入選單），
+  桌機維持橫列。選單為可存取切換（aria-expanded / aria-controls；Esc / 外點 / 點連結關閉）。
 */
 import Wordmark from "@/components/brand/Wordmark.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
@@ -33,10 +34,12 @@ const nav = [
       <Wordmark locale={locale} variant="compact" glow />
     </a>
 
-    <nav class="sr-header__nav" aria-label={t("nav.world")}>
+    <nav class="sr-header__nav" id="sr-primary-nav" aria-label={t("nav.world")}>
       {nav.map((item) => (
         <a class="sr-header__link" href={item.href}>{item.label}</a>
       ))}
+      {/* Play：桌機用右側 CTA，行動裝置併入本選單 */}
+      <a class="sr-header__link sr-header__nav-play" href="#play">{t("nav.play")}</a>
     </nav>
 
     <div class="sr-header__actions">
@@ -44,6 +47,15 @@ const nav = [
       <a class="sr-btn sr-btn--primary sr-header__play" href="#play">
         {t("nav.play")}
       </a>
+      <button
+        class="sr-header__menu-btn"
+        type="button"
+        aria-expanded="false"
+        aria-controls="sr-primary-nav"
+        aria-label={t("a11y.menu")}
+      >
+        <span class="sr-burger" aria-hidden="true"></span>
+      </button>
     </div>
   </div>
 </header>
@@ -115,6 +127,10 @@ const nav = [
   .sr-header__link:hover::after {
     transform: scaleX(1);
   }
+  /* Play 併入選單的連結：桌機隱藏（改用右側 CTA），行動選單顯示 */
+  .sr-header__nav-play {
+    display: none;
+  }
   .sr-header__actions {
     display: flex;
     align-items: center;
@@ -122,10 +138,133 @@ const nav = [
     margin-left: auto;
   }
 
-  /* 窄視窗：收起 section 導覽與 Play 文字外距，保留 brand + 語言 + Play */
+  /* hamburger：桌機隱藏 */
+  .sr-header__menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--sr-radius);
+    color: var(--sr-text);
+  }
+  .sr-header__menu-btn:hover {
+    color: var(--sr-text-bright);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .sr-burger,
+  .sr-burger::before,
+  .sr-burger::after {
+    display: block;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition:
+      transform var(--sr-dur-fast) var(--sr-ease-out),
+      opacity var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .sr-burger {
+    position: relative;
+  }
+  .sr-burger::before,
+  .sr-burger::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+  .sr-burger::before {
+    top: -6px;
+  }
+  .sr-burger::after {
+    top: 6px;
+  }
+  /* 開啟時 hamburger → ✕ */
+  .sr-header__menu-btn[aria-expanded="true"] .sr-burger {
+    background: transparent;
+  }
+  .sr-header__menu-btn[aria-expanded="true"] .sr-burger::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .sr-header__menu-btn[aria-expanded="true"] .sr-burger::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* ---- 行動裝置：section 導覽收進下拉選單 ---- */
   @media (max-width: 760px) {
+    .sr-header__menu-btn {
+      display: inline-flex;
+    }
+    .sr-header__play {
+      display: none; /* Play 改由選單內連結提供 */
+    }
+    .sr-header__nav-play {
+      display: block;
+    }
     .sr-header__nav {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      margin: 0;
+      padding: 0.25rem var(--sr-gutter) 0.75rem;
+      background: var(--sr-scrim);
+      -webkit-backdrop-filter: var(--sr-blur);
+      backdrop-filter: var(--sr-blur);
+      border-bottom: 1px solid var(--sr-border);
       display: none;
+    }
+    .sr-header__nav[data-open] {
+      display: flex;
+    }
+    .sr-header__link {
+      padding: 0.75rem 0;
+      font-size: var(--sr-text-base);
+      color: var(--sr-text);
+      border-bottom: 1px solid var(--sr-border);
+    }
+    .sr-header__link:last-child {
+      border-bottom: 0;
+    }
+    .sr-header__link::after {
+      display: none;
+    }
+    .sr-header__nav-play {
+      color: var(--sr-accent);
+      font-weight: 600;
     }
   }
 </style>
+
+<script>
+  // 行動選單：可存取切換（aria-expanded / data-open）；Esc / 外點 / 點連結 / 回桌機皆關閉。
+  const btn = document.querySelector<HTMLButtonElement>(".sr-header__menu-btn");
+  const nav = document.getElementById("sr-primary-nav");
+  if (btn && nav) {
+    const setOpen = (open: boolean) => {
+      btn.setAttribute("aria-expanded", String(open));
+      nav.toggleAttribute("data-open", open);
+    };
+    btn.addEventListener("click", () =>
+      setOpen(btn.getAttribute("aria-expanded") !== "true"),
+    );
+    nav.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("a")) setOpen(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setOpen(false);
+    });
+    document.addEventListener("click", (e) => {
+      const target = e.target as Node;
+      if (!nav.contains(target) && !btn.contains(target)) setOpen(false);
+    });
+    window
+      .matchMedia("(min-width: 761px)")
+      .addEventListener("change", (m) => {
+        if (m.matches) setOpen(false);
+      });
+  }
+</script>

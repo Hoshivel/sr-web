@@ -1,0 +1,213 @@
+/*
+  碎界樹 World Tree —— island 樣式（wt- 前綴、隨 island chunk 載入）。
+  節點以百分比定位於 .wt-stage、置中於各自 (left,top)；枝條走 SVG viewBox 自動縮放。
+  --wt-accent（章節氛圍）與 --el（單節點元素色）以 CSS 過場平滑 morph（冰藍↔星紫）。
+*/
+
+.wt-stage {
+  --wt-accent: #8fa9ff;
+  position: relative;
+  width: 100%;
+  max-width: 660px;
+  margin-inline: auto;
+  aspect-ratio: 600 / 480;
+  /* 章節氛圍：隨 active 節點 morph 的柔光（transition 令 --wt-accent 變更平滑過場） */
+  background:
+    radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--wt-accent) 16%, transparent), transparent 72%),
+    radial-gradient(40% 40% at 50% 46%, color-mix(in srgb, var(--wt-accent) 10%, transparent), transparent 70%);
+  transition: background var(--sr-dur-slow) var(--sr-ease-out);
+  touch-action: pan-y; /* 允許在空白處縱向捲動；節點自身 none（見下） */
+}
+
+.wt-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.wt-branch {
+  fill: none;
+  stroke: color-mix(in srgb, var(--wt-accent) 55%, var(--sr-border-strong));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.7;
+  transition: stroke var(--sr-dur-slow) var(--sr-ease-out);
+}
+.wt-weave {
+  stroke-dasharray: 3 7;
+  opacity: 0.42;
+}
+.wt-tendril {
+  stroke-width: 1.1;
+  opacity: 0.32;
+}
+
+/* ---- 節點 ---- */
+.wt-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  touch-action: none; /* 拖曳節點不觸發頁面捲動 */
+  cursor: grab;
+  color: var(--el, var(--sr-accent));
+}
+.wt-node:active {
+  cursor: grabbing;
+}
+.wt-node-glyph {
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  border-radius: 50%;
+  color: var(--el);
+  border: 1px solid color-mix(in srgb, var(--el) 55%, var(--sr-border));
+  background:
+    radial-gradient(60% 60% at 50% 42%, color-mix(in srgb, var(--el) 30%, transparent), transparent 72%),
+    var(--sr-surface-1);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--el) 34%, transparent);
+  transition:
+    transform var(--sr-dur) var(--sr-ease-spring),
+    box-shadow var(--sr-dur) var(--sr-ease-out),
+    border-color var(--sr-dur) var(--sr-ease-out);
+}
+.wt-node:hover .wt-node-glyph,
+.wt-node:focus-visible .wt-node-glyph {
+  transform: scale(1.12);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--el) 55%, transparent);
+}
+.wt-node.is-selected .wt-node-glyph {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--el) 70%, transparent),
+    0 0 34px color-mix(in srgb, var(--el) 60%, transparent);
+}
+/* 根節點（碎界◈）：略大，讀作主幹起源 */
+.wt-node--root .wt-node-glyph {
+  width: 3.9rem;
+  height: 3.9rem;
+  font-size: 1.85rem;
+}
+/* 即將開放（星痕紀元✶）：虛線環 + 稍暗，示意「尚未生長」 */
+.wt-node--soon .wt-node-glyph {
+  border-style: dashed;
+  color: color-mix(in srgb, var(--el) 82%, var(--sr-text-muted));
+}
+.wt-node-name {
+  font-size: var(--sr-text-xs);
+  letter-spacing: 0.04em;
+  color: var(--sr-text);
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(6, 7, 11, 0.8);
+  pointer-events: none;
+}
+
+/* ---- 章節詳情卡（覆於 stage 一角，不撐高頁面） ---- */
+.wt-detail {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  width: min(21rem, 94%);
+  padding: var(--sr-space-4);
+  border: 1px solid color-mix(in srgb, var(--el) 40%, var(--sr-border));
+  border-radius: var(--sr-radius-lg);
+  background: color-mix(in srgb, var(--el) 8%, var(--sr-scrim));
+  -webkit-backdrop-filter: var(--sr-blur);
+  backdrop-filter: var(--sr-blur);
+  box-shadow: var(--sr-shadow-3), 0 0 40px color-mix(in srgb, var(--el) 18%, transparent);
+  animation: wt-detail-in var(--sr-dur) var(--sr-ease-out);
+}
+@keyframes wt-detail-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.wt-detail-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--sr-text-muted);
+  padding: 0.3rem;
+}
+.wt-detail-close:hover {
+  color: var(--sr-text-bright);
+}
+.wt-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.wt-detail-glyph {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: none;
+  font-size: 1.2rem;
+  border-radius: 50%;
+  color: var(--el);
+  background: radial-gradient(60% 60% at 50% 42%, color-mix(in srgb, var(--el) 34%, transparent), transparent 72%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--el) 40%, transparent);
+}
+.wt-detail-kicker {
+  font-size: var(--sr-text-xs);
+  letter-spacing: var(--sr-tracking-wide);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--el) 80%, var(--sr-text-muted));
+}
+.wt-detail-name {
+  font-family: var(--sr-font-display);
+  font-weight: 800;
+  font-size: var(--sr-text-lg);
+  color: var(--sr-text-bright);
+  line-height: 1.1;
+}
+.wt-detail-tagline {
+  margin-top: var(--sr-space-3);
+  font-size: var(--sr-text-sm);
+  color: var(--sr-text);
+}
+.wt-detail-story {
+  margin-top: var(--sr-space-2);
+  font-size: var(--sr-text-xs);
+  line-height: var(--sr-leading);
+  color: var(--sr-text-muted);
+}
+.wt-status {
+  display: inline-block;
+  margin-top: var(--sr-space-3);
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--sr-radius-pill);
+  font-size: var(--sr-text-xs);
+  letter-spacing: 0.04em;
+  color: var(--el);
+  border: 1px solid color-mix(in srgb, var(--el) 45%, var(--sr-border));
+  background: color-mix(in srgb, var(--el) 12%, transparent);
+}
+.wt-status--soon {
+  color: color-mix(in srgb, var(--el) 85%, var(--sr-text-muted));
+}
+
+@media (max-width: 560px) {
+  .wt-detail {
+    width: 100%;
+  }
+  .wt-node-glyph {
+    width: 2.8rem;
+    height: 2.8rem;
+    font-size: 1.3rem;
+  }
+  .wt-node--root .wt-node-glyph {
+    width: 3.3rem;
+    height: 3.3rem;
+    font-size: 1.55rem;
+  }
+}

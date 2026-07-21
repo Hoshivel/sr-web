@@ -1,0 +1,299 @@
+---
+/*
+  玩法 Gameplay（#gameplay）—— 四合一 scroll-reveal。
+  棋類策略 / RPG 成長 / MOBA 技能 / 開放探索：四柱各帶程序化 SVG 母題
+  （無美術資產 → 程序化即插圖），以 `[data-reveal]` stagger 進場（Layout 已 boot）。
+  靜態 / reduced-motion / 無 JS：四柱直接呈現、母題靜止（全站 reduced-motion 基線關動畫）。
+*/
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+// 六角棋盤母題用：程序化生成蜂巢三連的平頂六邊形頂點（procedural，呼應「六角棋盤」）。
+function hexPoints(cx: number, cy: number, r: number): string {
+  const pts: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i; // 平頂：自 0° 起每 60°
+    pts.push(`${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`);
+  }
+  return pts.join(" ");
+}
+const hexTriad = [hexPoints(18, 19, 7), hexPoints(30, 19, 7), hexPoints(24, 30, 7)];
+
+// 四柱：id → 元素強調色（inline --el）。文案由 i18n 提供。
+const pillars = [
+  { id: "tactics", el: "var(--sr-accent)" },
+  { id: "growth", el: "var(--sr-gold)" },
+  { id: "skills", el: "var(--sr-violet-light)" },
+  { id: "explore", el: "var(--sr-success)" },
+] as const;
+---
+
+<section class="sr-section gameplay" id="gameplay">
+  {/* 程序化 SVG 母題精靈：以 currentColor 承接各柱 --el 強調色 */}
+  <svg class="gameplay__sprite" aria-hidden="true" focusable="false">
+    <symbol id="motif-tactics" viewBox="0 0 48 48">
+      {hexTriad.map((p, i) => (
+        <polygon points={p} class={i === 2 ? "hex hex--lead" : "hex"} />
+      ))}
+    </symbol>
+    <symbol id="motif-growth" viewBox="0 0 48 48">
+      <rect x="9" y="30" width="6" height="8" rx="1.5" />
+      <rect x="19" y="24" width="6" height="14" rx="1.5" />
+      <rect x="29" y="16" width="6" height="22" rx="1.5" class="bar--lead" />
+      <path d="M31 12 l4 -4 M35 8 h-4 M35 8 v4" class="spark" />
+    </symbol>
+    <symbol id="motif-skills" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="12" class="orbit" />
+      <circle cx="24" cy="24" r="3.4" class="core" />
+      <circle cx="24" cy="12" r="2.4" class="pip pip--1" />
+      <circle cx="34.4" cy="30" r="2.4" class="pip pip--2" />
+      <circle cx="13.6" cy="30" r="2.4" class="pip pip--3" />
+    </symbol>
+    <symbol id="motif-explore" viewBox="0 0 48 48">
+      <circle cx="34" cy="15" r="5" class="sun" />
+      <path d="M6 30 q6 -7 12 -3 t12 -2 12 1" class="ridge ridge--1" />
+      <path d="M6 37 q7 -6 13 -2 t12 -3 11 1" class="ridge ridge--2" />
+    </symbol>
+  </svg>
+
+  <div class="sr-container gameplay__head">
+    <p class="sr-eyebrow" data-reveal>{t("gameplay.eyebrow")}</p>
+    <h2 class="gameplay__title" data-reveal>
+      <span class="gameplay__title-a">{t("gameplay.titleA")}</span>
+      <span class="gameplay__title-b sr-gradient-text">{t("gameplay.titleB")}</span>
+    </h2>
+    <p class="gameplay__lead" data-reveal>{t("gameplay.lead")}</p>
+  </div>
+
+  <ol class="sr-container gameplay__grid">
+    {pillars.map((p, i) => (
+      <li class="pillar" style={`--el:${p.el}`} data-pillar={p.id} data-reveal>
+        <span class="pillar__motif-wrap" aria-hidden="true">
+          <svg class="pillar__motif" viewBox="0 0 48 48"><use href={`#motif-${p.id}`} /></svg>
+        </span>
+        <span class="pillar__index">{String(i + 1).padStart(2, "0")}</span>
+        <h3 class="pillar__name">{t(`gameplay.${p.id}.name`)}</h3>
+        <p class="pillar__desc">{t(`gameplay.${p.id}.desc`)}</p>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .gameplay {
+    position: relative;
+    background:
+      radial-gradient(60% 55% at 50% 0%, rgba(122, 162, 255, 0.06), transparent 70%),
+      var(--sr-void);
+  }
+  /* 母題精靈本體不佔版面 */
+  .gameplay__sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .gameplay__head {
+    text-align: center;
+    max-width: 60rem;
+  }
+  .gameplay__title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12em;
+    margin-top: var(--sr-space-3);
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-2xl);
+    line-height: var(--sr-leading-tight);
+    letter-spacing: 0.02em;
+  }
+  .gameplay__title-a {
+    color: var(--sr-text-bright);
+  }
+  .gameplay__lead {
+    margin: var(--sr-space-6) auto 0;
+    max-width: 54ch;
+    font-size: var(--sr-text-lg);
+    color: var(--sr-text-muted);
+  }
+
+  .gameplay__grid {
+    list-style: none;
+    margin-top: var(--sr-space-16);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 2.4vw, 1.6rem);
+  }
+
+  .pillar {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(1.4rem, 3vw, 2.2rem);
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius-lg);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--el) 7%, var(--sr-surface-1)),
+      var(--sr-surface-1) 60%
+    );
+    overflow: hidden;
+    transition:
+      transform var(--sr-dur) var(--sr-ease-out),
+      border-color var(--sr-dur) var(--sr-ease-out),
+      box-shadow var(--sr-dur) var(--sr-ease-out);
+  }
+  /* 頂緣元素色細線 */
+  .pillar::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--el), transparent);
+    opacity: 0.55;
+    transform: scaleX(0.4);
+    transition:
+      transform var(--sr-dur) var(--sr-ease-out),
+      opacity var(--sr-dur) var(--sr-ease-out);
+  }
+  .pillar:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--el) 45%, var(--sr-border));
+    box-shadow:
+      var(--sr-shadow-2),
+      0 0 42px color-mix(in srgb, var(--el) 22%, transparent);
+  }
+  .pillar:hover::before {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  .pillar__motif-wrap {
+    display: grid;
+    place-items: center;
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: var(--sr-radius);
+    color: var(--el);
+    background: radial-gradient(
+      70% 70% at 50% 40%,
+      color-mix(in srgb, var(--el) 18%, transparent),
+      transparent 72%
+    );
+  }
+  .pillar__motif {
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--el) 55%, transparent));
+  }
+
+  /* 母題細節 —— tactics 蜂巢 */
+  .hex {
+    opacity: 0.55;
+  }
+  .hex--lead {
+    opacity: 1;
+    fill: color-mix(in srgb, currentColor 22%, transparent);
+    animation: motif-breathe 4.4s var(--sr-ease-in-out) infinite;
+  }
+  /* growth 成長條 */
+  .bar--lead {
+    fill: color-mix(in srgb, currentColor 24%, transparent);
+    animation: motif-rise 3.6s var(--sr-ease-in-out) infinite;
+    transform-box: fill-box;
+    transform-origin: bottom;
+  }
+  .spark {
+    stroke-width: 1.5;
+  }
+  /* skills 技能環 */
+  .orbit {
+    opacity: 0.5;
+  }
+  .core {
+    fill: color-mix(in srgb, currentColor 40%, transparent);
+    stroke: none;
+  }
+  .pip {
+    fill: currentColor;
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .pip--1 {
+    animation: motif-twinkle 2.8s var(--sr-ease-in-out) infinite;
+  }
+  .pip--2 {
+    animation: motif-twinkle 2.8s var(--sr-ease-in-out) 0.9s infinite;
+  }
+  .pip--3 {
+    animation: motif-twinkle 2.8s var(--sr-ease-in-out) 1.8s infinite;
+  }
+  /* explore 地景 */
+  .sun {
+    fill: color-mix(in srgb, currentColor 30%, transparent);
+    animation: motif-breathe 5s var(--sr-ease-in-out) infinite;
+  }
+  .ridge {
+    opacity: 0.8;
+  }
+  .ridge--2 {
+    opacity: 0.5;
+  }
+
+  @keyframes motif-breathe {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 0.4; }
+  }
+  @keyframes motif-rise {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.82); }
+  }
+  @keyframes motif-twinkle {
+    0%, 100% { opacity: 0.35; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+
+  .pillar__index {
+    display: block;
+    margin-top: var(--sr-space-6);
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wider);
+    color: color-mix(in srgb, var(--el) 70%, var(--sr-text-muted));
+    font-variant-numeric: tabular-nums;
+  }
+  .pillar__name {
+    margin-top: var(--sr-space-2);
+    font-family: var(--sr-font-display);
+    font-weight: 700;
+    font-size: var(--sr-text-xl);
+    color: var(--sr-text-bright);
+    letter-spacing: 0.01em;
+  }
+  .pillar__desc {
+    margin-top: var(--sr-space-3);
+    font-size: var(--sr-text-base);
+    line-height: var(--sr-leading);
+    color: var(--sr-text-muted);
+    max-width: 46ch;
+  }
+
+  @media (max-width: 720px) {
+    .gameplay__grid {
+      grid-template-columns: 1fr;
+      margin-top: var(--sr-space-12);
+    }
+  }
+</style>
