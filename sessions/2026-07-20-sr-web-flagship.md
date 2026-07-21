@@ -2,9 +2,16 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：Phase 0 骨架完成、`npm run build` 綠燈；下一步 Phase 1 品牌基元。
-- 相關：branch `claude/sr-web-animation-planning-u1vujx`；計畫 `/root/.claude/plans/sr-web-html-js-gentle-newt.md`
+- 進度摘要：Phase 0 骨架完成、`npm run build` 綠燈、已 push；使用者要求此處停手交接。下一步 Phase 1 品牌基元。
+- 相關：branch `claude/sr-web-animation-planning-u1vujx`
+- **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
+
+## 如何冷接手（Cold Resume）
+1. 讀本檔（目標 / 進度 / 待辦 / `Editing`）與 `docs/plan.md`（完整計畫）。
+2. `Editing = idle` → 工作區一致、無半編輯檔；可直接從「待辦」最上面一項開始。
+3. `npm install` → `npm run build` 應綠燈；`npm run dev` 起本地開發。
+4. 下一步：**Phase 1 品牌基元**（見 `docs/plan.md` 分階段里程碑）。
 
 ## 目標 / 需求
 （實時更新；新增需求往下追加並標註時間）
