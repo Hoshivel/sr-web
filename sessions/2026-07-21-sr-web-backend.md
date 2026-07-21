@@ -21,18 +21,20 @@
 
 ## 進度
 ### 待辦
-- [ ] backend/ Go module 骨架 + config 套件（JSON 檔 + flags + regions 清單）
-- [ ] internal/play：契約型別 + 背景探活 prober（RTT 延遲 / healthy / 可選 load 解析）+ router 快照 + recommend
-- [ ] internal/server：/healthz、GET /api/play.json（+ /api/play alias）、CORS
-- [ ] cmd/router/main.go 進入點
-- [ ] 測試（config / probe / router / server）+ 驗證綠燈
-- [ ] backend/README + 更新 root README / plan / 本日誌；每階段 push
+- [ ] 測試（config / probe / router / server / play.Recommend）+ `go test -race` 驗證綠燈
+- [ ] backend/README + 更新 root README / plan / 本日誌
 
 ### 進行中
-- [ ] 建立本日誌（本步）
+- [ ] 撰寫測試（下一批）
 
 ### 已完成（精簡摘要）
--（無）
+- [x] backend/ Go module 骨架（module `github.com/moehoshio/sr-web/backend`、go 1.24、**零第三方相依**）＋ `.gitignore`（忽略維運 config.json / 二進位）＋ `config.example.json`（prod 範例：allowedOrigins=sr.oha.li、三節點 healthUrl）。
+- [x] `internal/config`：JSON 設定檔（缺檔自動產生預設）＋ flags（--config/--ip/--port）；`Region{id,host,url,healthUrl}`、探活週期/逾時、allowedOrigins。
+- [x] `internal/play`：契約型別 `Region`/`Response`（JSON 欄位逐一對齊前端 `src/lib/play.ts`）＋ `Recommend`（健康>延遲>負載）＋ additive `recommendedId`。
+- [x] `internal/router`：背景探活 prober（並行、RTT 延遲、HTTP 200＝healthy、body 可選 JSON 解析 load／players+capacity，純文字 ok＝load 未知 0）＋不可變快照（RWMutex 原子替換，-race 安全）＋啟動先探一輪＋初始種子快照（首個回應不空）。
+- [x] `internal/server`：`/healthz`（純文字 ok）＋ `GET /api/play.json`（＋ `/api/play` alias，`Cache-Control: no-store`）＋ CORS（allowlist 空=放行任意；設定則收斂，對齊遊戲後端）。`cmd/router/main.go` 進入點（訊號取消＋優雅關閉＋ReadHeaderTimeout）。
+- [x] 驗證：`go build/vet ./...`＋`gofmt -l` 全綠；smoke（`-port 8099`）——`/healthz`＝ok、`/api/play.json` 回正確契約形狀、CORS `*`/OPTIONS 204/no-store、config 自動產生皆確認。
+- [x] 建立本日誌。
 
 ## 設計要點
 - **契約（不可改，前端依賴）**：`PlayResponse = { regions: PlayRegion[]; updatedAt: string }`；
@@ -49,10 +51,10 @@
 > 動手改碼前先更新；落地並驗證後改回 idle。
 > 狀態 = editing 代表可能有半編輯檔；idle 代表工作區一致。
 
-- 狀態：idle
-- 目標檔案：—
-- 預計變更：—
-- 半完成 / 風險：—
+- 狀態：editing
+- 目標檔案：`backend/internal/**/*_test.go`（config / play / router[probe] / server 測試）
+- 預計變更：加表格測試；`go test -race ./...` 綠。不改 source（除非測試揭露問題）。
+- 半完成 / 風險：source 已全數落地並 build/vet/gofmt/smoke 綠——目前工作區為一致可建置快照；僅缺自動化測試。
 
 ## 筆記 / 決策
 - 遊戲 `/healthz` 目前只回純文字 `ok`（見 ShatteredRealms `internal/server/server.go` `handleHealth`）→ load 目前無真實訊號，探活以 healthy/latency 為準；load 解析為向前相容設計，遊戲端日後可於健康端點附 `load` 即自動生效。

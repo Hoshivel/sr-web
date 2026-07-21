@@ -1,0 +1,8 @@
+# 執行期產生的維運設定（每部署不同，勿入庫；範例見 config.example.json）
+/config.json
+/config.yaml
+/config.yml
+
+# 建置產物
+/router
+/sr-web-router
