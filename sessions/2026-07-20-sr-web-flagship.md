@@ -2,7 +2,7 @@
 
 - 建立：2026-07-20
 - 狀態：進行中
-- 進度摘要：**Phase 2 Hero 完成並 push、build 綠，待使用者視覺簽核**（分層虛空：Pixi VoidField ＋ Starfield 星座 ＋ ◈ 脈動 ＋ 漸層字標 ＋ Play/Learn 磁吸 CTA ＋ 可讀性 veil）。依計畫在 Phase 2/3 邊界暫停待簽核，再進 Phase 3 捲動電影。
+- 進度摘要：**Phase 2 Hero 已使用者簽核**；**Phase 3 捲動電影框架 + 碎裂區進行中**（3a 框架＋碎裂區靜態結構起手）。前階段皆已 push、build 綠。
 - 相關：branch `claude/sr-web-plan-continue-od8l0n`（前身 `claude/sr-web-animation-planning-u1vujx` 已併入 main）
 - **權威計畫（倉庫內、可冷接手）**：`docs/plan.md`（外部 plan 目錄副本屬臨時性，勿依賴）
 - Runtime: cloud（每階段 commit + push 到遠端）
@@ -53,6 +53,7 @@
 - 可移植/參考：遊戲 `ui/TunnelTransition.tsx` + styles.css `.scene-transition`（warp 轉場）。
 
 ### 已完成（精簡摘要）
+- [x] Phase 3a 捲動框架 + 碎裂區靜態：三語 `world.*` 文案（招牌句「碎裂不是天罰，是天地最後一次自救」＋lead/body，源自遊戲碎界 lore）。`src/lib/scrollCinema.ts` 單例 boot（Lenis+ScrollTrigger 各一、與 Lenis 同步；reduced-motion 回 null；Lenis/GSAP 動態載入）。`src/components/sections/Shattering.astro`（id=world、`data-scroll-cinema`）：種子化 34 片殘片（凝聚態＋各自四散目標 `--dx/--dy/--r1`）＋眉標/雙行招牌句(漸層)/lead/body（含 `::before` 底襯保可讀）。Home 掛於 Hero 後。三路由 SSR 出 #world＋殘片＋在地文案、build 綠。
 - [x] Phase 2d 整合打磨：Hero 中央可讀性 `.hero__veil`（徑向壓暗、z 介於 scrim 與 content）＋字標 `drop-shadow` 輝光；plan/README 標 Phase 2 完成（待簽核）。build 綠。
 - [x] Phase 2c Pixi 程序化虛空：`src/components/hero/VoidField.tsx`——漂浮發光菱形碎片（additive、深度→大小/亮度/速度/視差、閃爍、邊界環繞）＋星雲柔光（離屏徑向漸層貼圖、additive、緩脈動）＋游標視差（僅 `pointer:fine`、lerp 平移碎片場）。Pixi 動態 import → 獨立 chunk（~247KB gz，僅 client:visible 注水時抓取）。降級：reduced-motion 完全不啟用；**窄視窗（≤720px）完全不載入 Pixi**（省整包，保留 CSS 底＋Starfield）；WebGL 失敗 try/catch 靜默退場；離開時 destroy app＋自建貼圖。Home 掛載於 Starfield 下方、`.sr-voidfield` 宿主填滿背景層。Pixi v8 API（async init/`app.canvas`/`blendMode="add"`/`generateTexture`/`Texture.from(canvas)`/Ticker 回呼/`destroy`）全 typecheck 過、三路由 SSR 出宿主、build 綠。
 - [x] Phase 2b Starfield island：移植遊戲 `Starfield.tsx` → `src/components/hero/Starfield.tsx`（standalone、改用共用 `prefersReducedMotion`、星/連線色沿用品牌、DPR≤2、游標星座＋光暈、邊界環繞、reduced-motion 只畫靜態單幀）。Hero `.hero__bg` 內 `client:visible` 掛載、SSR 出 `<canvas>`（版面穩定）、指標穿透。首次為站點引入 React runtime（~44KB gz，僅此島注水）＋Starfield chunk 1.76KB gz。三路由皆含、build 綠。
@@ -73,7 +74,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 2 全數完成並 push、build 綠；停在 Phase 2/3 邊界待視覺簽核）
+- 半完成 / 風險：—（Phase 3a 已落地並 build 綠；下一步 3b GSAP pin/scrub 溶解電影。碎片場靜態＝凝聚態，3b 動 `--dx/--dy/--r1`/opacity/filter。）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。

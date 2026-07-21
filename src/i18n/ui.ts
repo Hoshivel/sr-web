@@ -73,6 +73,14 @@ const zhHant = {
   "footer.note": "本站為前端動效展示；伺服器分流／探活為未來後端。",
 
   "hero.badge": "旗艦動效建置中",
+
+  // 碎裂 The Shattering（#world）
+  "world.eyebrow": "世界觀",
+  "world.titleA": "碎裂不是天罰，",
+  "world.titleB": "是天地最後一次自救。",
+  "world.lead": "當星痕斷裂，大地失去固定的形狀，世界碎成漂浮於虛空的殘片。",
+  "world.body":
+    "這不是終結——碎裂，是天地保存自身的最後手段。殘片各自漂散，靜待被重新拼合；你將率領探索隊，在虛空中尋回失落的大地。",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -103,6 +111,13 @@ const zhCN: Record<UIKey, string> = {
   "footer.note": "本站为前端动效展示；服务器分流／探活为未来后端。",
 
   "hero.badge": "旗舰动效建置中",
+
+  "world.eyebrow": "世界观",
+  "world.titleA": "碎裂不是天罚，",
+  "world.titleB": "是天地最后一次自救。",
+  "world.lead": "当星痕断裂，大地失去固定的形状，世界碎成漂浮于虚空的残片。",
+  "world.body":
+    "这不是终结——碎裂，是天地保存自身的最后手段。残片各自漂散，静待被重新拼合；你将率领探索队，在虚空中寻回失落的大地。",
 };
 
 const en: Record<UIKey, string> = {
@@ -133,6 +148,14 @@ const en: Record<UIKey, string> = {
     "This site is a front-end motion showcase; server routing / health checks are a future backend.",
 
   "hero.badge": "Flagship motion in progress",
+
+  "world.eyebrow": "The World",
+  "world.titleA": "The Shattering was not a punishment —",
+  "world.titleB": "it was the world's last act of self-rescue.",
+  "world.lead":
+    "When the star-seal broke, the land lost its fixed shape and the world scattered into fragments adrift in the void.",
+  "world.body":
+    "This is not the end. The shattering was how the world preserved itself — the fragments drift apart, waiting to be pieced back together. You will lead the expedition that reclaims the lost lands.",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {

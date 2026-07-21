@@ -7,6 +7,7 @@
 import Mark from "@/components/brand/Mark.astro";
 import VoidField from "@/components/hero/VoidField.tsx";
 import Starfield from "@/components/hero/Starfield.tsx";
+import Shattering from "@/components/sections/Shattering.astro";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -56,6 +57,9 @@ const learnHref = "#world";
       <span class="hero__scroll-track"><span class="hero__scroll-dot"></span></span>
     </a>
   </section>
+
+  <!-- Phase 3：碎裂 The Shattering（世界觀捲動電影） -->
+  <Shattering locale={locale} />
 </main>
 
 <style>
