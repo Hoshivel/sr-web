@@ -1,0 +1,77 @@
+---
+/*
+  碎界 字標鎖定組（Mark + 名稱）。
+  variant：
+    - mark    —— 只有 ◈ 標記（Mark 帶 aria-label）
+    - compact —— ◈ + 名稱（header 用）
+    - full    —— ◈ + 名稱 + 拉丁副標（footer / OG 用）
+  名稱與拉丁字來自字典，隨 locale 切換。
+*/
+import Mark from "./Mark.astro";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+  variant?: "mark" | "compact" | "full";
+  size?: number;
+  glow?: boolean;
+  class?: string;
+}
+const {
+  locale,
+  variant = "compact",
+  size,
+  glow = false,
+  class: className,
+} = Astro.props;
+
+const t = useTranslations(locale);
+const name = t("site.name");
+const latin = t("site.nameLatin");
+const markSize = size ?? (variant === "full" ? 40 : 26);
+const label = `${name} ${latin}`;
+---
+
+<span class:list={["sr-wordmark", `is-${variant}`, className]}>
+  <Mark size={markSize} glow={glow} title={variant === "mark" ? label : undefined} />
+  {
+    variant !== "mark" && (
+      <span class="sr-wordmark__text">
+        <span class="sr-wordmark__name sr-gradient-text">{name}</span>
+        {variant === "full" && <span class="sr-wordmark__latin">{latin}</span>}
+      </span>
+    )
+  }
+</span>
+
+<style>
+  .sr-wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sr-wordmark.is-full {
+    gap: 0.7rem;
+  }
+  .sr-wordmark__text {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .sr-wordmark__name {
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    font-size: 1.15rem;
+  }
+  .sr-wordmark.is-full .sr-wordmark__name {
+    font-size: 1.5rem;
+  }
+  .sr-wordmark__latin {
+    color: var(--sr-text-muted);
+    letter-spacing: var(--sr-tracking-wide);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    margin-top: 0.15rem;
+  }
+</style>

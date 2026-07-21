@@ -1,25 +1,48 @@
 ---
 import "@/styles/global.css";
+import {
+  useTranslations,
+  localizedPath,
+  stripLocalePrefix,
+  HTML_LANG,
+  OG_LOCALE,
+  LOCALES,
+  DEFAULT_LOCALE,
+  type Locale,
+} from "@/i18n/utils";
 
 interface Props {
+  locale?: Locale;
   title?: string;
   description?: string;
-  lang?: string;
 }
 
-const {
-  title = "碎界 Shattered Realms",
-  description = "破碎星空之下，啟程未竟之旅。碎界是一款架空世界觀的 2D 回合制策略遊戲，融合棋類策略、RPG 成長、MOBA 技能設計與開放世界探索。",
-  lang = "zh-Hant",
-} = Astro.props;
+const { locale = DEFAULT_LOCALE, title, description } = Astro.props;
+const t = useTranslations(locale);
+
+const pageTitle =
+  title ?? (locale === "en" ? t("site.name") : `${t("site.name")} Shattered Realms`);
+const pageDescription = description ?? `${t("site.tagline")} — ${t("site.summary")}`;
 
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : Astro.url.pathname;
+
+// hreflang：把同一頁的各語言版本互相標示（含 x-default → 預設語言）。
+const logicalPath = stripLocalePrefix(Astro.url.pathname);
+const alternates = LOCALES.map((l) => ({
+  hreflang: HTML_LANG[l],
+  href: Astro.site
+    ? new URL(localizedPath(l, logicalPath), Astro.site).href
+    : localizedPath(l, logicalPath),
+}));
+const xDefault = Astro.site
+  ? new URL(localizedPath(DEFAULT_LOCALE, logicalPath), Astro.site).href
+  : localizedPath(DEFAULT_LOCALE, logicalPath);
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={HTML_LANG[locale]}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -31,16 +54,26 @@ const canonical = Astro.site
     <link rel="canonical" href={canonical} />
     <meta name="generator" content={Astro.generator} />
 
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
     <meta name="theme-color" content="#06070b" />
 
-    <!-- Open Graph（og 圖於 Phase 1 產生）-->
+    <!-- i18n 交替連結 -->
+    {alternates.map((alt) => (
+      <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={xDefault} />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:locale" content="zh_Hant" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:locale" content={OG_LOCALE[locale]} />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/og.png" />
   </head>
   <body>
     <slot />

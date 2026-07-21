@@ -37,9 +37,11 @@
 - [ ] Phase 7 打磨（效能 / a11y / 行動 / SEO / 部署）
 
 ### 進行中
-- [ ] Phase 1b/1c/1d 起手：品牌元件 + i18n → header/footer + 語言切換 → OG 圖。
+- [ ] Phase 1c：Header + Footer + 語言切換器 + locale 路由（/zh-cn、/en）。
+- [ ] Phase 1d：程序化 OG 圖（og.png，Layout 已預接 meta）。
 
 ### 已完成（精簡摘要）
+- [x] Phase 1b 品牌元件 + i18n 基礎：`src/i18n/ui.ts`（三語字典，鍵型別強制完整；含 LOCALES/LOCALE_PATH/HTML_LANG/OG_LOCALE/LABEL）＋`utils.ts`（`getLocaleFromPath`/`useTranslations`/`localizedPath`/`stripLocalePrefix`）。SVG 品牌 `Mark.astro`（◈ 向量、獨立漸層 id、可選發光、a11y）＋`Wordmark.astro`（mark/compact/full 鎖定組）。首屏抽成 `Home.astro`（吃 locale、改用 Mark＋字典文案、hero 元素掛 data-reveal）。`Layout.astro` 升級為 locale-aware：`<html lang>`／og:locale／hreflang 交替連結（含 x-default）／og:image 預接 `/og.png`。踩雷：ui.ts 頂部註解含 glob `*​/` 會提前關閉 `/* */` → 改 `<id>`。build 綠。
 - [x] Phase 1a 品牌基元（tokens/動效工具/字符系統）：`tokens.css` 加間距/字級/陰影/backdrop/glyph 尺度與 spring ease、reveal token；`global.css` 加 `.sr-section`/`.sr-eyebrow`/字符系統偽元素類/`[data-reveal]` 進場基線（`html.sr-js` 守衛→無 JS 不藏內容；reduced-motion 強制呈現）。新增 `src/lib/motion.ts`（`prefersReducedMotion`/`initScrollReveal` stagger/`initSmoothScroll` Lenis 動態載入/`registerScrollTrigger` GSAP 動態載入）＋`src/lib/useReducedMotion.ts`（React hook，初值對齊 SSR 免注水不一致）。Layout 加 `sr-js` inline flag ＋ reveal boot。`npm run build` 綠；reveal 腳本 tree-shake 後 ~1KB 內聯、Lenis/GSAP 未進首屏。
 - [x] Phase 0 骨架：Astro5 + @astrojs/react + strict TS；裝 GSAP/Lenis/Pixi.js（422 pkgs）。
 - [x] 設計 tokens：`src/styles/tokens.css`（色盤蒸餾自遊戲 styles.css，語意變數化）+ `global.css`（reset、utilities、reduced-motion 基線）。
@@ -53,7 +55,7 @@
 - 狀態：idle
 - 目標檔案：—
 - 預計變更：—
-- 半完成 / 風險：—（Phase 1a 已落地並 build 綠）
+- 半完成 / 風險：—（Phase 1b 已落地並 build 綠；Layout 已預接 `/og.png`，實體檔於 1d 產生）
 
 ## 筆記 / 決策
 - 色盤語意變數見 `tokens.css`；章節氛圍用 `[data-chapter="snowpass|starseal"]` 覆寫 `--sr-chapter`。

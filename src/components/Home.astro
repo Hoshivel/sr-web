@@ -1,0 +1,91 @@
+---
+/*
+  首頁內容（單一權威來源；三個 locale 路由共用，靠 locale prop 切換文案）。
+  Phase 1：仍為佔位首屏（Mark + 字標 + 標語）。
+  Phase 2 起，Pixi 程序化 Hero 與各捲動電影區塊在此逐步接入。
+*/
+import Mark from "@/components/brand/Mark.astro";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+// en 的大標題本身即拉丁字，不再重複拉丁副標
+const showLatin = locale !== "en";
+---
+
+<main id="main" class="hero-placeholder">
+  <div class="sr-container hero-inner">
+    <div class="hero-mark" data-reveal>
+      <Mark size={56} glow title={t("site.name")} />
+    </div>
+    <h1 class="wordmark sr-gradient-text" data-reveal>{t("site.name")}</h1>
+    {showLatin && <p class="latin" data-reveal>{t("site.nameLatin")}</p>}
+    <p class="tagline" data-reveal>{t("site.tagline")}</p>
+    <p class="note" data-reveal>
+      <span class="sr-glyph sr-glyph-mark" aria-hidden="true"></span>
+      {t("hero.badge")}
+    </p>
+  </div>
+</main>
+
+<style>
+  .hero-placeholder {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    background:
+      radial-gradient(
+        60% 50% at 50% 30%,
+        rgba(122, 162, 255, 0.12),
+        transparent 70%
+      ),
+      radial-gradient(
+        45% 40% at 70% 80%,
+        rgba(122, 91, 255, 0.1),
+        transparent 70%
+      ),
+      var(--sr-void);
+  }
+  .hero-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .hero-mark {
+    margin-bottom: 0.5rem;
+  }
+  .wordmark {
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-display);
+    letter-spacing: var(--sr-tracking-wide);
+    line-height: 1;
+    padding-inline: 0.2em;
+  }
+  .latin {
+    color: var(--sr-text-muted);
+    letter-spacing: var(--sr-tracking-wider);
+    font-size: var(--sr-text-sm);
+    text-transform: uppercase;
+  }
+  .tagline {
+    margin-top: 1.2rem;
+    color: var(--sr-text);
+    letter-spacing: 0.06em;
+    font-size: var(--sr-text-lg);
+  }
+  .note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 2.5rem;
+    color: var(--sr-text-dim);
+    font-size: var(--sr-text-xs);
+    letter-spacing: 0.1em;
+  }
+</style>
