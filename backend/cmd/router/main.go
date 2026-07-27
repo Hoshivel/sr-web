@@ -16,10 +16,15 @@ import (
 	"time"
 
 	"github.com/moehoshio/sr-web/backend/internal/admin"
+	"github.com/moehoshio/sr-web/backend/internal/adminplane"
 	"github.com/moehoshio/sr-web/backend/internal/config"
 	"github.com/moehoshio/sr-web/backend/internal/router"
 	"github.com/moehoshio/sr-web/backend/internal/server"
 )
+
+// version 會寫進控制平面的服務描述，讓維運在管理平臺上看得出跑的是哪個版本。
+// 建置時以 -ldflags "-X main.version=$(git describe --tags --always)" 覆寫。
+var version = "dev"
 
 func main() {
 	store, err := config.LoadStore(os.Args[1:])
@@ -54,11 +59,39 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
+	// 控制平面：hoshi-admin 統一管理平臺的機器介面（見該倉庫 docs/control-plane.md）。
+	// 它監聽在獨立位址——這個介面能重新配置分流節點，不與玩家流量共用入口——
+	// 且未設定共享密鑰時完全不啟用。
+	var controlSrv *http.Server
+	if ctrl := store.Control(); ctrl.Enabled() {
+		handler, err := adminplane.New(store, rt, version).Handler()
+		if err != nil {
+			log.Fatalf("control plane: %v", err)
+		}
+		controlSrv = &http.Server{
+			Addr:              ctrl.Addr,
+			Handler:           handler,
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		go func() {
+			log.Printf("控制平面監聽於 %s——供 hoshi-admin 管理本服務", ctrl.Addr)
+			if err := controlSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Printf("control plane: %v", err)
+			}
+		}()
+	} else {
+		log.Printf("控制平面未啟用（config.json 的 control.addr / control.secret 未設定）；" +
+			"本服務不會出現在 hoshi-admin 上。")
+	}
+
 	// 收到訊號時優雅關閉。
 	go func() {
 		<-ctx.Done()
 		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+		if controlSrv != nil {
+			_ = controlSrv.Shutdown(shutCtx)
+		}
 		_ = httpSrv.Shutdown(shutCtx)
 	}()
 
