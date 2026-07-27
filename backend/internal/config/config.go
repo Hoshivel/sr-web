@@ -93,8 +93,28 @@ type File struct {
 	MaxCandidates        int       `json:"maxCandidates"`
 	Geo                  GeoConfig `json:"geo"`
 	Admin                Admin     `json:"admin"`
+	Control              Control   `json:"control"`
 	Regions              []Region  `json:"regions"`
 }
+
+// Control 是 hoshi-admin 統一管理平臺的控制平面設定（見該倉庫
+// docs/control-plane.md）。它監聽在**獨立於公開埠的位址**，預設只綁 loopback：
+// 這個介面能重新配置分流節點，不該與玩家流量共用入口。
+//
+// Secret 是與管理平臺共享的簽章密鑰（明文）。它與既有的後臺憑證一樣存放於
+// config.json——本服務刻意不讀環境變數——因此**設定檔權限必須是 0600**，
+// 新產生的設定檔已以此權限寫出。
+type Control struct {
+	// Addr 是 host:port；留空則不啟用控制平面。
+	Addr string `json:"addr,omitempty"`
+	// KeyID 是允許的簽章金鑰 id（對應管理平臺登錄的「簽章金鑰 id」）。
+	KeyID string `json:"keyId,omitempty"`
+	// Secret 是共享簽章密鑰，至少 32 字元；留空則不啟用控制平面。
+	Secret string `json:"secret,omitempty"`
+}
+
+// Enabled 回報是否應提供控制平面。沒有密鑰就沒有辦法驗證呼叫者，故預設關閉。
+func (c Control) Enabled() bool { return c.Addr != "" && c.Secret != "" }
 
 // Admin 是後臺登入憑證（持久化於 config.json）。PasswordHash 為空＝後臺尚未設定，
 // 進入 setup 引導流程建立帳密（見 internal/admin）。密碼以 PBKDF2 雜湊，永不明文儲存。
@@ -261,11 +281,12 @@ func loadFile(explicit string, file *File) (path string, notes []string, err err
 	return path, notes, nil
 }
 
-// writeConfig 以縮排 JSON 寫出設定檔。
+// writeConfig 以縮排 JSON 寫出設定檔。權限為 0600：本檔含後臺憑證雜湊與
+// 控制平面的共享簽章密鑰，不應對同機其他使用者可讀。
 func writeConfig(path string, f File) error {
 	out, err := json.MarshalIndent(f, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, append(out, '\n'), 0o644)
+	return os.WriteFile(path, append(out, '\n'), 0o600)
 }

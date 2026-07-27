@@ -106,6 +106,13 @@ type Settings struct {
 	Geo                  GeoConfig `json:"geo"`
 }
 
+// Control 回傳控制平面設定（副本）。
+func (s *Store) Control() Control {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.file.Control
+}
+
 // Settings 回傳當前可調設定的投影（副本）。
 func (s *Store) Settings() Settings {
 	s.mu.RLock()
