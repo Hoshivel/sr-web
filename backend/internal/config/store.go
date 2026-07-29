@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/moehoshio/sr-web/backend/internal/geo"
 )
@@ -172,13 +173,37 @@ func (s *Store) UpsertRegion(r Region) error {
 	return s.update(func(f *File) error {
 		for i := range f.Regions {
 			if f.Regions[i].ID == r.ID {
+				// 更新既有節點：登錄時點屬於「當初加進來的那一刻」，
+				// 不隨編輯而變；呼叫端送來的值一律忽略，否則一次後臺編輯
+				// 就能把它改成今天。停用時點同理由 stampDisabled 決定。
+				r.CreatedAt = f.Regions[i].CreatedAt
+				r.DisabledAt = f.Regions[i].DisabledAt
+				stampDisabled(&r, f.Regions[i].Disabled)
 				f.Regions[i] = r
 				return nil
 			}
 		}
+		r.CreatedAt = nowStamp()
+		r.DisabledAt = ""
+		stampDisabled(&r, false) // 從「不存在」進來，等同原本未停用
 		f.Regions = append(f.Regions, r)
 		return nil
 	})
+}
+
+// nowStamp 是時點欄位統一的格式（與 play.Response.UpdatedAt 同為 RFC3339）。
+func nowStamp() string { return time.Now().UTC().Format(time.RFC3339) }
+
+// stampDisabled 依「停用狀態是否剛剛轉為 true」維護 DisabledAt：轉入時蓋章、
+// 轉出時清空、狀態未變則保留原值。與 Disabled 同處寫入，兩個欄位才不會各說各話
+// （停用中的節點做無關編輯不該把日期改成今天）。
+func stampDisabled(r *Region, wasDisabled bool) {
+	switch {
+	case !r.Disabled:
+		r.DisabledAt = ""
+	case !wasDisabled || r.DisabledAt == "":
+		r.DisabledAt = nowStamp()
+	}
 }
 
 // DeleteRegion 移除一個節點。
@@ -208,7 +233,9 @@ func (s *Store) SetRegionDisabled(id string, disabled bool) error {
 	return s.update(func(f *File) error {
 		for i := range f.Regions {
 			if f.Regions[i].ID == id {
+				was := f.Regions[i].Disabled
 				f.Regions[i].Disabled = disabled
+				stampDisabled(&f.Regions[i], was)
 				return nil
 			}
 		}

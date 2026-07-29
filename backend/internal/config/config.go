@@ -40,6 +40,13 @@ type Region struct {
 	Country string `json:"country,omitempty"`
 	// Disabled 為 true 時此節點停用：不探活、不出現在任何回應（後臺可切換）。
 	Disabled bool `json:"disabled,omitempty"`
+	// CreatedAt 是此節點被登錄進設定的時點（RFC3339）。探活結果每輪都覆寫，
+	// 設定檔也沒有其他時間欄位，所以「這個節點是什麼時候加進來的」不記就永遠取不回來。
+	// 本欄位之前寫入的節點為空字串——當時沒記，不代表沒有登錄時間。
+	CreatedAt string `json:"createdAt,omitempty"`
+	// DisabledAt 是最後一次被停用的時點；啟用中為空。Disabled 只答「是不是」，
+	// 答不出「停用多久了」。
+	DisabledAt string `json:"disabledAt,omitempty"`
 }
 
 // Coord 回傳節點的地理座標與是否可用：優先精確 Lat/Lon，其次 Country 質心近似。
