@@ -15,7 +15,7 @@
 保護的**網頁後臺**（`/admin`）可視化管理節點與設定、免重啟即時生效。
 
 - **語言 / 工具鏈**：Go 1.24，**零第三方相依**（純標準庫）。
-- **契約**：`GET /api/play.json` 回傳的 JSON 與前端 `src/lib/play.ts` 的 `PlayResponse`
+- **介面約定**：`GET /api/play.json` 回傳的 JSON 與前端 `src/lib/play.ts` 的 `PlayResponse`
   **完全同形狀**。因此本後端可**無痛替換**前端原本預渲染的 mock 靜態檔——前端不需
   改任何一行（`iframe.src = region.url` 照舊）。
 
@@ -106,7 +106,7 @@ CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port
 - **負載訊號**：遊戲後端目前的 `/healthz` 只回純文字 `ok`（無負載訊號）→ `load` 為 `0`
   （未知）。本後端**向前相容**：若健康端點日後改回傳 JSON
   （`{"load":0.4}` 或 `{"players":30,"capacity":100}`），`load` 會自動反映，**無需改動
-  本後端或前端契約**。
+  本後端或前端介面約定**。
 - **地理分流（後端主導）**：`/api/play.json` 為**每次請求**計算候選：
   1. 由反代 / CDN 的地理標頭解析用戶座標（`trustProxyHeaders` 開啟時；精確緯經度優先，
      否則以國別碼近似為國家質心）。
@@ -176,14 +176,13 @@ go test -race ./...
 backend/
   cmd/router/main.go        進入點（訊號取消 + 優雅關閉 + 掛載後臺）
   internal/config/          設定檔（JSON）+ flags；即時 Store（持久化 + 變更通知）
-  internal/play/            契約型別（對齊前端）+ Recommend 挑選
+  internal/play/            介面約定型別（對齊前端）+ Recommend 挑選
   internal/geo/             座標 / haversine / 國家質心 / 反代地理標頭解析
   internal/dispatch/        後端主導分流：健康→就近→負載排序、候選收斂
   internal/router/          背景探活 prober + 節點檢視 + 動態重載
   internal/server/          HTTP 路由 + CORS（per-request 讀 Store）
   internal/admin/           後臺：PBKDF2 登入 / session / 動態管理 API + 內嵌 UI
-  internal/adminplane/      控制平面配接：把 Store / router 投影成契約形狀
-  internal/controlplane/    Hoshi Control Plane Contract v1（自 hoshi-admin 複製）
+  internal/adminplane/      控制平面配接：把 Store / router 投影成標準協定的形狀
   config.example.json       設定範例
 ```
 

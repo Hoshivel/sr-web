@@ -19,7 +19,7 @@
 - 技術棧：**Astro + React islands**（strict TS）
 - 動效強度：**旗艦級 WebGL 捲動電影**
 - 素材走向：**程序化即美術，預留換裝槽**（日後有正式立繪/截圖可直接換上）
-- 範圍：**前端動效站 + 假 Play 流程**（真正的分流後端本次不做，但定義好 API 契約）
+- 範圍：**前端動效站 + 假 Play 流程**（真正的分流後端本次不做，但定義好 API 介面約定）
 
 ---
 
@@ -79,15 +79,15 @@
 
 ---
 
-## Play 流程 —— 本次 mock，定義未來契約
+## Play 流程 —— 本次 mock，定義未來介面約定
 
 > **更新（2026-07-21）**：真實分流後端**已實作**，位於 `backend/`（Go、零第三方相依）。
 > 它於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的即時節點快照（背景探活 /
 > 分流 / 負載均衡），可無痛替換下述 mock 靜態端點、前端不改。細節見 `backend/README.md`
-> 與 `sessions/2026-07-21-sr-web-backend.md`。以下為原始契約設計（仍成立）。
+> 與 `sessions/2026-07-21-sr-web-backend.md`。以下為原始介面約定設計（仍成立）。
 
 - Play island 呼叫 `GET /api/play`（或 `/api/servers`）。**本次**由靜態 JSON / Astro endpoint 回傳 mock regions（`hk1.svc.oha.li`、`jp1.svc.oha.li`），欄位 `region / url / healthy / latencyMs / load`。挑一個 → iframe 嵌入或 redirect。
-- **寫死 API 契約**，讓未來 Go「分流/探活/負載均衡」後端無痛替換、前端不改。
+- **寫死 API 介面約定**，讓未來 Go「分流/探活/負載均衡」後端無痛替換、前端不改。
   - 遊戲伺服器**已有** `GET /healthz`（純文字 `ok`）可供未來後端輪詢。
   - 遊戲 client 可用 `VITE_WS_BASE` / `VITE_API_BASE` 絕對 URL 指向任意 host（`net/endpoints.ts`）。
 - **CORS**：若 `sr.oha.li` 跨源呼叫/嵌入遊戲後端，需把其 https origin 加入遊戲後端 `allowedOrigins`（`docs/deployment.md §7`），否則 `/ws` 403。
@@ -121,7 +121,7 @@
 - **Phase 3 — 捲動電影框架 + 碎裂區** ✅：`src/lib/scrollCinema.ts` 單例 boot（Lenis 平滑捲動 + GSAP/ScrollTrigger 同步 + 錨點平滑捲動）；碎裂區 `Shattering.astro`（#world）pin+scrub 讓種子化殘片由凝聚向虛空四散＋淡出＋去飽和（招牌「褪色」溶解），招牌句「碎裂不是天罰，是天地最後一次自救」。reduced-motion 全程降級為靜態。`npm run build` 綠（Lenis/GSAP 動態 chunk）。
 - **Phase 4 — 玩法 + 英雄** ✅（**待視覺簽核**）：玩法四柱 `Gameplay.astro`（#gameplay）＝棋類策略/RPG 成長/MOBA 技能/開放探索 scroll-reveal grid，各帶程序化 inline-SVG 母題（蜂巢六邊形/成長條/技能環/地景）＋元素色頂線＋hover 浮起；英雄卡 `Characters.astro`（#characters）＝白棠/暗影/赤焰/青蘿，元素徽記（❄☾❂❦）＋種子化星座佔位＝**換裝槽**（日後疊 `.hero-card__art` 立繪）＋元素 tag/漸層名/題詞/玩法幻想＋桌機指標微傾。三語文案（`gameplay.*`/`char.*`）蒸餾自遊戲角色 lore 與玩法規則。reduced-motion/觸控全降級、無新增首屏重 JS。`npm run build` 綠。
 - **Phase 5 — 主題曲 / 碎界樹** ✅（**待視覺簽核**）：`WorldTree.tsx`（React island，改編自遊戲 `ui/meta/Entry.tsx`）複用 spring-damper 物理（拖曳拋擲＋彎曲擺動枝條＋盤根 tendril＋formation 耦合），改進為官網版——去後端/store 依賴自足吃 i18n、**seed 決定性佈局**（SSR hydration 安全）、**響應式**（viewBox 設計座標＋節點 %／拖曳以 stage 實寬換算）、**章節氛圍 morph**（hover/選取節點→`--wt-accent` 冰藍↔星紫過場）、reduced-motion 靜態、觸控可拖。3 節點碎界◈（起源）→風雪過境❄（第一章/已上線）→星痕紀元✶（第二章/即將）＋章節詳情卡。`Chapters.astro`（#chapters）殼＋`WorldTree.css`（wt- 前綴）。三語文案源自 `theme.json`＋遊戲 `theme.*.story`。`npm run build` 綠、SSR 靜態樹無 FOUC、島 8.2KB gz client:visible。
-- **Phase 6 — Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽** ✅（**待視覺簽核**）：契約 `src/lib/play.ts`（`PlayRegion`/`PlayResponse`＋mock hk1/jp1/sg1＋`recommendRegion`）＋靜態 endpoint `src/pages/api/play.json.ts`（→`/api/play.json`）。`PlayLauncher.tsx`（island）fetch 節點清單（探活/延遲/負載/建議、自動預選）→選節點→**iframe 嵌入**同源 `/play/session/`（`iframe.src = region.url`＋query）；「進入戰場」加 `connect=1`→LIVE。`session.astro`（noindex 獨立頁）＝`HexField.tsx` Pixi 六角戰場即時展示（發光格盤＋掃描光束＋元素單位，複用 VoidField 動態載入/降級）＋語言中性遙測 HUD＋靜態 fallback。`Play.astro`（#play）殼＋三格程序化截圖換裝槽（`.play-shot__art` 疊圖）。三語 `play.*`。**iframe vs redirect → 已定：iframe 嵌入**。契約寫死使未來 Go 分流後端無痛替換。`npm run build` 綠（4 頁＋endpoint）。
+- **Phase 6 — Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽** ✅（**待視覺簽核**）：介面約定 `src/lib/play.ts`（`PlayRegion`/`PlayResponse`＋mock hk1/jp1/sg1＋`recommendRegion`）＋靜態 endpoint `src/pages/api/play.json.ts`（→`/api/play.json`）。`PlayLauncher.tsx`（island）fetch 節點清單（探活/延遲/負載/建議、自動預選）→選節點→**iframe 嵌入**同源 `/play/session/`（`iframe.src = region.url`＋query）；「進入戰場」加 `connect=1`→LIVE。`session.astro`（noindex 獨立頁）＝`HexField.tsx` Pixi 六角戰場即時展示（發光格盤＋掃描光束＋元素單位，複用 VoidField 動態載入/降級）＋語言中性遙測 HUD＋靜態 fallback。`Play.astro`（#play）殼＋三格程序化截圖換裝槽（`.play-shot__art` 疊圖）。三語 `play.*`。**iframe vs redirect → 已定：iframe 嵌入**。介面約定寫死使未來 Go 分流後端無痛替換。`npm run build` 綠（4 頁＋endpoint）。
 - **Phase 7 — 打磨** ✅（**待視覺簽核**）：SEO——手捲 `sitemap.xml`（三語系＋hreflang）＋`robots.txt`（disallow `/play/session/`、`/api/`）＋head 補 `og:url`/`og:site_name`/`og:image:alt`/`twitter:image:alt`/`<link rel="sitemap">`。a11y／行動——Header 可存取行動選單（hamburger＋`aria-expanded`/`aria-controls`；Esc／外點／點連結／回桌機關閉；Play 併入選單）、Play 節點清單 `listbox`→`role=group`＋`aria-pressed`（鍵盤原生）。效能——Hero `VoidField` 與 Play `HexField` 於分頁隱藏（Page Visibility）或離開視窗（IntersectionObserver）時暫停 Pixi ticker，省 GPU/CPU/電量；CLS 由既有預留尺寸（Hero SSR canvas／碎界樹 SSR 靜態樹／Play view aspect-ratio／iframe 有框）避免。品牌化 `404.astro`。部署備註見 `README.md`。`npm run build` 綠（5 頁＋2 endpoint）、`astro check` 0 errors。
 
 ---

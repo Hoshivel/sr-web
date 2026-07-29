@@ -20,8 +20,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
 	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/controlplane"
 	"github.com/moehoshio/sr-web/backend/internal/play"
 )
 
@@ -67,6 +67,20 @@ func (a *Adapter) Handler() (http.Handler, error) {
 	// 即使管理平臺不可用也還查得到。
 	agent.OnAudit = func(_ context.Context, actor, action, detail string) {
 		log.Printf("control: %s 執行 %s %s", actor, action, detail)
+	}
+	// 另一半：被拒絕的呼叫。線路上的回應刻意是無差別的 401（區分五種失敗會讓
+	// 攻擊者能列舉出哪些金鑰 id 有效），所以少了這裡，共享密鑰打錯就是一個
+	// 兩側都無跡可尋的故障。rej.KeyID 是呼叫者宣稱的、沒有任何東西驗證過，
+	// 只當線索記，不當身分記。
+	agent.OnReject = func(_ context.Context, rej controlplane.Rejection) {
+		msg := fmt.Sprintf("control: 拒絕 %s %s（來源 %s）：%s（%s）",
+			rej.Method, rej.Path, rej.RemoteAddr, rej.Explain, rej.Reason)
+		if rej.Suppressed > 0 {
+			// 「這一分鐘還有 31 次」與「就這一次」是「設定錯了」與
+			// 「有人在逐一嘗試」的差別。
+			msg += fmt.Sprintf("（同期間另有 %d 次被折疊）", rej.Suppressed)
+		}
+		log.Print(msg)
 	}
 	mux := http.NewServeMux()
 	mux.Handle(controlplane.BasePath+"/", agent.Handler())
