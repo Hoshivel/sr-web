@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/moehoshio/sr-web/backend/internal/admin"
 	"github.com/moehoshio/sr-web/backend/internal/adminplane"
 	"github.com/moehoshio/sr-web/backend/internal/config"
 	"github.com/moehoshio/sr-web/backend/internal/router"
@@ -45,17 +44,10 @@ func main() {
 	store.OnRegionsChange(rt.SetRegions)
 	go rt.Run(ctx)
 
-	// 後臺（可視化配置 / 登入 / 動態管理）。未設定帳密時，首個請求進 setup 引導；
-	// setup token 印於下方日誌。
-	adminH := admin.New(store, rt)
-	for _, n := range adminH.Notes() {
-		log.Print(n)
-	}
-
 	srv := server.New(store, rt)
 	httpSrv := &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           srv.Handler(adminH.Handler()),
+		Handler:           srv.Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

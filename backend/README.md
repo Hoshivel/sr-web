@@ -11,8 +11,8 @@
 ```
 
 **後端主導分流**：不再全敞開回傳所有節點讓前端自行測試，而是依用戶 IP 地理位置就近
-排序、**只回傳前 N 個候選**（預設 3）＋後端建議的入點 `recommendedId`。另提供有登入
-保護的**網頁後臺**（`/admin`）可視化管理節點與設定、免重啟即時生效。
+排序、**只回傳前 N 個候選**（預設 3）＋後端建議的入點 `recommendedId`。節點與設定的
+管理一律經 hoshi-admin 的控制平面，免重啟即時生效（見下方「控制平面」）。
 
 - **語言 / 工具鏈**：Go 1.24，**零第三方相依**（純標準庫）。
 - **介面約定**：`GET /api/play.json` 回傳的 JSON 與前端 `src/lib/play.ts` 的 `PlayResponse`
@@ -50,7 +50,6 @@ curl -s localhost:8090/api/play.json  # → {"regions":[...],"updatedAt":"...","
 | GET | `/healthz` | 後端自身存活探針（純文字 `ok`）。 |
 | GET | `/api/play.json` | **為此用戶收斂**後的候選節點（依地理就近，前 N 個）＋建議入點。`Cache-Control: no-store`。 |
 | GET | `/api/play` | 同上的別名。 |
-| ·   | `/admin`、`/admin/api/*` | 網頁後臺（登入保護、動態管理）。見下方「後臺」。 |
 
 `/api/play.json` 回應（欄位對齊 `src/lib/play.ts`，`regions` 已收斂為前 `maxCandidates` 個）：
 
@@ -73,7 +72,9 @@ curl -s localhost:8090/api/play.json  # → {"regions":[...],"updatedAt":"...","
 ## 設定（`config.json`）
 
 首次執行自動產生；範例見 [`config.example.json`](./config.example.json)。只讀設定檔與
-CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。
+CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。每次持久化都在同目錄建立 `0600`
+暫存檔、完整寫入並 `fsync`，再原子替換 `config.json`；程序或主機在寫入中斷電不會留下
+半份 JSON，成功替換後也不殘留暫存檔。
 
 | 欄位 | 說明 |
 |------|------|
@@ -84,7 +85,6 @@ CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。
 | `maxCandidates` | 每次分流回傳給前端的候選節點上限（預設 3；收斂，不全敞開）。 |
 | `geo` | 地理分流設定（見下）。 |
 | `regions[]` | 遊戲節點：`id`／`host`／`url`（嵌入 / 新分頁目標）／`healthUrl`（探活端點，留空＝`https://<host>/healthz`）／`lat`＋`lon`（座標）或 `country`（ISO 國別碼，缺座標時以國家質心近似）／`disabled`（停用）。 |
-| `admin` | 後臺憑證（PBKDF2 雜湊，由後臺 setup 流程寫入；**勿手改**）。 |
 | `control` | 控制平面（供 hoshi-admin 統一管理）。見下方「控制平面」。 |
 
 `geo` 子欄位：
@@ -118,23 +118,6 @@ CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port
   （`go test -race` 綠）。啟動即先探一輪，並種下初始檢視，使首個回應不為空。
 
 ---
-
-## 後臺（可視化配置 / 登入 / 動態管理）
-
-`/admin` 提供有登入保護的網頁後臺（同源、**不經 CORS**、內嵌單頁、零外部資源）。
-
-- **首次設定**：後臺尚未設定帳密時，**啟動日誌會印出一次性 setup token**；開啟
-  `/admin`，貼上 token 並建立管理員帳密（PBKDF2-SHA256 雜湊持久化，永不明文儲存）。
-- **登入 / session**：登入後以 HttpOnly、`SameSite=Strict` cookie 維持 session；變更請求
-  另做同源檢查（縱深防禦）。
-- **動態管理**（皆即時持久化到 `config.json` 並套用，**免重啟**）：
-  - **節點**：新增 / 編輯 / 刪除 / 停用；改動即時替換探活清單並觸發重探。
-  - **設定**：候選上限、CORS 來源、地理標頭、探活週期 / 逾時（週期 / 逾時於下次重啟生效）。
-  - **即時狀態**：節點健康點 / 延遲 / 負載 / 後端建議入點，5 秒自動刷新。
-  - 變更管理員密碼、立即重探。
-
-> 後臺為維運介面，請置於可信網路 / 反代之後，並以 TLS 提供（cookie 於 https 下自動加
-> `Secure`）。setup token 只印於伺服器日誌，僅維運者可見。
 
 ---
 
@@ -181,7 +164,6 @@ backend/
   internal/dispatch/        後端主導分流：健康→就近→負載排序、候選收斂
   internal/router/          背景探活 prober + 節點檢視 + 動態重載
   internal/server/          HTTP 路由 + CORS（per-request 讀 Store）
-  internal/admin/           後臺：PBKDF2 登入 / session / 動態管理 API + 內嵌 UI
   internal/adminplane/      控制平面配接：把 Store / router 投影成標準協定的形狀
   config.example.json       設定範例
 ```
@@ -190,11 +172,14 @@ backend/
 
 ## 控制平面（供 hoshi-admin 統一管理）
 
-除了自帶的 `/admin` 網頁後臺，本服務也實作 **Hoshi Control Plane Contract v1**，
-讓 [hoshi-admin](https://github.com/hoshivel/hoshi-admin) 統一管理平臺能與
+本服務實作 **Hoshi Control Plane Protocol v1**，讓
+[hoshi-admin](https://github.com/hoshivel/hoshi-admin) 統一管理平臺能與
 Hoshi ID、Shattered Realms 一起在**同一個後臺**調度分流。
 
-兩者並存是刻意的：`/admin` 證明本服務可獨立運作，控制平面是另一條給機器走的路。
+**這是本服務唯一的管理入口。** 早期版本另外在 `/admin` 掛了一套本地帳密後臺
+（PBKDF2 + session），那是平臺化之前的遺留：它是唯一一條繞過 Hoshi ID 的登入路徑，
+不受平臺的密碼策略、工作階段撤銷與稽核涵蓋，已於正式釋出前移除。操作者的身分
+一律由 Hoshi ID 認證，再由管理平臺以簽章呼叫本服務。
 
 在 `config.json` 加上：
 
@@ -209,9 +194,9 @@ Hoshi ID、Shattered Realms 一起在**同一個後臺**調度分流。
 - **未設定 `addr` 或 `secret` 即完全不啟用**——不會開埠，本服務也不會出現在管理平臺上。
 - 控制平面**監聽在獨立於公開埠的位址**，預設請綁 loopback：這個介面能重新配置分流節點。
 - 認證為 HMAC-SHA256 請求簽章，**密鑰不上線路**；反向代理必須保留請求路徑。
-- `config.json` 現在含明文共享密鑰，新產生的設定檔以 **0600** 權限寫出；
-  既有檔案請自行 `chmod 600`。
+- `config.json` 現在含明文共享密鑰；所有建立與更新都以 **0600** 權限、同目錄暫存檔、
+  `fsync` 與原子替換完成。既有檔案請自行 `chmod 600`。
 
 管理平臺可經此：**節點增刪改**（含座標、國別、停用切換）、**分流參數**
 （探活週期／逾時、候選上限）、**CORS 來源**、**地理標頭設定**、**立即重新探活**，
-以及節點健康與延遲的即時檢視。所有變更即時生效並持久化到 `config.json`，與 `/admin` 同一條路徑。
+以及節點健康與延遲的即時檢視。所有變更即時生效並持久化到 `config.json`。

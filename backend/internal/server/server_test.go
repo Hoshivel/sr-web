@@ -20,7 +20,7 @@ func newTestServer(origins []string) *httptest.Server {
 		Regions:        []config.Region{{ID: "hk1", Host: "hk1.svc.oha.li", URL: "https://hk1.svc.oha.li/"}},
 	}, "")
 	rt := router.New(store.Config())
-	return httptest.NewServer(New(store, rt).Handler(nil))
+	return httptest.NewServer(New(store, rt).Handler())
 }
 
 func get(t *testing.T, ts *httptest.Server, path, origin string) *http.Response {
@@ -163,7 +163,7 @@ func newGeoServer(regions []config.Region, max int) *httptest.Server {
 		Geo:           config.GeoConfig{TrustProxyHeaders: true},
 	}, "")
 	rt := router.New(store.Config())
-	return httptest.NewServer(New(store, rt).Handler(nil))
+	return httptest.NewServer(New(store, rt).Handler())
 }
 
 func TestPlayGeoSelectionAndCap(t *testing.T) {
@@ -212,7 +212,7 @@ func TestPlayCapWithoutGeo(t *testing.T) {
 	// 無 geo 設定 → trust off；候選仍收斂到 MaxCandidates。
 	store := config.NewStore(config.File{Regions: regions, MaxCandidates: 2}, "")
 	rt := router.New(store.Config())
-	ts := httptest.NewServer(New(store, rt).Handler(nil))
+	ts := httptest.NewServer(New(store, rt).Handler())
 	defer ts.Close()
 
 	resp := get(t, ts, "/api/play.json", "")

@@ -150,18 +150,6 @@ func TestMaxCandidatesDefault(t *testing.T) {
 	}
 }
 
-func TestAdminConfigured(t *testing.T) {
-	if (Admin{}).Configured() {
-		t.Errorf("empty admin should be unconfigured")
-	}
-	if (Admin{Username: "a"}).Configured() {
-		t.Errorf("username-only should be unconfigured")
-	}
-	if !(Admin{Username: "a", PasswordHash: "h", Salt: "s"}).Configured() {
-		t.Errorf("full admin should be configured")
-	}
-}
-
 func TestDefaultRegionsHaveCoords(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	cfg, _ := Load([]string{"-config", path})

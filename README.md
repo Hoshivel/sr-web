@@ -19,7 +19,8 @@ sr是一個架空世界觀的 2D 回合制策略遊戲。融合棋類策略、RP
 ## 開發 / 冷接手
 
 - **前端技術棧**：Astro + React islands（strict TS）、GSAP + ScrollTrigger + Lenis、Pixi.js。程序化動態即視覺識別。
-- **後端**（第 3 點的分流服務）：Go 1.24、零第三方相依，位於 [`backend/`](./backend/)。對遊戲節點探活 / 分流 / 負載均衡，於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的節點回應。**後端主導分流**：依用戶 IP 地理位置就近收斂為 2~3 個候選＋建議入點（不全敞開所有節點），每位玩家的入點由後端決定。另提供登入保護的**網頁後臺** `/admin`（可視化配置、動態增刪改節點與設定、免重啟即時生效）。詳見 [`backend/README.md`](./backend/README.md)。
+- **前端工具鏈**：Astro 7／Vite 8，需 Node.js `>=22.12.0`；lockfile 已固定通過零漏洞稽核的相依版本。
+- **後端**（第 3 點的分流服務）：Go 1.24、零第三方相依，位於 [`backend/`](./backend/)。對遊戲節點探活 / 分流 / 負載均衡，於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的節點回應。**後端主導分流**：依用戶 IP 地理位置就近收斂為 2~3 個候選＋建議入點（不全敞開所有節點），每位玩家的入點由後端決定。節點與設定的管理經 hoshi-admin 統一管理平臺（控制平面）進行，免重啟即時生效。詳見 [`backend/README.md`](./backend/README.md)。
 - **權威計畫**：[`docs/plan.md`](./docs/plan.md)（完整實作計畫、網站結構、分階段里程碑、API 介面約定）。
 - **會話日誌 / 進度**：[`sessions/`](./sessions/)（目標、待辦、`Editing` 狀態；沿用 ShatteredRealms 家族的 AGENTS.md 慣例）。
 

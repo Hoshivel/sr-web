@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -99,7 +101,6 @@ type File struct {
 	ProbeTimeoutSeconds  int       `json:"probeTimeoutSeconds"`
 	MaxCandidates        int       `json:"maxCandidates"`
 	Geo                  GeoConfig `json:"geo"`
-	Admin                Admin     `json:"admin"`
 	Control              Control   `json:"control"`
 	Regions              []Region  `json:"regions"`
 }
@@ -108,9 +109,8 @@ type File struct {
 // docs/control-plane.md）。它監聽在**獨立於公開埠的位址**，預設只綁 loopback：
 // 這個介面能重新配置分流節點，不該與玩家流量共用入口。
 //
-// Secret 是與管理平臺共享的簽章密鑰（明文）。它與既有的後臺憑證一樣存放於
-// config.json——本服務刻意不讀環境變數——因此**設定檔權限必須是 0600**，
-// 新產生的設定檔已以此權限寫出。
+// Secret 是與管理平臺共享的簽章密鑰（明文），存放於 config.json——本服務刻意
+// 不讀環境變數——因此**設定檔權限必須是 0600**，新產生的設定檔已以此權限寫出。
 type Control struct {
 	// Addr 是 host:port；留空則不啟用控制平面。
 	Addr string `json:"addr,omitempty"`
@@ -122,21 +122,6 @@ type Control struct {
 
 // Enabled 回報是否應提供控制平面。沒有密鑰就沒有辦法驗證呼叫者，故預設關閉。
 func (c Control) Enabled() bool { return c.Addr != "" && c.Secret != "" }
-
-// Admin 是後臺登入憑證（持久化於 config.json）。PasswordHash 為空＝後臺尚未設定，
-// 進入 setup 引導流程建立帳密（見 internal/admin）。密碼以 PBKDF2 雜湊，永不明文儲存。
-type Admin struct {
-	Username     string `json:"username,omitempty"`
-	PasswordHash string `json:"passwordHash,omitempty"` // base64(PBKDF2 派生金鑰)
-	Salt         string `json:"salt,omitempty"`         // base64(隨機鹽)
-	Iterations   int    `json:"iterations,omitempty"`
-	Algo         string `json:"algo,omitempty"` // 例："pbkdf2-sha256"
-}
-
-// Configured 回報後臺是否已設定帳密。
-func (a Admin) Configured() bool {
-	return a.Username != "" && a.PasswordHash != "" && a.Salt != ""
-}
 
 // Listen 是一個監聽端點；IP 留空＝綁定所有介面。
 type Listen struct {
@@ -295,5 +280,40 @@ func writeConfig(path string, f File) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, append(out, '\n'), 0o600)
+	out = append(out, '\n')
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmpPath := tmp.Name()
+	cleanup := func() {
+		_ = tmp.Close()
+		_ = os.Remove(tmpPath)
+	}
+	defer cleanup()
+	if err := tmp.Chmod(0o600); err != nil {
+		return err
+	}
+	if _, err := tmp.Write(out); err != nil {
+		return err
+	}
+	if err := tmp.Sync(); err != nil {
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		return err
+	}
+	// The file itself is durable above. On Unix, syncing its directory also
+	// makes the rename durable across a sudden power loss.
+	if runtime.GOOS != "windows" {
+		if d, err := os.Open(dir); err == nil {
+			_ = d.Sync()
+			_ = d.Close()
+		}
+	}
+	return nil
 }

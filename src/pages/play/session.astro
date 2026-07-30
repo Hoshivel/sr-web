@@ -111,8 +111,8 @@ const vbH = (SQRT3 / 2) * S + (ROWS - 1) * SQRT3 * S + (SQRT3 / 2) * S + (SQRT3 
       }
       /* 靜態底襯與 Pixi canvas 皆鋪滿 */
       .pg-fallback,
-      .pg-view :global(.sr-hexfield),
-      .pg-view :global(canvas) {
+      .pg-view .sr-hexfield,
+      .pg-view canvas {
         position: absolute;
         inset: 0;
         width: 100%;

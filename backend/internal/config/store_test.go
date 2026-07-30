@@ -135,20 +135,6 @@ func TestStoreValidateRejects(t *testing.T) {
 	}
 }
 
-func TestStoreSetAdmin(t *testing.T) {
-	st, path := newStore(t, File{})
-	a := Admin{Username: "root", PasswordHash: "h", Salt: "s", Iterations: 100000, Algo: "pbkdf2-sha256"}
-	if err := st.SetAdmin(a); err != nil {
-		t.Fatalf("set admin: %v", err)
-	}
-	if !st.Admin().Configured() {
-		t.Errorf("admin should be configured")
-	}
-	if got := readBack(t, path); got.Admin.Username != "root" {
-		t.Errorf("persisted admin username = %q", got.Admin.Username)
-	}
-}
-
 func TestStoreFailedPersistDoesNotMutate(t *testing.T) {
 	// path 指向不存在目錄 → 寫入失敗 → 現狀不變。
 	st := NewStore(File{Regions: []Region{{ID: "a", URL: "u"}}}, "/nonexistent-dir-xyz/config.json")
@@ -157,5 +143,29 @@ func TestStoreFailedPersistDoesNotMutate(t *testing.T) {
 	}
 	if len(st.Regions()) != 1 {
 		t.Errorf("failed persist must not mutate in-memory state")
+	}
+}
+
+func TestWriteConfigAtomicallyReplacesExistingFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	first := File{Regions: []Region{{ID: "a", URL: "https://a/"}}}
+	second := File{Regions: []Region{{ID: "b", URL: "https://b/"}}}
+	if err := writeConfig(path, first); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeConfig(path, second); err != nil {
+		t.Fatal(err)
+	}
+	got := readBack(t, path)
+	if len(got.Regions) != 1 || got.Regions[0].ID != "b" {
+		t.Fatalf("replacement = %+v", got.Regions)
+	}
+	leftovers, err := filepath.Glob(filepath.Join(dir, ".config.json.tmp-*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(leftovers) != 0 {
+		t.Fatalf("temporary files left behind: %v", leftovers)
 	}
 }

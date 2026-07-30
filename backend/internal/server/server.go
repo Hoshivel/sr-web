@@ -25,8 +25,12 @@ func New(store *config.Store, rt *router.Router) *Server {
 	return &Server{store: store, rt: rt}
 }
 
-// Handler 回傳已註冊所有路由的根 HTTP handler。admin 可為 nil（未掛載後臺）。
-func (s *Server) Handler(admin http.Handler) http.Handler {
+// Handler 回傳已註冊所有路由的根 HTTP handler。
+//
+// 本服務不自帶後臺：管理一律經 hoshi-admin 的控制平面（見 internal/adminplane），
+// 由平臺以 Hoshi ID 認證操作者並簽章呼叫。早期版本曾在 /admin 掛一套本地帳密後臺，
+// 那是平臺化之前的遺留——它是唯一一條繞過平臺身分權威的入口，已移除。
+func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.handleHealth)
 
@@ -36,12 +40,6 @@ func (s *Server) Handler(admin http.Handler) http.Handler {
 	api.HandleFunc("/api/play.json", s.handlePlay)
 	api.HandleFunc("/api/play", s.handlePlay)
 	mux.Handle("/api/", s.cors(api))
-
-	// 後臺（同源、不經 CORS）。掛在 /admin/ 之下。
-	if admin != nil {
-		mux.Handle("/admin", admin)
-		mux.Handle("/admin/", admin)
-	}
 
 	return mux
 }

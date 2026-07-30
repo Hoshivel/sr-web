@@ -103,7 +103,7 @@ const (
 // --- descriptor -----------------------------------------------------------
 
 func (a *Adapter) Descriptor(context.Context) (controlplane.Descriptor, error) {
-	one, sixty := 1, 3600
+	one, sixty := 1.0, 3600.0
 	return controlplane.Descriptor{
 		Service: "sr-web",
 		Name:    "SR 官網分流",

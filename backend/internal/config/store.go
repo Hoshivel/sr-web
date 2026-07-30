@@ -91,14 +91,7 @@ func (s *Store) MaxCandidates() int {
 	return s.file.MaxCandidates
 }
 
-// Admin 回傳後臺憑證（副本）。
-func (s *Store) Admin() Admin {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.file.Admin
-}
-
-// Settings 是後臺可調的執行期設定投影（不含 regions / admin）。
+// Settings 是後臺可調的執行期設定投影（不含 regions）。
 type Settings struct {
 	AllowedOrigins       []string  `json:"allowedOrigins"`
 	ProbeIntervalSeconds int       `json:"probeIntervalSeconds"`
@@ -243,7 +236,7 @@ func (s *Store) SetRegionDisabled(id string, disabled bool) error {
 	})
 }
 
-// UpdateSettings 覆寫可調設定（不動 regions / admin）。
+// UpdateSettings 覆寫可調設定（不動 regions）。
 func (s *Store) UpdateSettings(in Settings) error {
 	return s.update(func(f *File) error {
 		f.AllowedOrigins = append([]string(nil), in.AllowedOrigins...)
@@ -251,14 +244,6 @@ func (s *Store) UpdateSettings(in Settings) error {
 		f.ProbeTimeoutSeconds = in.ProbeTimeoutSeconds
 		f.MaxCandidates = in.MaxCandidates
 		f.Geo = in.Geo
-		return nil
-	})
-}
-
-// SetAdmin 覆寫後臺憑證（PBKDF2 雜湊已於呼叫端算好）。
-func (s *Store) SetAdmin(a Admin) error {
-	return s.update(func(f *File) error {
-		f.Admin = a
 		return nil
 	})
 }
