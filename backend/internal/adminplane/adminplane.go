@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
 	"github.com/moehoshio/sr-web/backend/internal/config"
@@ -154,6 +155,7 @@ func (a *Adapter) Descriptor(context.Context) (controlplane.Descriptor, error) {
 					{Key: "healthy", Label: "探活"},
 					{Key: "latency_ms", Label: "延遲(ms)"},
 					{Key: "disabled", Label: "停用"},
+					{Key: "created_at", Label: "登錄時間"},
 				},
 				Fields: []controlplane.Field{
 					{Key: "id", Label: "節點代號", Type: controlplane.TypeString, Required: true,
@@ -356,11 +358,16 @@ func (a *Adapter) ResourceList(_ context.Context, resource string, q controlplan
 			"lat": r.Lat, "lon": r.Lon, "country": r.Country, "disabled": r.Disabled,
 			"healthy": "—", "latency_ms": "—",
 		}
+		// 本欄位之前登錄的節點顯示空白，不猜一個日期。
+		values["created_at"] = dateLabel(r.CreatedAt)
 		if snap, ok := live[r.ID]; ok {
 			values["healthy"] = boolLabel(snap.Healthy)
 			values["latency_ms"] = snap.LatencyMS
 		} else if r.Disabled {
 			values["healthy"] = "已停用"
+			if at := dateLabel(r.DisabledAt); at != "" {
+				values["healthy"] = "已停用（" + at + " 起）"
+			}
 		}
 		rows = append(rows, controlplane.Row{ID: r.ID, Values: values})
 	}
@@ -559,4 +566,17 @@ func boolLabel(v bool) string {
 		return "健康"
 	}
 	return "不可用"
+}
+
+// dateLabel 把 RFC3339 時點縮成日期給後臺列表用。空字串代表「當時沒記」——
+// 本欄位之前登錄的節點就是這種情形，顯示空白比顯示一個猜出來的日期誠實。
+func dateLabel(stamp string) string {
+	if stamp == "" {
+		return ""
+	}
+	at, err := time.Parse(time.RFC3339, stamp)
+	if err != nil {
+		return ""
+	}
+	return at.UTC().Format("2006-01-02")
 }
