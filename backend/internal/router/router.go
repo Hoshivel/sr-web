@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/dispatch"
-	"github.com/moehoshio/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/dispatch"
+	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
 // Router 持有節點設定與最新探活結果。最新結果以 []dispatch.Node（節點即時檢視＋

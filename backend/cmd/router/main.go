@@ -15,10 +15,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/moehoshio/sr-web/backend/internal/adminplane"
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/router"
-	"github.com/moehoshio/sr-web/backend/internal/server"
+	"github.com/hoshivel/sr-web/backend/internal/adminplane"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/router"
+	"github.com/hoshivel/sr-web/backend/internal/server"
 )
 
 // version 會寫進控制平面的服務描述，讓維運在管理平臺上看得出跑的是哪個版本。

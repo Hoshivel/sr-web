@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
 // Router 是本套件用到的 router 能力（介面化以便測試替身）。

@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
-	"github.com/moehoshio/sr-web/backend/internal/adminplane"
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/adminplane"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
 // fakeRouter stands in for the probe loop so the tests are deterministic and

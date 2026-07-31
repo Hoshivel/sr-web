@@ -3,8 +3,8 @@ package dispatch
 import (
 	"testing"
 
-	"github.com/moehoshio/sr-web/backend/internal/geo"
-	"github.com/moehoshio/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
 // node 是測試輔助：造一個健康、可選帶座標的節點。
