@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/moehoshio/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/geo"
 )
 
 // trimID 去除節點 id 前後空白。

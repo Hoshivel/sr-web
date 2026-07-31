@@ -1,4 +1,4 @@
-module github.com/moehoshio/sr-web/backend
+module github.com/hoshivel/sr-web/backend
 
 go 1.25.0
 

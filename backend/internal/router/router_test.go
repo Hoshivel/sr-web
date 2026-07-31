@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
 func TestNewSeedsSnapshot(t *testing.T) {

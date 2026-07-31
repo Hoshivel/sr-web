@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moehoshio/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/geo"
 )
 
 // Region 是一個遊戲節點的靜態設定（探活/嵌入目標；即時的 healthy/latency/load 由

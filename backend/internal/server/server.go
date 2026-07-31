@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/dispatch"
-	"github.com/moehoshio/sr-web/backend/internal/geo"
-	"github.com/moehoshio/sr-web/backend/internal/router"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/dispatch"
+	"github.com/hoshivel/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/router"
 )
 
 // Server 持有即時設定 Store 與分流 router。設定（CORS 來源 / 地理 / 候選上限）皆

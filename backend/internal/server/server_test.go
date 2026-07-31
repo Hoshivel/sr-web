@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/moehoshio/sr-web/backend/internal/config"
-	"github.com/moehoshio/sr-web/backend/internal/play"
-	"github.com/moehoshio/sr-web/backend/internal/router"
+	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/router"
 )
 
 // newTestServer wires a live snapshot (one seeded region) through the HTTP layer.

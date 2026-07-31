@@ -9,8 +9,8 @@ package dispatch
 import (
 	"sort"
 
-	"github.com/moehoshio/sr-web/backend/internal/geo"
-	"github.com/moehoshio/sr-web/backend/internal/play"
+	"github.com/hoshivel/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
 // DefaultMaxCandidates 是未設定時回傳的候選節點上限。
