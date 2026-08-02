@@ -111,7 +111,7 @@ type File struct {
 // LogConfig 是磁碟上的日誌設定。
 //
 // 鍵**語意與預設值和其餘四個 Hoshivel 服務完全一致**（見 hoshi-api-spec 的
-// docs/conventions.md §7）；只有大小寫跟著本倉庫 config.json 既有的 camelCase
+// docs/conventions.md §11）；只有大小寫跟著本倉庫 config.json 既有的 camelCase
 // 走，因為這個檔裡其他鍵（probeIntervalSeconds、allowedOrigins…）都是 camelCase，
 // 夾一段 snake_case 進來會被下一個人當成筆誤「修掉」。
 type LogConfig struct {

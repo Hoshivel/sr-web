@@ -2,7 +2,7 @@
 // response: what it did, what it refused, and what went wrong.
 //
 // It is the same package, with the same settings and the same defaults, in
-// every Hoshivel service (see hoshi-api-spec docs/conventions.md §7). An
+// every Hoshivel service (see hoshi-api-spec docs/conventions.md §11). An
 // operator who has configured one has configured all of them.
 //
 // There is exactly one logger, installed process-wide as the slog default, so a
