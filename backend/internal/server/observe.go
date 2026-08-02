@@ -8,7 +8,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/hoshivel/sr-web/backend/internal/logging"
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 )
 
 // observe.go is the request log and the panic net: the one place that can say

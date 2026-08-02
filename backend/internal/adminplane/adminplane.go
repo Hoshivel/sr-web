@@ -20,9 +20,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
+	"github.com/hoshivel/hoshi-sdk/go/controlplane"
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 	"github.com/hoshivel/sr-web/backend/internal/config"
-	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 

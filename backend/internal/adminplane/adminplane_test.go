@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
+	"github.com/hoshivel/hoshi-sdk/go/controlplane"
 	"github.com/hoshivel/sr-web/backend/internal/adminplane"
 	"github.com/hoshivel/sr-web/backend/internal/config"
 	"github.com/hoshivel/sr-web/backend/internal/play"

@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 	"github.com/hoshivel/sr-web/backend/internal/geo"
-	"github.com/hoshivel/sr-web/backend/internal/logging"
 )
 
 // Region 是一個遊戲節點的靜態設定（探活/嵌入目標；即時的 healthy/latency/load 由
@@ -110,8 +110,9 @@ type File struct {
 
 // LogConfig 是磁碟上的日誌設定。
 //
-// 鍵**語意與預設值和其餘四個 Hoshivel 服務完全一致**（見 hoshi-api-spec 的
-// docs/conventions.md §11）；只有大小寫跟著本倉庫 config.json 既有的 camelCase
+// 鍵**語意與預設值和其餘四個 Hoshivel 服務完全一致**——因為它們就是同一個
+// 套件：hoshi-sdk 的 go/kit/logging，不是各自維護的同名設定；只有大小寫
+// 跟著本倉庫 config.json 既有的 camelCase
 // 走，因為這個檔裡其他鍵（probeIntervalSeconds、allowedOrigins…）都是 camelCase，
 // 夾一段 snake_case 進來會被下一個人當成筆誤「修掉」。
 type LogConfig struct {

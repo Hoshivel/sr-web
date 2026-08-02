@@ -1,4 +1,2 @@
-github.com/hoshivel/hoshi-api-spec/hoshi-client-go v0.0.0-20260729224612-c4f15a97a9b8 h1:3NZKDXfyEEbpAoyPYiPm3aL1UbiWYyScktQWfuVPoeM=
-github.com/hoshivel/hoshi-api-spec/hoshi-client-go v0.0.0-20260729224612-c4f15a97a9b8/go.mod h1:HRCtPk7sJmcT58v8WuHMZEc4x0wEiPeQQWgRstbC0f8=
-github.com/hoshivel/hoshi-api-spec/hoshi-client-go v1.0.0 h1:+j7mso/z2hMVhQLAl+mpGkiPA9KeKfx/ZopdsYXuZ+w=
-github.com/hoshivel/hoshi-api-spec/hoshi-client-go v1.0.0/go.mod h1:HRCtPk7sJmcT58v8WuHMZEc4x0wEiPeQQWgRstbC0f8=
+github.com/hoshivel/hoshi-sdk/go v0.0.0-20260802210350-9c9cc21d76ba h1:AuY0kjc/n2mQC2lGbDFtL4yq4s7Xtz74ccs5v76nWOE=
+github.com/hoshivel/hoshi-sdk/go v0.0.0-20260802210350-9c9cc21d76ba/go.mod h1:TE0UtKD4fWjASurx55nGyE86psMEG3GY3fwLh+aKaNc=

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hoshivel/sr-web/backend/internal/logging"
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 )
 
 // observed builds just enough Server to exercise the middleware, and returns
