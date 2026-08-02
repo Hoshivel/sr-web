@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -12,10 +13,16 @@ import (
 const maxHealthBody = 1 << 16
 
 // probeResult 是單次探活的結果。
+//
+// reason 與 status 只在探活失敗時有值，存在的理由是「不健康」本身不可除錯：
+// DNS 查不到、TLS 憑證過期、連線被拒、回了 503——在快照裡全都長成同一個
+// healthy=false。原因不記下來，就只能有人再手動打一次那個 URL 才知道。
 type probeResult struct {
 	healthy   bool
 	latencyMS int
 	load      float64
+	reason    string
+	status    int
 }
 
 // healthPayload 是節點健康端點可選回傳的 JSON。遊戲後端目前只回純文字 "ok"（無
@@ -34,20 +41,23 @@ func probeRegion(ctx context.Context, client *http.Client, url string) probeResu
 	start := time.Now()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return probeResult{}
+		return probeResult{reason: "探活 URL 無法組成請求：" + err.Error()}
 	}
 	resp, err := client.Do(req)
 	elapsed := int(time.Since(start).Milliseconds())
 	if err != nil {
-		return probeResult{healthy: false, latencyMS: elapsed}
+		return probeResult{healthy: false, latencyMS: elapsed, reason: err.Error()}
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(io.LimitReader(resp.Body, maxHealthBody))
 	if resp.StatusCode != http.StatusOK {
-		return probeResult{healthy: false, latencyMS: elapsed}
+		return probeResult{
+			healthy: false, latencyMS: elapsed, status: resp.StatusCode,
+			reason: "健康端點回了 HTTP " + strconv.Itoa(resp.StatusCode),
+		}
 	}
-	res := probeResult{healthy: true, latencyMS: elapsed}
+	res := probeResult{healthy: true, latencyMS: elapsed, status: resp.StatusCode}
 	if load, ok := parseLoad(body); ok {
 		res.load = load
 	}

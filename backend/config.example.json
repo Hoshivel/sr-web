@@ -9,6 +9,19 @@
   "probeIntervalSeconds": 10,
   "probeTimeoutSeconds": 3,
   "maxCandidates": 3,
+
+  "debug": false,
+  "log": {
+    "level": "info",
+    "format": "text",
+    "file": "",
+    "stderr": true,
+    "maxSizeMB": 32,
+    "retainDays": 14,
+    "maxFiles": 14,
+    "source": false
+  },
+
   "geo": {
     "trustProxyHeaders": true,
     "latHeader": "CF-IPLatitude",

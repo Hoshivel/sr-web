@@ -13,6 +13,7 @@ import (
 
 	"github.com/hoshivel/sr-web/backend/internal/config"
 	"github.com/hoshivel/sr-web/backend/internal/dispatch"
+	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
@@ -25,20 +26,32 @@ type Router struct {
 	now      func() time.Time // 可注入，測試用
 	reprobe  chan struct{}    // 節點清單變動時觸發立即重探（緩衝 1，合併多次訊號）
 
+	log *logging.Logger
+
 	mu        sync.RWMutex
 	regions   []config.Region // 目前正在探活的（啟用）節點設定
 	nodes     []dispatch.Node // 最新即時檢視（配對地理座標）
 	updatedAt string
+	// lastHealthy 記住上一輪每個節點的健康狀態，好讓日誌只寫「變化」。
+	// 探活每 10 秒一輪，每輪每個節點寫一行的話，真正的轉折會被埋在幾千行
+	// 一模一樣的訊息底下。
+	lastHealthy map[string]bool
 }
 
 // New 建立 Router，並以「全部節點未探活（unhealthy）」種下初始結果，使 Run 尚未
 // 完成第一輪前，回應也能反映已設定的節點清單（前端不會拿到空回應）。
-func New(cfg config.Config) *Router {
+// log 為 nil 時丟棄輸出，測試因此不必為此多做設定。
+func New(cfg config.Config, log *logging.Logger) *Router {
+	if log == nil {
+		log = logging.Discard()
+	}
 	r := &Router{
-		interval: cfg.ProbeInterval,
-		now:      time.Now,
-		client:   &http.Client{Timeout: cfg.ProbeTimeout},
-		reprobe:  make(chan struct{}, 1),
+		interval:    cfg.ProbeInterval,
+		now:         time.Now,
+		client:      &http.Client{Timeout: cfg.ProbeTimeout},
+		reprobe:     make(chan struct{}, 1),
+		log:         log,
+		lastHealthy: make(map[string]bool),
 	}
 	r.regions = activeRegions(cfg.Regions)
 	r.nodes = seedNodes(r.regions)
@@ -163,12 +176,15 @@ func (r *Router) probeAll(ctx context.Context) {
 	r.mu.RUnlock()
 
 	nodes := make([]dispatch.Node, len(regions))
+	results := make([]probeReport, len(regions))
 	var wg sync.WaitGroup
 	for i, rc := range regions {
 		wg.Add(1)
 		go func(i int, rc config.Region) {
 			defer wg.Done()
-			p := probeRegion(ctx, r.client, healthURL(rc))
+			url := healthURL(rc)
+			p := probeRegion(ctx, r.client, url)
+			results[i] = probeReport{region: rc, url: url, result: p}
 			coord, ok := rc.Coord()
 			// 各 goroutine 寫入互不重疊的索引，wg.Wait 建立 happens-before。
 			nodes[i] = dispatch.Node{
@@ -191,6 +207,51 @@ func (r *Router) probeAll(ctx context.Context) {
 	r.nodes = nodes
 	r.updatedAt = r.timestamp()
 	r.mu.Unlock()
+
+	r.report(results)
+}
+
+// probeReport 把一次探活與它對準的節點綁在一起，好讓下面的紀錄講得出是哪個位址
+// 失敗，而不只是哪個節點 id。
+type probeReport struct {
+	region config.Region
+	url    string
+	result probeResult
+}
+
+// report 為每個健康狀態有變化的節點寫一行；debug 模式下則每次探活都寫。
+//
+// 節點無聲地掉出候選池，是這個服務最難事後查的故障：玩家被安靜地導去別處，
+// 從外面看什麼都沒壞。
+func (r *Router) report(results []probeReport) {
+	debug := r.log.Debugging()
+	for _, rep := range results {
+		id := rep.region.ID
+		previous, seen := r.lastHealthy[id]
+		r.lastHealthy[id] = rep.result.healthy
+
+		if debug {
+			r.log.Debug("probed a node",
+				"node", id, "health_url", rep.url, "healthy", rep.result.healthy,
+				"latency_ms", rep.result.latencyMS, "load", rep.result.load,
+				"status", rep.result.status, "reason", rep.result.reason)
+		}
+		if seen && previous == rep.result.healthy {
+			continue
+		}
+		if rep.result.healthy {
+			if seen {
+				r.log.Info("a node came back",
+					"node", id, "health_url", rep.url, "latency_ms", rep.result.latencyMS)
+			}
+			continue
+		}
+		// 原因才是重點：「不健康」本身分不出憑證過期與主機根本沒開。
+		r.log.Warn("a node dropped out of the pool",
+			"node", id, "host", rep.region.Host, "health_url", rep.url,
+			"reason", rep.result.reason, "status", rep.result.status,
+			"latency_ms", rep.result.latencyMS)
+	}
 }
 
 // timestamp 產生 RFC3339 的 UTC 時間字串。

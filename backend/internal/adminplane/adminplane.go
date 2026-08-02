@@ -14,7 +14,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -23,6 +22,7 @@ import (
 
 	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
 	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/play"
 )
 
@@ -37,11 +37,24 @@ type Adapter struct {
 	store   *config.Store
 	router  Router
 	version string
+	log     *logging.Logger
 }
 
-func New(store *config.Store, rt Router, version string) *Adapter {
-	return &Adapter{store: store, router: rt, version: version}
+// log 為 nil 時丟棄輸出，測試因此不必為此多做設定。
+func New(store *config.Store, rt Router, version string, log *logging.Logger) *Adapter {
+	if log == nil {
+		log = logging.Discard()
+	}
+	return &Adapter{store: store, router: rt, version: version, log: log}
 }
+
+// 診斷設定是**執行期**的：套用後立刻改變這個行程寫出什麼，而且刻意不持久化。
+// 一個可以從後臺被永久留在 debug 模式的服務——在按下開關的人早就不看了之後——
+// 就是一個會安靜地把磁碟寫滿的服務。重啟即回到 config.json。
+const (
+	KeyLogLevel = "diagnostics.log_level"
+	KeyDebug    = "diagnostics.debug"
+)
 
 // Handler 建立已簽章驗證的控制平面處理器，供掛在控制監聽器上。
 func (a *Adapter) Handler() (http.Handler, error) {
@@ -67,21 +80,21 @@ func (a *Adapter) Handler() (http.Handler, error) {
 	// 本服務沒有稽核資料表；退而求其次寫進伺服器日誌，讓「平臺改了什麼」
 	// 即使管理平臺不可用也還查得到。
 	agent.OnAudit = func(_ context.Context, actor, action, detail string) {
-		log.Printf("control: %s 執行 %s %s", actor, action, detail)
+		a.log.Info("control plane applied a change",
+			"actor", actor, "action", action, "detail", detail)
 	}
 	// 另一半：被拒絕的呼叫。線路上的回應刻意是無差別的 401（區分五種失敗會讓
 	// 攻擊者能列舉出哪些金鑰 id 有效），所以少了這裡，共享密鑰打錯就是一個
 	// 兩側都無跡可尋的故障。rej.KeyID 是呼叫者宣稱的、沒有任何東西驗證過，
 	// 只當線索記，不當身分記。
 	agent.OnReject = func(_ context.Context, rej controlplane.Rejection) {
-		msg := fmt.Sprintf("control: 拒絕 %s %s（來源 %s）：%s（%s）",
-			rej.Method, rej.Path, rej.RemoteAddr, rej.Explain, rej.Reason)
-		if rej.Suppressed > 0 {
-			// 「這一分鐘還有 31 次」與「就這一次」是「設定錯了」與
-			// 「有人在逐一嘗試」的差別。
-			msg += fmt.Sprintf("（同期間另有 %d 次被折疊）", rej.Suppressed)
-		}
-		log.Print(msg)
+		// suppressed 是「這一分鐘還有 31 次」與「就這一次」的差別，
+		// 也就是「設定錯了」與「有人在逐一嘗試」的差別。
+		a.log.Warn("control plane rejected a request",
+			"reason", rej.Reason, "explain", rej.Explain,
+			"key_id", rej.KeyID, "method", rej.Method, "path", rej.Path,
+			"remote_addr", rej.RemoteAddr, "skew", rej.Skew.String(),
+			"suppressed", rej.Suppressed)
 	}
 	mux := http.NewServeMux()
 	mux.Handle(controlplane.BasePath+"/", agent.Handler())
@@ -127,6 +140,24 @@ func (a *Adapter) Descriptor(context.Context) (controlplane.Descriptor, error) {
 				Fields: []controlplane.Field{
 					{Key: KeyAllowedOrigins, Label: "允許的瀏覽器來源", Type: controlplane.TypeCSV,
 						Help: "每行一個 origin（如 https://sr.oha.li）。留空＝放行任意來源，僅適合本機開發。"},
+				},
+			},
+			{
+				ID: "diagnostics", Title: "診斷與日誌",
+				Help: "這一區是**執行期**設定：套用後立刻生效，但不寫回 config.json，" +
+					"服務重啟即回到檔案的值。用來在追查問題時暫時打開 debug，查完不必記得關。",
+				Fields: []controlplane.Field{
+					{Key: KeyLogLevel, Label: "日誌層級", Type: controlplane.TypeEnum,
+						Options: []controlplane.Option{
+							{Value: "debug", Label: "debug（全部）"},
+							{Value: "info", Label: "info（預設）"},
+							{Value: "warn", Label: "warn（僅警告以上）"},
+							{Value: "error", Label: "error（僅錯誤）"},
+						},
+						Help: "低於此層級的訊息不會寫出。"},
+					{Key: KeyDebug, Label: "Debug 模式", Type: controlplane.TypeBool,
+						Help: "打開等同把層級調到 debug，並逐筆記錄請求與每一次節點探活。" +
+							"關閉時回到 config.json 指定的層級，而不是回到 info。"},
 				},
 			},
 			{
@@ -249,6 +280,10 @@ func (a *Adapter) ConfigGet(context.Context) (controlplane.ConfigDoc, error) {
 			KeyLatHeader:         set.Geo.LatHeader,
 			KeyLonHeader:         set.Geo.LonHeader,
 			KeyCountryHeader:     set.Geo.CountryHeader,
+			// 執行期的實況，不是檔案裡寫的：這一區存在的意義就是回答
+			// 「這個服務現在是不是在 debug 模式」，而控制平面改過之後兩者會不同。
+			KeyLogLevel: logging.LevelName(a.log.Level()),
+			KeyDebug:    a.log.Debugging(),
 		},
 	}, nil
 }
@@ -262,8 +297,19 @@ func (a *Adapter) ConfigPut(ctx context.Context, patch controlplane.ConfigPatch)
 	}
 
 	applied := make([]string, 0, len(patch.Values))
+	// 診斷鍵在迴圈之外先處理，而且層級先於 debug：range 走 map 的順序是隨機的，
+	// 而同一份 patch 同時帶兩個鍵時，「關掉 debug、改到 warn」必須落在送來的那個
+	// 層級上，不是回到 debug 之前的那一個。
+	diagnostics, err := a.applyDiagnostics(patch.Values)
+	if err != nil {
+		return controlplane.ConfigResult{}, err
+	}
+	applied = append(applied, diagnostics...)
+
 	for key, raw := range patch.Values {
 		switch key {
+		case KeyLogLevel, KeyDebug:
+			continue // 已於上方套用
 		case KeyProbeInterval:
 			n, err := intValue(key, raw, 1, 3600)
 			if err != nil {
@@ -320,6 +366,43 @@ func (a *Adapter) ConfigPut(ctx context.Context, patch controlplane.ConfigPatch)
 		Revision: doc.Revision, Values: doc.Values, Applied: applied,
 		Message: "已套用並寫入 config.json",
 	}, nil
+}
+
+// applyDiagnostics 把執行期的日誌鍵從 patch 裡挑出來套到 live logger 上，
+// 並回報它消化掉了哪些鍵，好讓呼叫端把它們算進 Applied。
+func (a *Adapter) applyDiagnostics(values map[string]any) ([]string, error) {
+	var applied []string
+	if raw, ok := values[KeyLogLevel]; ok {
+		// 型別是檢查而不是硬轉：ParseLevel 把「沒有值」當成 info，
+		// 那對「設定檔沒寫這個鍵」是對的，對這裡是錯的——後臺送來一個數字
+		// 或空字串會變成默默把層級重設掉，而不是被告知它不合法。
+		name, isText := raw.(string)
+		if !isText || strings.TrimSpace(name) == "" {
+			return nil, controlplane.Invalid(KeyLogLevel, "必須是 debug、info、warn 或 error 其中之一")
+		}
+		level, err := logging.ParseLevel(name)
+		if err != nil {
+			return nil, controlplane.Invalid(KeyLogLevel, err.Error())
+		}
+		a.log.SetLevel(level)
+		applied = append(applied, KeyLogLevel)
+	}
+	if raw, ok := values[KeyDebug]; ok {
+		on, isBool := raw.(bool)
+		if !isBool {
+			return nil, controlplane.Invalid(KeyDebug, "必須是 true 或 false")
+		}
+		a.log.SetDebug(on)
+		applied = append(applied, KeyDebug)
+	}
+	if len(applied) > 0 {
+		// 值得自己一行，而且是 warn：把音量開大是一個有代價的維運動作，
+		// 而「日誌怎麼突然多了十倍」的答案就是這一行。
+		a.log.Warn("logging changed from the control plane",
+			"level", logging.LevelName(a.log.Level()), "debug", a.log.Debugging(),
+			"note", "runtime only; a restart returns to config.json")
+	}
+	return applied, nil
 }
 
 // revisionOf 以設定內容的指紋作為樂觀併發標記：兩位維運同一秒內存檔仍會得到
