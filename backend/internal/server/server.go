@@ -10,6 +10,7 @@ import (
 	"github.com/hoshivel/sr-web/backend/internal/config"
 	"github.com/hoshivel/sr-web/backend/internal/dispatch"
 	"github.com/hoshivel/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/router"
 )
 
@@ -18,11 +19,16 @@ import (
 type Server struct {
 	store *config.Store
 	rt    *router.Router
+	log   *logging.Logger
 }
 
-// New 建立 Server。
-func New(store *config.Store, rt *router.Router) *Server {
-	return &Server{store: store, rt: rt}
+// New 建立 Server。log 為 nil 時丟棄輸出，測試因此不必為了建一個 Server 而先
+// 決定日誌要往哪去。
+func New(store *config.Store, rt *router.Router, log *logging.Logger) *Server {
+	if log == nil {
+		log = logging.Discard()
+	}
+	return &Server{store: store, rt: rt, log: log}
 }
 
 // Handler 回傳已註冊所有路由的根 HTTP handler。
@@ -41,7 +47,7 @@ func (s *Server) Handler() http.Handler {
 	api.HandleFunc("/api/play", s.handlePlay)
 	mux.Handle("/api/", s.cors(api))
 
-	return mux
+	return s.withObservability(mux)
 }
 
 // handleHealth 是後端自身的存活探針（純文字 ok；與遊戲後端一致）。

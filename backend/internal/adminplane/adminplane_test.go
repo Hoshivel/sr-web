@@ -33,7 +33,7 @@ func newAdapter(t *testing.T, regions []config.Region, snap play.Response) (*adm
 	}
 	store := config.NewStore(file, filepath.Join(t.TempDir(), "config.json"))
 	rt := &fakeRouter{snapshot: snap}
-	return adminplane.New(store, rt, "test"), store, rt
+	return adminplane.New(store, rt, "test", nil), store, rt
 }
 
 func TestDescriptorIsRenderable(t *testing.T) {
@@ -135,7 +135,7 @@ func TestConfigPutPreservesUnpatchedGeoOverrides(t *testing.T) {
 		},
 	}
 	store := config.NewStore(file, filepath.Join(t.TempDir(), "config.json"))
-	adapter := adminplane.New(store, &fakeRouter{}, "test")
+	adapter := adminplane.New(store, &fakeRouter{}, "test", nil)
 
 	if _, err := adapter.ConfigPut(context.Background(), controlplane.ConfigPatch{
 		Values: map[string]any{adminplane.KeyTrustProxyHeaders: true},

@@ -8,15 +8,15 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
-	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/hoshivel/sr-web/backend/internal/adminplane"
 	"github.com/hoshivel/sr-web/backend/internal/config"
+	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/router"
 	"github.com/hoshivel/sr-web/backend/internal/server"
 )
@@ -26,25 +26,50 @@ import (
 var version = "dev"
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, "sr-web:", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	store, err := config.LoadStore(os.Args[1:])
 	if err != nil {
-		log.Fatalf("config: %v", err)
+		return fmt.Errorf("config: %w", err)
 	}
 	cfg := store.Config()
-	for _, n := range store.Notes() {
-		log.Print(n)
-	}
 
-	// 訊號取消貫穿探活迴圈與 HTTP 伺服器的優雅關閉。
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	// Setup 而非 New：它把這個 logger 裝成 slog 的預設值，並接管標準庫的 log，
+	// 所以漏網的 log.Printf 與 http.Server 自己的錯誤輸出會落在同一個檔、
+	// 同一種格式裡。
+	log, err := logging.Setup(cfg.LogOptions())
+	if err != nil {
+		return err
+	}
+	defer func() { _ = log.Close() }()
+
+	log.Info("starting sr-web dispatch backend",
+		"version", version, "pid", os.Getpid(), "config", cfg.Path,
+		"logging", log.Describe())
+	for _, n := range cfg.Notes {
+		log.Info(n)
+	}
+	// 完整的生效設定，只在有人在看的時候印一次。「它跑的不是我寫的那份設定」
+	// 幾乎都是讀到別的檔、或被 flag 蓋掉。
+	log.Debug("configuration in effect", cfg.LogAttrs()...)
+
+	// 訊號取消貫穿探活迴圈與 HTTP 伺服器的優雅關閉。NotifySignals 而非
+	// signal.NotifyContext：是哪個訊號送來的，等於關機原因的一半，
+	// 而 NotifyContext 會把它丟掉。
+	ctx, stop := logging.NotifySignals(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	rt := router.New(cfg)
+	rt := router.New(cfg, log)
 	// 後臺動態增刪改節點時，即時替換探活清單並重探。
 	store.OnRegionsChange(rt.SetRegions)
 	go rt.Run(ctx)
 
-	srv := server.New(store, rt)
+	srv := server.New(store, rt, log)
 	httpSrv := &http.Server{
 		Addr:              cfg.ListenAddr,
 		Handler:           srv.Handler(),
@@ -56,9 +81,9 @@ func main() {
 	// 且未設定共享密鑰時完全不啟用。
 	var controlSrv *http.Server
 	if ctrl := store.Control(); ctrl.Enabled() {
-		handler, err := adminplane.New(store, rt, version).Handler()
+		handler, err := adminplane.New(store, rt, version, log).Handler()
 		if err != nil {
-			log.Fatalf("control plane: %v", err)
+			return fmt.Errorf("control plane: %w", err)
 		}
 		controlSrv = &http.Server{
 			Addr:              ctrl.Addr,
@@ -66,29 +91,50 @@ func main() {
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 		go func() {
-			log.Printf("控制平面監聽於 %s——供 hoshi-admin 管理本服務", ctrl.Addr)
+			log.Info("control plane listening", "addr", ctrl.Addr, "key_id", ctrl.KeyID)
 			if err := controlSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Printf("control plane: %v", err)
+				log.Error("control plane listener failed", "addr", ctrl.Addr, "error", err)
 			}
 		}()
 	} else {
-		log.Printf("控制平面未啟用（config.json 的 control.addr / control.secret 未設定）；" +
-			"本服務不會出現在 hoshi-admin 上。")
+		log.Warn("the control plane is off: config.json has no control.addr / control.secret, " +
+			"so this service will not appear in hoshi-admin")
 	}
 
-	// 收到訊號時優雅關閉。
+	errc := make(chan error, 1)
 	go func() {
-		<-ctx.Done()
-		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if controlSrv != nil {
-			_ = controlSrv.Shutdown(shutCtx)
+		log.Info("dispatch backend listening",
+			"addr", cfg.ListenAddr, "regions", len(cfg.Regions),
+			"probe_interval", cfg.ProbeInterval.String())
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errc <- err
 		}
-		_ = httpSrv.Shutdown(shutCtx)
 	}()
 
-	log.Printf("sr-web 分流後端監聽於 %s（%d 個節點，每 %s 探活一次）", cfg.ListenAddr, len(cfg.Regions), cfg.ProbeInterval)
-	if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("server: %v", err)
+	// 為什麼要關機，在拆任何東西之前就先記下來——那時答案還在。
+	// listener 掛掉帶著它的錯誤，訊號帶著它的名字。
+	var listenerErr error
+	var down *logging.Shutdown
+	select {
+	case listenerErr = <-errc:
+		down = log.BeginShutdown("listener failed", "addr", cfg.ListenAddr, "error", listenerErr)
+	case <-ctx.Done():
+		down = log.BeginShutdown("signal", "signal", ctx.SignalName())
 	}
+
+	shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if controlSrv != nil {
+		down.Step("control listener", controlSrv.Shutdown(shutCtx), "addr", controlSrv.Addr)
+	}
+	err = httpSrv.Shutdown(shutCtx)
+	down.Step("dispatch listener", err, "addr", cfg.ListenAddr)
+	down.Done()
+
+	// listener 的錯誤才是該回傳的那個：它是行程停下來的原因，
+	// 而關機時的錯誤只是說這次收尾不乾淨。
+	if listenerErr != nil {
+		return listenerErr
+	}
+	return err
 }

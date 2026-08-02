@@ -20,7 +20,7 @@ func TestNewSeedsSnapshot(t *testing.T) {
 		ProbeInterval: time.Minute,
 		ProbeTimeout:  time.Second,
 	}
-	r := New(cfg)
+	r := New(cfg, nil)
 	snap := r.Snapshot()
 
 	if len(snap.Regions) != 2 {
@@ -55,7 +55,7 @@ func TestProbeAllClassifiesAndRecommends(t *testing.T) {
 		ProbeInterval: time.Minute,
 		ProbeTimeout:  2 * time.Second,
 	}
-	r := New(cfg)
+	r := New(cfg, nil)
 	r.probeAll(context.Background())
 	snap := r.Snapshot()
 
@@ -92,7 +92,7 @@ func TestDisabledRegionsExcluded(t *testing.T) {
 		ProbeInterval: time.Minute,
 		ProbeTimeout:  time.Second,
 	}
-	r := New(cfg)
+	r := New(cfg, nil)
 	snap := r.Snapshot()
 	if len(snap.Regions) != 1 || snap.Regions[0].ID != "a" {
 		t.Errorf("disabled region should be excluded, got %+v", snap.Regions)
@@ -105,7 +105,7 @@ func TestDispatchNodesCarryCoords(t *testing.T) {
 		ProbeInterval: time.Minute,
 		ProbeTimeout:  time.Second,
 	}
-	r := New(cfg)
+	r := New(cfg, nil)
 	nodes, ts := r.DispatchNodes()
 	if len(nodes) != 1 || !nodes[0].HasCoord || nodes[0].Coord.Lat != 22.32 {
 		t.Errorf("coord not carried into dispatch node: %+v", nodes)
@@ -126,7 +126,7 @@ func TestSetRegionsReplacesAndPreservesHealth(t *testing.T) {
 		ProbeInterval: time.Minute,
 		ProbeTimeout:  2 * time.Second,
 	}
-	r := New(cfg)
+	r := New(cfg, nil)
 	r.probeAll(context.Background())
 	if !r.Snapshot().Regions[0].Healthy {
 		t.Fatalf("precondition: a should be healthy after probe")
@@ -160,7 +160,7 @@ func TestSetRegionsDropsDisabled(t *testing.T) {
 	r := New(config.Config{
 		Regions:       []config.Region{{ID: "a", Host: "a", URL: "https://a/"}},
 		ProbeInterval: time.Minute, ProbeTimeout: time.Second,
-	})
+	}, nil)
 	r.SetRegions([]config.Region{
 		{ID: "a", Host: "a", URL: "https://a/"},
 		{ID: "b", Host: "b", URL: "https://b/", Disabled: true},

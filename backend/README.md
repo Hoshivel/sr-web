@@ -95,6 +95,8 @@ CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。每次持久�
 | `geo` | 地理分流設定（見下）。 |
 | `regions[]` | 遊戲節點：`id`／`host`／`url`（嵌入 / 新分頁目標）／`healthUrl`（探活端點，留空＝`https://<host>/healthz`）／`lat`＋`lon`（座標）或 `country`（ISO 國別碼，缺座標時以國家質心近似）／`disabled`（停用）。 |
 | `control` | 控制平面（供 hoshi-admin 統一管理）。見下方「控制平面」。 |
+| `debug` | Debug 模式：全部層級 ＋ `file:line` ＋ 逐筆請求與**逐次節點探活**紀錄（預設 `false`）。 |
+| `log` | 日誌設定（見下）。 |
 
 `geo` 子欄位：
 
@@ -104,7 +106,37 @@ CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。每次持久�
 | `latHeader` / `lonHeader` / `countryHeader` | 攜帶用戶地理資訊的標頭名（預設 Cloudflare `CF-IPLatitude` / `CF-IPLongitude` / `CF-IPCountry`）。 |
 | `countryCoords` | 額外 / 覆寫的國家質心 `{ "XX": [lat, lon] }`（內建約 50 國）。 |
 
-CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port>`。
+`log` 子欄位——**語意與預設值和其他四個 Hoshivel 服務完全一致**
+（見 hoshi-api-spec 的 `docs/conventions.md` §7）；只有大小寫跟著本檔既有的
+camelCase 走：
+
+| 欄位 | 預設 | 說明 |
+|------|------|------|
+| `level` | `info` | 最低寫出層級：`debug` / `info` / `warn` / `error`。 |
+| `format` | `text` | `text` 或 `json`。 |
+| `file` | 空 | 日誌檔位置。**空＝只寫 stderr**——本服務跑在 systemd／容器下，那裡已經在收 stderr，容器內再寫一份會隨容器消失。 |
+| `stderr` | `true` | 設了 `file` 之後仍保留終端機那一份。開一個日誌檔不該默默把某人正在看的輸出拿走。 |
+| `maxSizeMB` | `32` | 超過此大小即輪替；`0` 代表只按 UTC 日界輪替。 |
+| `retainDays` | `14` | 輪替檔保留天數；`0` 代表永久保留。 |
+| `maxFiles` | `14` | 輪替檔份數上限；`0` 代表不設上限。 |
+| `source` | `false` | 每筆紀錄附上 `file:line`（debug 模式自動開啟）。 |
+
+輪替檔名為 `router.log.20260801T184530`。**按日輪替不是多餘的**：只按大小輪替的話，
+安靜的服務永遠不會輪替，於是沒有任何檔案「夠舊」可以刪——保留天數設了、也確實照著
+執行，卻完全不會生效。
+
+名稱看起來帶憑證的屬性（`password`、`secret`、`token`、`*_key`、`authorization`、
+`cookie` …）在寫出前一律換成 `[redacted]`，任何層級都一樣。請求日誌**不記 query
+string**：query 正是有人會把 token 放進去的地方，而日誌被複製、保存、搬運的次數
+遠多於資料庫。
+
+`debug` 與 `log.level` 也可以從 hoshi-admin 的「診斷與日誌」區**不重啟**調整；
+該變更是執行期的、**不寫回 `config.json`**，重啟即回到檔案的值——不會有服務被留在
+debug 模式沒人記得關。
+
+CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port>`、
+`-debug`、`-log.level`、`-log.format`、`-log.file`、`-log.stderr`、
+`-log.max_size_mb`、`-log.retain_days`、`-log.max_files`、`-log.source`。
 
 ---
 

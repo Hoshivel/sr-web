@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/hoshivel/sr-web/backend/internal/geo"
+	"github.com/hoshivel/sr-web/backend/internal/logging"
 )
 
 // Region 是一個遊戲節點的靜態設定（探活/嵌入目標；即時的 healthy/latency/load 由
@@ -100,9 +101,70 @@ type File struct {
 	ProbeIntervalSeconds int       `json:"probeIntervalSeconds"`
 	ProbeTimeoutSeconds  int       `json:"probeTimeoutSeconds"`
 	MaxCandidates        int       `json:"maxCandidates"`
+	Debug                bool      `json:"debug"`
+	Log                  LogConfig `json:"log"`
 	Geo                  GeoConfig `json:"geo"`
 	Control              Control   `json:"control"`
 	Regions              []Region  `json:"regions"`
+}
+
+// LogConfig 是磁碟上的日誌設定。
+//
+// 鍵**語意與預設值和其餘四個 Hoshivel 服務完全一致**（見 hoshi-api-spec 的
+// docs/conventions.md §11）；只有大小寫跟著本倉庫 config.json 既有的 camelCase
+// 走，因為這個檔裡其他鍵（probeIntervalSeconds、allowedOrigins…）都是 camelCase，
+// 夾一段 snake_case 進來會被下一個人當成筆誤「修掉」。
+type LogConfig struct {
+	// Level 是最低寫出層級：debug / info / warn / error。
+	Level string `json:"level,omitempty"`
+	// Format 是 text（預設）或 json。
+	Format string `json:"format,omitempty"`
+	// File 是日誌檔位置；留空＝只寫 stderr。本服務通常跑在 systemd 或容器下，
+	// 那裡已經在收 stderr，容器內再寫一份會隨容器一起消失。
+	File string `json:"file,omitempty"`
+	// Stderr 決定設了 File 之後是否保留終端機那一份。預設保留：開一個日誌檔
+	// 不該默默把某人正在看的輸出拿走。
+	Stderr *bool `json:"stderr,omitempty"`
+	// MaxSizeMB 超過即輪替；0 代表只按 UTC 日界輪替。
+	MaxSizeMB int `json:"maxSizeMB,omitempty"`
+	// RetainDays 是輪替檔保留天數；0 代表永久保留。
+	RetainDays int `json:"retainDays,omitempty"`
+	// MaxFiles 是輪替檔份數上限；0 代表不設上限。
+	MaxFiles int `json:"maxFiles,omitempty"`
+	// Source 讓每筆紀錄帶上 file:line；debug 模式自動開啟。
+	Source bool `json:"source,omitempty"`
+}
+
+// Options 轉成 logging 套件要的形狀。
+func (l LogConfig) Options(debug bool) logging.Options {
+	o := logging.Defaults()
+	if l.Level != "" {
+		o.Level = l.Level
+	}
+	if l.Format != "" {
+		o.Format = l.Format
+	}
+	o.File = l.File
+	if l.Stderr != nil {
+		o.Stderr = *l.Stderr
+	}
+	if l.MaxSizeMB != 0 {
+		o.MaxSizeMB = l.MaxSizeMB
+	}
+	if l.RetainDays != 0 {
+		o.RetainDays = l.RetainDays
+	}
+	if l.MaxFiles != 0 {
+		o.MaxFiles = l.MaxFiles
+	}
+	o.Source = l.Source
+	o.Debug = debug
+	if debug {
+		// debug 是維運會去按的那一個開關，所以它自己帶著層級，
+		// 不必再記得同時改 log.level。
+		o.Level = logging.LevelDebug
+	}
+	return o
 }
 
 // Control 是 hoshi-admin 統一管理平臺的控制平面設定（見該倉庫
@@ -145,9 +207,50 @@ type Config struct {
 	// Regions 是要探活/分流的遊戲節點清單。
 	Regions []Region
 
+	// Debug 是 debug 模式：全部層級 ＋ file:line ＋ 逐筆請求與探活紀錄。
+	Debug bool
+	// Log 是日誌設定（位置、保留、層級）。
+	Log LogConfig
+
 	// Path 是實際使用的設定檔；Notes 是載入期訊息（產生檔案/解析）供啟動日誌。
 	Path  string
 	Notes []string
+}
+
+// LogOptions 把設定轉成 logging 套件要的選項。
+func (c Config) LogOptions() logging.Options { return c.Log.Options(c.Debug) }
+
+// LogAttrs 是生效設定的屬性形式，供 debug 模式在啟動時印出一次——
+// 「這個行程實際跑在什麼設定上」是多數調查的第一個問題。
+// 共享密鑰不在其中：最保險的不記錄方式是根本不交給 logger。
+func (c Config) LogAttrs() []any {
+	return []any{
+		"config", c.Path,
+		"listen", c.ListenAddr,
+		"allowed_origins", strings.Join(c.AllowedOrigins, ","),
+		"probe_interval", c.ProbeInterval.String(),
+		"probe_timeout", c.ProbeTimeout.String(),
+		"max_candidates", c.MaxCandidates,
+		"regions", len(c.Regions),
+		"geo.trust_proxy_headers", c.Geo.TrustProxyHeaders,
+		"debug", c.Debug,
+		"log.level", c.Log.Level,
+		"log.format", c.Log.Format,
+		"log.file", c.Log.File,
+		"log.stderr", c.LogOptions().Stderr,
+		"log.max_size_mb", c.Log.MaxSizeMB,
+		"log.retain_days", c.Log.RetainDays,
+		"log.max_files", c.Log.MaxFiles,
+		"log.source", c.Log.Source,
+	}
+}
+
+// Validate 檢查日誌設定；不合法就在啟動時擋下來，而不是默默用預設值跑。
+func (l LogConfig) Validate() error {
+	if err := l.Options(false).Validate(); err != nil {
+		return fmt.Errorf("log: %w", err)
+	}
+	return nil
 }
 
 // 預設常數（設定檔缺項或非正值時採用）。
@@ -157,6 +260,13 @@ const (
 	defaultProbeTimeoutS   = 3
 	defaultMaxCandidates   = 3
 	defaultConfigCandidate = "config.json"
+
+	// 日誌預設值。輪替與保留只有在設了 log.file 之後才有作用，但仍在此給出
+	// 預設，好讓「開始寫檔」是一個鍵而不是五個。
+	defaultLogLevel     = logging.LevelInfo
+	defaultLogRetainDay = 14
+	defaultLogMaxSizeMB = 32
+	defaultLogMaxFiles  = 14
 )
 
 // defaultFile 是首次執行時寫出的設定內容。regions 預設為目前唯一的正式節點
@@ -170,6 +280,13 @@ func defaultFile() File {
 		ProbeTimeoutSeconds:  defaultProbeTimeoutS,
 		MaxCandidates:        defaultMaxCandidates,
 		Geo:                  GeoConfig{TrustProxyHeaders: false},
+		Log: LogConfig{
+			Level:      defaultLogLevel,
+			Format:     logging.FormatText,
+			MaxSizeMB:  defaultLogMaxSizeMB,
+			RetainDays: defaultLogRetainDay,
+			MaxFiles:   defaultLogMaxFiles,
+		},
 		Regions: []Region{
 			{ID: "sr1", Host: "play.sr.hoshivel.com", URL: "https://play.sr.hoshivel.com/", Lat: 22.32, Lon: 114.17, Country: "HK"},
 		},
@@ -193,9 +310,18 @@ func Load(args []string) (Config, error) {
 func resolve(args []string) (file File, listenAddr, path string, notes []string, err error) {
 	fs := flag.NewFlagSet("sr-web-router", flag.ContinueOnError)
 	var (
-		flagConfig = fs.String("config", "", "設定檔路徑（.json）；預設取工作目錄的 config.json")
-		flagIP     = fs.String("ip", "", "監聽 IP（空＝所有介面）")
-		flagPort   = fs.Int("port", 0, "監聽埠")
+		flagConfig   = fs.String("config", "", "設定檔路徑（.json）；預設取工作目錄的 config.json")
+		flagIP       = fs.String("ip", "", "監聽 IP（空＝所有介面）")
+		flagPort     = fs.Int("port", 0, "監聽埠")
+		flagDebug    = fs.Bool("debug", false, "debug 模式：全部層級 ＋ file:line ＋ 逐筆請求與探活紀錄")
+		flagLevel    = fs.String("log.level", "", "最低寫出層級：debug / info（預設）/ warn / error")
+		flagFormat   = fs.String("log.format", "", "日誌格式：text（預設）或 json")
+		flagFile     = fs.String("log.file", "", "同時把日誌寫到這個檔；留空代表只寫 stderr")
+		flagStderr   = fs.Bool("log.stderr", true, "設了 log.file 之後仍保留 stderr 那一份")
+		flagMaxSize  = fs.Int("log.max_size_mb", 0, "日誌檔超過此 MB 數即輪替；0 代表只按日輪替（預設 32）")
+		flagRetain   = fs.Int("log.retain_days", 0, "輪替檔保留天數；0 代表永久保留（預設 14）")
+		flagMaxFiles = fs.Int("log.max_files", 0, "輪替檔份數上限；0 代表不設上限（預設 14）")
+		flagSource   = fs.Bool("log.source", false, "每筆紀錄附上 file:line（預設只在 debug 模式開啟）")
 	)
 	if perr := fs.Parse(args); perr != nil {
 		return File{}, "", "", nil, perr
@@ -216,6 +342,38 @@ func resolve(args []string) (file File, listenAddr, path string, notes []string,
 	if set["port"] {
 		port = *flagPort
 	}
+	// 只套用命令列上真的出現過的旗標：未給的 bool 是 false，無條件寫回去等於
+	// 讓命令列默默關掉沒人提過的設定。
+	if set["debug"] {
+		file.Debug = *flagDebug
+	}
+	if set["log.level"] {
+		file.Log.Level = *flagLevel
+	}
+	if set["log.format"] {
+		file.Log.Format = *flagFormat
+	}
+	if set["log.file"] {
+		file.Log.File = *flagFile
+	}
+	if set["log.stderr"] {
+		file.Log.Stderr = flagStderr
+	}
+	if set["log.max_size_mb"] {
+		file.Log.MaxSizeMB = *flagMaxSize
+	}
+	if set["log.retain_days"] {
+		file.Log.RetainDays = *flagRetain
+	}
+	if set["log.max_files"] {
+		file.Log.MaxFiles = *flagMaxFiles
+	}
+	if set["log.source"] {
+		file.Log.Source = *flagSource
+	}
+	if err := file.Log.Validate(); err != nil {
+		return File{}, "", "", nil, err
+	}
 	return file, net.JoinHostPort(ip, strconv.Itoa(port)), path, notes, nil
 }
 
@@ -233,9 +391,18 @@ func deriveConfig(file File, listenAddr, path string, notes []string) Config {
 	if maxCandidates <= 0 {
 		maxCandidates = defaultMaxCandidates
 	}
+	logCfg := file.Log
+	if logCfg.Level == "" {
+		logCfg.Level = defaultLogLevel
+	}
+	if logCfg.Format == "" {
+		logCfg.Format = logging.FormatText
+	}
 	return Config{
 		ListenAddr:     listenAddr,
 		AllowedOrigins: file.AllowedOrigins,
+		Debug:          file.Debug,
+		Log:            logCfg,
 		ProbeInterval:  interval,
 		ProbeTimeout:   timeout,
 		MaxCandidates:  maxCandidates,
