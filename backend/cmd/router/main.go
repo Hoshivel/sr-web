@@ -14,9 +14,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 	"github.com/hoshivel/sr-web/backend/internal/adminplane"
 	"github.com/hoshivel/sr-web/backend/internal/config"
-	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/router"
 	"github.com/hoshivel/sr-web/backend/internal/server"
 )

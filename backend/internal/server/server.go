@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 	"github.com/hoshivel/sr-web/backend/internal/config"
 	"github.com/hoshivel/sr-web/backend/internal/dispatch"
 	"github.com/hoshivel/sr-web/backend/internal/geo"
-	"github.com/hoshivel/sr-web/backend/internal/logging"
 	"github.com/hoshivel/sr-web/backend/internal/router"
 )
 

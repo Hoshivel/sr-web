@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hoshivel/hoshi-api-spec/hoshi-client-go/controlplane"
+	"github.com/hoshivel/hoshi-sdk/go/controlplane"
+	"github.com/hoshivel/hoshi-sdk/go/kit/logging"
 	"github.com/hoshivel/sr-web/backend/internal/adminplane"
 	"github.com/hoshivel/sr-web/backend/internal/config"
-	"github.com/hoshivel/sr-web/backend/internal/logging"
 )
 
 // 診斷鍵是唯一直接作用在行程上、而不經過 config.Store 的設定，

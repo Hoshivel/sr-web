@@ -107,7 +107,7 @@ CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。每次持久�
 | `countryCoords` | 額外 / 覆寫的國家質心 `{ "XX": [lat, lon] }`（內建約 50 國）。 |
 
 `log` 子欄位——**語意與預設值和其他四個 Hoshivel 服務完全一致**
-（見 hoshi-api-spec 的 `docs/conventions.md` §7）；只有大小寫跟著本檔既有的
+（見 hoshi-standards 的 `conventions/api.md` §7）；只有大小寫跟著本檔既有的
 camelCase 走：
 
 | 欄位 | 預設 | 說明 |
