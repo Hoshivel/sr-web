@@ -4,6 +4,15 @@
 （health probe）／分流／負載均衡**，並由**後端主導**為每位玩家決定可用的遊戲入點
 （見倉庫根 `README.md` 第 3 點）。
 
+> **搬遷計畫（2026-08-02 已決定，尚未執行）**：本服務將移出 sr-web，改置於獨立倉庫
+> **`hoshi-svc`**。理由是官網已改為純靜態部署，兩者的生命週期就此分家——官網是上傳到
+> CDN 的一包靜態檔，本服務是常駐程序、帶 0600 設定檔與控制平面密鑰；而本服務在行為上
+> 早就是平臺服務（實作 Control Plane Protocol v1、由 hoshi-admin 與 Hoshi ID／SR 一起
+> 管理），只是碰巧住在官網倉庫裡。前端已經不在意它住哪：改讀 `PUBLIC_SR_API_BASE`
+> 之後，兩邊只剩 JSON 形狀這一個約定。搬遷與各服務的接入排在後續實作，屆時模組路徑
+> （`github.com/hoshivel/sr-web/backend` → `hoshi-svc`）、hoshi-standards 的
+> `check-deploy-conformance.py` 倉庫清單、hoshi-admin 的登錄說明需一併更新。
+
 ```
 前端官網 → 點 Play → GET /api/play.json →
 本後端依「用戶地理位置 + 即時探活」計算 → 只回傳收斂的 2~3 個較近候選 + 建議入點 →

@@ -22,8 +22,10 @@
 ## 進度
 
 ### 待辦
-- [ ] 架構決策：分流服務是否搬出 sr-web → 新倉庫 `hoshi-svc`（使用者 2026-08-02 追加提問，
-      待回覆；見〈筆記 / 決策〉）。四項需求本身已全數落地。
+- （本倉庫本次任務已無待辦；等待使用者驗收）
+- 後續（**另一批工作，不屬於本次**）：把 `backend/` 搬到新倉庫 `hoshi-svc`——
+  使用者 2026-08-02 已拍板，實作與各服務接入排在稍後。搬遷時的連帶項目見
+  `backend/README.md` 開頭的〈搬遷計畫〉。
 
 ### 已完成（精簡摘要）
 - [x] 盤點：`oha.li` 出現在 16 個檔；劇場模式僅設 `height`，寬度仍受
@@ -71,9 +73,16 @@
 - **劇場模式**：採「滿幅跳出容器」（YouTube theater 慣例）。`100vw` 會含捲軸寬度，
   故以 CSS 變數 `--play-bleed-w` 預設 `100vw`、由 island 以
   `document.documentElement.clientWidth` 修正（扣掉捲軸），避免橫向溢出。
-- **（2026-08-02 追加）架構提問**：使用者提出「分流服務也許該搬到 `hoshi-svc`，
-  sr 官網純靜態」。查 org 現有倉庫：ShatteredRealms / sr-web / hoshi-identity /
-  hoshi-mail / hoshi-admin / hoshi-api-spec / hoshivel-web / hoshi-standards——
-  **`hoshi-svc` 尚不存在**，等於要新建倉庫（需使用者確認才動）。
-  本次前端改動與該決策**無關**：前端讀 `PUBLIC_SR_API_BASE`，服務放哪個倉庫都一樣。
-  受影響的只有「`backend/` 要不要留在 sr-web」與文件敘述。
+- **（2026-08-02）架構決策：分流服務搬到新倉庫 `hoshi-svc`——已拍板，實作延後。**
+  查 org 現有倉庫：ShatteredRealms / sr-web / hoshi-identity / hoshi-mail / hoshi-admin /
+  hoshi-api-spec / hoshivel-web / hoshi-standards——`hoshi-svc` 尚不存在，需新建。
+  - 本次的前端改動與該決策**無關**：前端讀 `PUBLIC_SR_API_BASE`，服務放哪個倉庫都一樣。
+    也就是說解耦已經完成，之後的搬遷是純粹的目錄搬家。
+  - 搬遷時的連帶項目（勿漏）：module 路徑 `github.com/hoshivel/sr-web/backend` →
+    `github.com/hoshivel/hoshi-svc`（約 13 個檔的 import）；hoshi-standards
+    `tools/check-deploy-conformance.py` 的 `REPOS` 清單（目前 8 個倉庫，需加入新倉庫）；
+    hoshi-admin `README.md` 的服務登錄表與 `docs/deployment.md` 的架構圖（現寫「sr-web 分流服務」）；
+    新倉庫需備 `AGENTS.md` / `CLAUDE.md` / `sessions/`；`PlayResponse` 形狀跨倉庫後，
+    依家族慣例應收進 hoshi-api-spec 的 `spec/`。
+  - 本倉庫已在 `backend/README.md` 開頭留下〈搬遷計畫〉註記，避免決策只存在於會話日誌裡
+    （日誌驗收後會被移除）。
