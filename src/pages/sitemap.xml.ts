@@ -12,7 +12,7 @@ export const prerender = true;
 const LOGICAL_PAGES = ["/"];
 
 export const GET: APIRoute = ({ site }) => {
-  const origin = (site?.href ?? "https://sr.oha.li/").replace(/\/$/, "");
+  const origin = (site?.href ?? "https://sr.hoshivel.com/").replace(/\/$/, "");
   const abs = (p: string) => `${origin}${p}`;
 
   const urls = LOGICAL_PAGES.flatMap((logical) =>

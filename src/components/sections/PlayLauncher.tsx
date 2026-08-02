@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
-import { MOCK_PLAY, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
+import { FALLBACK_PLAY, fetchPlay, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
 import "./PlayLauncher.css";
 
 /*
   Play 啟動器（island）—— 官網版分流器。
   版面（由上而下）：橫向可滑動節點卡片 → 嵌入視窗（iframe）→ 控制列（進入 / 尺寸模式 /
-  新分頁）。fetch `/api/play.json` 取得後端**就近收斂**的候選＋建議入點；預選**優先採用
-  後端 `recommendedId`**（後端主導分流），選定即以 iframe 嵌入同源對戰頁。
-  嵌入視窗尺寸可切換：正常 / 劇場（全幅）/ 全屏（原生 Fullscreen API），並可拖拽調整高度。
+  新分頁）。以 `fetchPlay()` 向**跨源分流後端**（api.hoshivel.com；靜態站沒有反代可用）
+  取得後端**就近收斂**的候選＋建議入點，失敗則逐層退回同源靜態 JSON / 內建常數；
+  預選**優先採用後端 `recommendedId`**（後端主導分流），選定即以 iframe 嵌入該節點。
+  嵌入視窗尺寸可切換：正常 / 劇場（滿幅）/ 全屏（原生 Fullscreen API），並可拖拽調整高度。
 */
 
-const API = "/api/play.json";
 type SizeMode = "normal" | "theater" | "fullscreen";
 const MIN_H = 260;
 const MAX_H = 1000;
@@ -26,9 +26,10 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   const [size, setSize] = useState<SizeMode>("normal");
   const [dragH, setDragH] = useState<number | null>(null); // 拖拽覆寫的高度（px）；null＝依模式預設
   const [dragging, setDragging] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
 
-  // 取回後端收斂候選；預選優先採用後端建議入點。端點不可用 → 退回內建 mock。
+  // 取回後端收斂候選；預選優先採用後端建議入點。三層端點皆不可用 → 內建後備節點。
   useEffect(() => {
     let alive = true;
     const apply = (data: PlayResponse) => {
@@ -37,14 +38,32 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
       setRecId(data.recommendedId ?? null);
       setSelId(pickEntryId(data));
     };
-    fetch(API)
-      .then((r) => (r.ok ? (r.json() as Promise<PlayResponse>) : Promise.reject()))
+    fetchPlay()
       .then(apply)
-      .catch(() => apply(MOCK_PLAY));
+      .catch(() => apply(FALLBACK_PLAY));
     return () => {
       alive = false;
     };
   }, []);
+
+  // 劇場模式滿幅：以 documentElement.clientWidth（已扣掉捲軸寬）覆寫 CSS 的 100vw 後備，
+  // 避免滿幅舞台比可視區寬出一條捲軸而被裁切。JS 未執行時 CSS 仍以 100vw 生效。
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (size !== "theater") {
+      el.style.removeProperty("--play-bleed-w");
+      return;
+    }
+    const apply = () => el.style.setProperty("--play-bleed-w", `${document.documentElement.clientWidth}px`);
+    apply();
+    window.addEventListener("resize", apply);
+    window.addEventListener("orientationchange", apply);
+    return () => {
+      window.removeEventListener("resize", apply);
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, [size]);
 
   const sel = regions?.find((r) => r.id === selId) ?? null;
 
@@ -109,7 +128,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   const viewStyle = dragH != null && size !== "fullscreen" ? { height: `${dragH}px`, aspectRatio: "auto" as const } : undefined;
 
   return (
-    <div className={`play-launcher size-${size}${dragging ? " is-dragging" : ""}`}>
+    <div className={`play-launcher size-${size}${dragging ? " is-dragging" : ""}`} ref={rootRef}>
       {/* 節點：橫向可滑動卡片（置於嵌入視窗上方） */}
       <div className="play-nodes-bar" role="group" aria-label={t("play.serversTitle")}>
         {!regions && <div className="play-ncard play-ncard--skeleton" aria-hidden="true" />}
@@ -128,9 +147,16 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
             </span>
             <small className="play-ncard__host">{r.host}</small>
             <span className="play-ncard__stat">
+              {/* 後備節點沒有量測值（latencyMs 0）→ 顯示破折號，不謊報 0ms */}
               <span className="play-ncard__ping">
-                {r.latencyMs}
-                <i>ms</i>
+                {r.latencyMs > 0 ? (
+                  <>
+                    {r.latencyMs}
+                    <i>ms</i>
+                  </>
+                ) : (
+                  "—"
+                )}
               </span>
               <span className="play-ncard__load" aria-hidden="true">
                 <span style={{ width: `${Math.round(r.load * 100)}%` }} />
@@ -211,7 +237,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         </button>
       </div>
 
-      <p className="play-note">{t("play.mockNote")}</p>
+      <p className="play-note">{t("play.nodeNote")}</p>
     </div>
   );
 }

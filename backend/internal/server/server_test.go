@@ -17,7 +17,7 @@ import (
 func newTestServer(origins []string) *httptest.Server {
 	store := config.NewStore(config.File{
 		AllowedOrigins: origins,
-		Regions:        []config.Region{{ID: "hk1", Host: "hk1.svc.oha.li", URL: "https://hk1.svc.oha.li/"}},
+		Regions:        []config.Region{{ID: "hk1", Host: "hk1.svc.hoshivel.com", URL: "https://hk1.svc.hoshivel.com/"}},
 	}, "")
 	rt := router.New(store.Config())
 	return httptest.NewServer(New(store, rt).Handler())
@@ -76,7 +76,7 @@ func TestPlayJSONContract(t *testing.T) {
 	if len(got.Regions) != 1 || got.Regions[0].ID != "hk1" {
 		t.Errorf("regions = %+v, want single hk1", got.Regions)
 	}
-	if got.Regions[0].URL != "https://hk1.svc.oha.li/" {
+	if got.Regions[0].URL != "https://hk1.svc.hoshivel.com/" {
 		t.Errorf("region url = %q", got.Regions[0].URL)
 	}
 	if got.UpdatedAt == "" {
@@ -110,13 +110,13 @@ func TestPlayMethodNotAllowed(t *testing.T) {
 }
 
 func TestCORSAllowlist(t *testing.T) {
-	ts := newTestServer([]string{"https://sr.oha.li"})
+	ts := newTestServer([]string{"https://sr.hoshivel.com"})
 	defer ts.Close()
 
-	allowed := get(t, ts, "/api/play.json", "https://sr.oha.li")
+	allowed := get(t, ts, "/api/play.json", "https://sr.hoshivel.com")
 	defer allowed.Body.Close()
-	if got := allowed.Header.Get("Access-Control-Allow-Origin"); got != "https://sr.oha.li" {
-		t.Errorf("allowed origin ACAO = %q, want https://sr.oha.li", got)
+	if got := allowed.Header.Get("Access-Control-Allow-Origin"); got != "https://sr.hoshivel.com" {
+		t.Errorf("allowed origin ACAO = %q, want https://sr.hoshivel.com", got)
 	}
 
 	denied := get(t, ts, "/api/play.json", "https://evil.example")
@@ -138,14 +138,14 @@ func TestCORSDevAllowsAny(t *testing.T) {
 }
 
 func TestCORSPreflight(t *testing.T) {
-	ts := newTestServer([]string{"https://sr.oha.li"})
+	ts := newTestServer([]string{"https://sr.hoshivel.com"})
 	defer ts.Close()
 
 	req, err := http.NewRequest(http.MethodOptions, ts.URL+"/api/play.json", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Origin", "https://sr.oha.li")
+	req.Header.Set("Origin", "https://sr.hoshivel.com")
 	resp, err := ts.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)

@@ -81,7 +81,7 @@ func TestConfigRoundTripAndValidation(t *testing.T) {
 		Revision: doc.Revision,
 		Values: map[string]any{
 			adminplane.KeyMaxCandidates:  float64(5), // JSON numbers decode as float64
-			adminplane.KeyAllowedOrigins: []any{"https://sr.oha.li"},
+			adminplane.KeyAllowedOrigins: []any{"https://sr.hoshivel.com"},
 		},
 	})
 	if err != nil {
@@ -93,7 +93,7 @@ func TestConfigRoundTripAndValidation(t *testing.T) {
 	if got := store.MaxCandidates(); got != 5 {
 		t.Fatalf("store.MaxCandidates = %d, want 5", got)
 	}
-	if origins := store.AllowedOrigins(); len(origins) != 1 || origins[0] != "https://sr.oha.li" {
+	if origins := store.AllowedOrigins(); len(origins) != 1 || origins[0] != "https://sr.hoshivel.com" {
 		t.Fatalf("allowed origins not applied: %v", origins)
 	}
 
@@ -156,7 +156,7 @@ func TestRegionLifecycle(t *testing.T) {
 	ctx := context.Background()
 
 	create := controlplane.ResourceOp{Op: controlplane.OpCreate, ID: "tw1", Values: map[string]any{
-		"id": "tw1", "host": "tw1.svc.oha.li", "url": "https://tw1.svc.oha.li/",
+		"id": "tw1", "host": "tw1.svc.hoshivel.com", "url": "https://tw1.svc.hoshivel.com/",
 		"lat": 25.03, "lon": 121.56, "country": "tw",
 	}}
 	if _, err := adapter.ResourceApply(ctx, "regions", create); err != nil {
@@ -177,7 +177,7 @@ func TestRegionLifecycle(t *testing.T) {
 
 	update := controlplane.ResourceOp{Op: controlplane.OpUpdate, ID: "tw1", Values: map[string]any{
 		// A body naming a different node must not be able to edit that one.
-		"id": "hk1", "host": "tw1.svc.oha.li", "url": "https://tw1.svc.oha.li/play",
+		"id": "hk1", "host": "tw1.svc.hoshivel.com", "url": "https://tw1.svc.hoshivel.com/play",
 		"disabled": true,
 	}}
 	if _, err := adapter.ResourceApply(ctx, "regions", update); err != nil {
@@ -239,11 +239,11 @@ func TestRegionValidation(t *testing.T) {
 
 func TestResourceListMergesLiveProbeResults(t *testing.T) {
 	regions := []config.Region{
-		{ID: "hk1", Host: "hk1.svc.oha.li", URL: "https://hk1/"},
-		{ID: "jp1", Host: "jp1.svc.oha.li", URL: "https://jp1/", Disabled: true},
+		{ID: "hk1", Host: "hk1.svc.hoshivel.com", URL: "https://hk1/"},
+		{ID: "jp1", Host: "jp1.svc.hoshivel.com", URL: "https://jp1/", Disabled: true},
 	}
 	snap := play.Response{Regions: []play.Region{
-		{ID: "hk1", Host: "hk1.svc.oha.li", Healthy: true, LatencyMS: 42},
+		{ID: "hk1", Host: "hk1.svc.hoshivel.com", Healthy: true, LatencyMS: 42},
 	}}
 	adapter, _, _ := newAdapter(t, regions, snap)
 

@@ -23,8 +23,8 @@ func TestLoadGeneratesDefault(t *testing.T) {
 	if cfg.ProbeTimeout != 3*time.Second {
 		t.Errorf("ProbeTimeout = %v, want 3s", cfg.ProbeTimeout)
 	}
-	if len(cfg.Regions) != 3 {
-		t.Errorf("Regions = %d, want 3 default", len(cfg.Regions))
+	if len(cfg.Regions) != 1 || cfg.Regions[0].ID != "sr1" {
+		t.Errorf("Regions = %+v, want the single default node sr1", cfg.Regions)
 	}
 	if _, err := os.Stat(path); err != nil {
 		t.Errorf("default config not generated: %v", err)
@@ -35,10 +35,10 @@ func TestLoadFromFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	f := File{
 		Listen:               Listen{IP: "127.0.0.1", Port: 9000},
-		AllowedOrigins:       []string{"https://sr.oha.li"},
+		AllowedOrigins:       []string{"https://sr.hoshivel.com"},
 		ProbeIntervalSeconds: 5,
 		ProbeTimeoutSeconds:  2,
-		Regions:              []Region{{ID: "hk1", Host: "hk1.svc.oha.li", URL: "https://hk1.svc.oha.li/"}},
+		Regions:              []Region{{ID: "hk1", Host: "hk1.svc.hoshivel.com", URL: "https://hk1.svc.hoshivel.com/"}},
 	}
 	raw, _ := json.Marshal(f)
 	if err := os.WriteFile(path, raw, 0o644); err != nil {
@@ -54,7 +54,7 @@ func TestLoadFromFile(t *testing.T) {
 	if cfg.ProbeInterval != 5*time.Second {
 		t.Errorf("ProbeInterval = %v, want 5s", cfg.ProbeInterval)
 	}
-	if len(cfg.AllowedOrigins) != 1 || cfg.AllowedOrigins[0] != "https://sr.oha.li" {
+	if len(cfg.AllowedOrigins) != 1 || cfg.AllowedOrigins[0] != "https://sr.hoshivel.com" {
 		t.Errorf("AllowedOrigins = %v", cfg.AllowedOrigins)
 	}
 	if len(cfg.Regions) != 1 || cfg.Regions[0].ID != "hk1" {

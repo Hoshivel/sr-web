@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
-# iframe 對戰展示頁（noindex）與 mock 端點不需被索引
+# iframe 對戰展示頁（noindex）與後備 JSON 端點不需被索引
 Disallow: /play/session/
 Disallow: /api/
 
-Sitemap: https://sr.oha.li/sitemap.xml
+Sitemap: https://sr.hoshivel.com/sitemap.xml

@@ -126,7 +126,7 @@ func (a *Adapter) Descriptor(context.Context) (controlplane.Descriptor, error) {
 				ID: "web", Title: "網站",
 				Fields: []controlplane.Field{
 					{Key: KeyAllowedOrigins, Label: "允許的瀏覽器來源", Type: controlplane.TypeCSV,
-						Help: "每行一個 origin（如 https://sr.oha.li）。留空＝放行任意來源，僅適合本機開發。"},
+						Help: "每行一個 origin（如 https://sr.hoshivel.com）。留空＝放行任意來源，僅適合本機開發。"},
 				},
 			},
 			{
@@ -161,7 +161,7 @@ func (a *Adapter) Descriptor(context.Context) (controlplane.Descriptor, error) {
 					{Key: "id", Label: "節點代號", Type: controlplane.TypeString, Required: true,
 						Help: "如 hk1。建立後不可變更。"},
 					{Key: "host", Label: "主機名", Type: controlplane.TypeString, Required: true,
-						Help: "如 hk1.svc.oha.li。未填探活端點時，預設探 https://<主機名>/healthz。"},
+						Help: "如 play.sr.hoshivel.com。未填探活端點時，預設探 https://<主機名>/healthz。"},
 					{Key: "url", Label: "入點 URL", Type: controlplane.TypeURL, Required: true,
 						Help: "前端實際嵌入／導向的遊戲位址。"},
 					{Key: "health_url", Label: "探活端點", Type: controlplane.TypeURL,
