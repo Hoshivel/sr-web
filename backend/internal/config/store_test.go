@@ -86,7 +86,7 @@ func TestStoreSetRegionDisabled(t *testing.T) {
 func TestStoreUpdateSettings(t *testing.T) {
 	st, path := newStore(t, File{})
 	in := Settings{
-		AllowedOrigins:       []string{"https://sr.oha.li"},
+		AllowedOrigins:       []string{"https://sr.hoshivel.com"},
 		ProbeIntervalSeconds: 20,
 		ProbeTimeoutSeconds:  4,
 		MaxCandidates:        2,
@@ -101,7 +101,7 @@ func TestStoreUpdateSettings(t *testing.T) {
 	if !st.Geo().TrustProxyHeaders {
 		t.Errorf("geo trust not applied")
 	}
-	if got := st.AllowedOrigins(); len(got) != 1 || got[0] != "https://sr.oha.li" {
+	if got := st.AllowedOrigins(); len(got) != 1 || got[0] != "https://sr.hoshivel.com" {
 		t.Errorf("allowedOrigins = %v", got)
 	}
 	if got := readBack(t, path); got.ProbeIntervalSeconds != 20 {

@@ -75,7 +75,7 @@ func TestProbeAllClassifiesAndRecommends(t *testing.T) {
 }
 
 func TestHealthURLDefaultsToHealthz(t *testing.T) {
-	if got := healthURL(config.Region{Host: "hk1.svc.oha.li"}); got != "https://hk1.svc.oha.li/healthz" {
+	if got := healthURL(config.Region{Host: "hk1.svc.hoshivel.com"}); got != "https://hk1.svc.hoshivel.com/healthz" {
 		t.Errorf("healthURL default = %q", got)
 	}
 	if got := healthURL(config.Region{Host: "h", HealthURL: "http://h:9/z"}); got != "http://h:9/z" {

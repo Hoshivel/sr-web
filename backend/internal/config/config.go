@@ -24,9 +24,9 @@ import (
 // Region 是一個遊戲節點的靜態設定（探活/嵌入目標；即時的 healthy/latency/load 由
 // router 探測後填入 play.Region，不在此檔）。
 type Region struct {
-	// ID 是節點代號（如 hk1），對應前端契約 PlayRegion.id。
+	// ID 是節點代號（如 sr1），對應前端契約 PlayRegion.id。
 	ID string `json:"id"`
-	// Host 是顯示用主機名（如 hk1.svc.oha.li），對應 PlayRegion.host。
+	// Host 是顯示用主機名（如 play.sr.hoshivel.com），對應 PlayRegion.host。
 	Host string `json:"host"`
 	// URL 是前端 iframe 嵌入目標（真實部署＝遊戲主機 URL；本機展示可指同源
 	// 展示頁如 /play/session/）。router 原樣回傳，不驗證其 scheme。
@@ -159,8 +159,9 @@ const (
 	defaultConfigCandidate = "config.json"
 )
 
-// defaultFile 是首次執行時寫出的設定內容。regions 預設為三個正式節點，探活端點
-// 由 host 推導；維運者依實際主機調整。
+// defaultFile 是首次執行時寫出的設定內容。regions 預設為目前唯一的正式節點
+// （play.sr.hoshivel.com），探活端點由 host 推導；增設節點時在此清單追加即可——
+// 分流（就近排序 / 候選收斂）本來就是多節點邏輯，單節點只是它的退化情形。
 func defaultFile() File {
 	return File{
 		Listen:               Listen{IP: "", Port: defaultPort},
@@ -170,9 +171,7 @@ func defaultFile() File {
 		MaxCandidates:        defaultMaxCandidates,
 		Geo:                  GeoConfig{TrustProxyHeaders: false},
 		Regions: []Region{
-			{ID: "hk1", Host: "hk1.svc.oha.li", URL: "https://hk1.svc.oha.li/", Lat: 22.32, Lon: 114.17, Country: "HK"},
-			{ID: "jp1", Host: "jp1.svc.oha.li", URL: "https://jp1.svc.oha.li/", Lat: 35.68, Lon: 139.69, Country: "JP"},
-			{ID: "sg1", Host: "sg1.svc.oha.li", URL: "https://sg1.svc.oha.li/", Lat: 1.35, Lon: 103.82, Country: "SG"},
+			{ID: "sr1", Host: "play.sr.hoshivel.com", URL: "https://play.sr.hoshivel.com/", Lat: 22.32, Lon: 114.17, Country: "HK"},
 		},
 	}
 }

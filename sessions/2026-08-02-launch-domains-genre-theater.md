@@ -1,8 +1,9 @@
 # Session：正式上線調整——網域正名 / 劇場模式 / 類型定位 / 靜態部署接外部 API
 
 - 建立：2026-08-02
-- 狀態：進行中
-- 進度摘要：已盤點四項需求的影響面，開始改碼
+- 狀態：待驗收
+- 進度摘要：四項需求全數落地（前端 + 後端 + 文件），`npm run build` 與 Go 四項驗證全綠；
+  另有一個待使用者決定的架構問題（分流服務是否搬到 `hoshi-svc`）
 - 相關：分支 `claude/sr-website-improvements-njx1qf`
 - Runtime：cloud（未附 Runtime 行 → fail-safe 視為 cloud：每階段 commit + push）
 
@@ -21,10 +22,8 @@
 ## 進度
 
 ### 待辦
-- [ ] 1 網域正名——後端側（預設節點、`config.example.json`、`backend/README.md`）
-- [ ] 4 靜態部署文件（根 `README.md`、`docs/plan.md`、CORS 說明）
 - [ ] 架構決策：分流服務是否搬出 sr-web → 新倉庫 `hoshi-svc`（使用者 2026-08-02 追加提問，
-      待回覆；見〈筆記 / 決策〉）
+      待回覆；見〈筆記 / 決策〉）。四項需求本身已全數落地。
 
 ### 已完成（精簡摘要）
 - [x] 盤點：`oha.li` 出現在 16 個檔；劇場模式僅設 `height`，寬度仍受
@@ -44,16 +43,23 @@
       單節點 `sr1 → play.sr.hoshivel.com`；節點卡無量測值時顯示「—」而非謊報 `0ms`。
 - [x] 驗證：`npm run build` 綠（astro check 0 errors）；Playwright 實跑截圖確認玩法四柱與
       劇場模式版面。
+- [x] **1 後端網域正名 / 單節點**：`defaultFile()` 與 `config.example.json` 收斂為
+      `sr1 → play.sr.hoshivel.com`；`allowedOrigins` 範例改 `https://sr.hoshivel.com`；
+      控制平面欄位說明的示例主機一併更新（會顯示在 hoshi-admin 後臺）；測試夾具同步改名。
+- [x] **4 靜態部署文件**：`backend/README.md`〈部署 / 與前端整合〉改寫為「官網純靜態 +
+      分流 API 掛獨立網域 + 上線兩件事（allowedOrigins / PUBLIC_SR_API_BASE）」；
+      根 `README.md` 與 `docs/plan.md` 同步（plan.md 保留原規劃敘述並加 2026-08-02 註記）。
+- [x] 後端驗證：`go build` / `go vet` / `gofmt -l`（無輸出）/ `go test -race` **四者全綠**。
+      私有 module `hoshi-client-go` 以 `GOPRIVATE=github.com/hoshivel/*` 經 session git proxy 取得。
 
 ## Editing（編輯狀態）
 > 動手改碼前先更新；落地並驗證後改回 idle。
 
-- 狀態：editing
-- 目標檔案：`backend/internal/config/config.go`、`backend/config.example.json`、
-  `backend/README.md`、根 `README.md`、`docs/plan.md`
-- 預計變更：後端預設節點與範例設定改為單節點 `play.sr.hoshivel.com`、CORS 來源改
-  `https://sr.hoshivel.com`；文件改寫為「官網純靜態 + 分流 API 走獨立網域」。
-- 半完成 / 風險：前端已全數落地並通過 `npm run build`；本批只動後端與文件。
+- 狀態：idle
+- 目標檔案：—
+- 預計變更：—
+- 半完成 / 風險：—（四項需求皆已落地並通過驗證；唯一未決的是「分流服務要不要搬到
+  `hoshi-svc`」這個架構決策，那是**新的一批工作**，不是半完成的編輯）
 
 ## 筆記 / 決策
 

@@ -7,6 +7,11 @@
 
 `sr-web` 是《碎界 / Shattered Realms》的官方門面網站，部署目標 `sr.oha.li`。原本 repo 幾乎是空的（只有一個 `README.md`）。
 
+> **更新（2026-08-02）**：官網正式上線於 **`sr.hoshivel.com`**（純靜態部署），遊戲節點為
+> **`play.sr.hoshivel.com`**（目前單節點）；分流 API 因此改掛獨立網域（如
+> `api.hoshivel.com` / `svc.hoshivel.com`）由前端跨源呼叫。本檔以下段落保留原始規劃時的
+> `sr.oha.li` 敘述作為歷史紀錄，實際網域以本註記與 `README.md` 為準。
+
 需求核心：官網要有**旗艦級動效**，而不是普通的 HTML+JS —— 「配得上門面」。
 
 關鍵事實（決定設計方向）：
@@ -60,7 +65,7 @@
 |---|------|------|
 | 1 | **Hero** | Pixi 程序化虛空（漂浮碎片/星痕）、`◈` 脈動、漸層字標「碎界 / Shattered Realms」、標語 **破碎星空之下，啟程未竟之旅**、CTA `開始遊戲`(Play)+`了解世界`；疊 Starfield+游標星座 |
 | 2 | **碎裂 The Shattering** | 世界觀捲動電影：**碎裂不是天罰，是天地最後一次自救**；招牌「褪色（Fading）」溶解效果；碎片漂散 |
-| 3 | **玩法 Gameplay** | 四合一（棋類策略/RPG 成長/MOBA 技能/開放探索）；scroll-reveal；招牌**可反應地形**（火→焦土、河+火→蒸汽、野火蔓延、冰融）、高低差/視線、卡牌手層、戰爭迷霧 |
+| 3 | **玩法 Gameplay** | 四合一（**手牌 / 走棋 / MOBA 技能與對抗 / SRPG**——2026-08-02 依實際類型定位改寫，原為「棋類策略/RPG 成長/MOBA 技能/開放探索」）；scroll-reveal；招牌**可反應地形**（火→焦土、河+火→蒸汽、野火蔓延、冰融）、高低差/視線、卡牌手層、戰爭迷霧 |
 | 4 | **主題曲 Chapters / World Tree** | snowpass `❄`（已上線）/ starseal `✶`（即將）；互動式「碎界樹」（複用 `Entry.tsx` 物理）或氛圍隨捲動 morph（冰藍→星紫）|
 | 5 | **英雄 Characters** | 白棠 / 暗影 / 赤焰 / 青蘿 卡片；元素光暈、題詞、玩法幻想；**程序化佔位 + 換裝槽** |
 | 6 | **即時展示 / Media** | 無截圖 → 小型 **Pixi 六角格即時展示**；預留截圖廊換裝槽 |
@@ -85,6 +90,10 @@
 > 它於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的即時節點快照（背景探活 /
 > 分流 / 負載均衡），可無痛替換下述 mock 靜態端點、前端不改。細節見 `backend/README.md`
 > 與 `sessions/2026-07-21-sr-web-backend.md`。以下為原始介面約定設計（仍成立）。
+>
+> **更新（2026-08-02）**：官網改為純靜態部署後，`/api/` 已無反向代理可用，分流後端改掛
+> 獨立網域，前端以 `PUBLIC_SR_API_BASE` 跨源呼叫（預設 `https://api.hoshivel.com`），
+> 並保留「同源預渲染 JSON → 內建常數」兩層後備。**回應形狀不變**，介面約定照舊。
 
 - Play island 呼叫 `GET /api/play`（或 `/api/servers`）。**本次**由靜態 JSON / Astro endpoint 回傳 mock regions（`hk1.svc.oha.li`、`jp1.svc.oha.li`），欄位 `region / url / healthy / latencyMs / load`。挑一個 → iframe 嵌入或 redirect。
 - **寫死 API 介面約定**，讓未來 Go「分流/探活/負載均衡」後端無痛替換、前端不改。

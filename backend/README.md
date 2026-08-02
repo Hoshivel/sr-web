@@ -37,9 +37,9 @@ curl -s localhost:8090/healthz        # → ok
 curl -s localhost:8090/api/play.json  # → {"regions":[...],"updatedAt":"...","recommendedId":"..."}
 ```
 
-> 預設節點是 `hk1/jp1/sg1.svc.oha.li`；若這些主機當下不可達，回應會如實顯示
-> `healthy:false`（探活如實反映真實狀態，不是 mock）。把 `config.json` 的 `regions`
-> 指向實際可達的遊戲主機即可看到 `healthy:true` 與量得的 `latencyMs`。
+> 預設節點是目前唯一的正式節點 `play.sr.hoshivel.com`；若它當下不可達，回應會如實顯示
+> `healthy:false`（探活如實反映真實狀態，不是 mock）。增設節點時在 `config.json` 的
+> `regions` 追加即可——就近排序與候選收斂本來就是多節點邏輯，單節點只是它的退化情形。
 
 ---
 
@@ -56,11 +56,11 @@ curl -s localhost:8090/api/play.json  # → {"regions":[...],"updatedAt":"...","
 ```jsonc
 {
   "regions": [
-    { "id": "hk1", "host": "hk1.svc.oha.li", "url": "https://hk1.svc.oha.li/",
+    { "id": "sr1", "host": "play.sr.hoshivel.com", "url": "https://play.sr.hoshivel.com/",
       "healthy": true, "latencyMs": 42, "load": 0.38 }
   ],
-  "updatedAt": "2026-07-21T07:19:10Z",
-  "recommendedId": "hk1"        // 後端為此用戶選定的最終入點；前端優先採用
+  "updatedAt": "2026-08-02T07:19:10Z",
+  "recommendedId": "sr1"        // 後端為此用戶選定的最終入點；前端優先採用
 }
 ```
 
@@ -79,7 +79,7 @@ CLI flags（**不讀環境變數**，對齊遊戲後端慣例）。每次持久�
 | 欄位 | 說明 |
 |------|------|
 | `listen.ip` / `listen.port` | 監聽位址；ip 留空＝所有介面。預設埠 `8090`。 |
-| `allowedOrigins` | CORS 允許的來源清單。**空＝放行任意來源（dev）**；設定則只放行清單（prod 收斂），例如 `["https://sr.oha.li"]`。 |
+| `allowedOrigins` | CORS 允許的來源清單。**空＝放行任意來源（dev）**；設定則只放行清單（prod 收斂），例如 `["https://sr.hoshivel.com"]`。官網為跨源呼叫，**這一項是上線必填**。 |
 | `probeIntervalSeconds` | 背景探活週期（預設 10）。 |
 | `probeTimeoutSeconds` | 單次探活逾時（預設 3）。 |
 | `maxCandidates` | 每次分流回傳給前端的候選節點上限（預設 3；收斂，不全敞開）。 |
@@ -123,21 +123,31 @@ CLI flags（優先序高於檔）：`-config <path>`、`-ip <ip>`、`-port <port
 
 ## 部署 / 與前端整合
 
-前端 `dist/` 是純靜態站，本後端只提供 `/api/*`。以反向代理（Nginx/Caddy 等）在
-`sr.oha.li` 同源下：
+**官網是純靜態部署**：`sr.hoshivel.com` 只有 `dist/` 的 HTML／JS／CSS，沒有 Node
+執行期、也沒有可以把 `/api/` 轉給本後端的反向代理。因此本後端**掛在獨立的服務網域**
+（如 `api.hoshivel.com` / `svc.hoshivel.com`），前端以**跨源** fetch 呼叫：
 
 ```
-location /api/     → 反向代理到本後端（如 127.0.0.1:8090）
-location /         → 靜態 dist/
+https://sr.hoshivel.com/          靜態主機 / CDN（dist/）
+https://api.hoshivel.com/api/play.json   → 本後端（如 127.0.0.1:8090）
 ```
 
-如此前端同源 `fetch('/api/play.json')` 即命中本後端，取代原本預渲染的 mock 靜態檔，
-前端程式碼零改動。跨源部署（前端直接打不同網域的後端）時，把前端 origin 加入
-`allowedOrigins` 即可。
+上線兩件事：
 
-> 註：`region.url` 指向真實遊戲主機、且以 iframe 跨源嵌入遊戲時，需另把 `sr.oha.li`
-> 加入**遊戲後端**的 `allowedOrigins`（見 ShatteredRealms `docs/deployment.md §7`），否則
-> 遊戲的 `/ws` 會 403。此為遊戲後端設定，與本後端無關。
+1. **本後端**的 `allowedOrigins` 填 `["https://sr.hoshivel.com"]`——跨源呼叫沒有這一項
+   就會被瀏覽器擋下（同源部署時可以留空，跨源不行）。
+2. **前端**建置時設 `PUBLIC_SR_API_BASE=https://api.hoshivel.com`（見倉庫根
+   `.env.example`）。前端有三層後備：跨源後端 → 同源預渲染 JSON → 內建常數，
+   所以本後端短暫不可用時玩家仍進得去遊戲，只是少了就近與探活的加值。
+
+> 仍想同源部署（自備反向代理把 `location /api/` 導到本後端、`location /` 給 `dist/`）
+> 也可以：把 `PUBLIC_SR_API_BASE` 設為空字串即恢復同源呼叫。
+
+> 註：`region.url` 指向真實遊戲主機、且以 iframe 跨源嵌入遊戲時，需另把
+> `https://sr.hoshivel.com` 加入**遊戲後端**的 `allowedOrigins`（見 ShatteredRealms
+> `docs/deployment.md §7`），否則遊戲的 `/ws` 會 403；遊戲主機也不得以
+> `X-Frame-Options: DENY` / `frame-ancestors` 拒絕被官網嵌入。此為遊戲後端設定，
+> 與本後端無關。
 
 ---
 
