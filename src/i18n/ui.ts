@@ -52,7 +52,7 @@ const zhHant = {
   "site.nameLatin": "SHATTERED REALMS",
   "site.tagline": "破碎星空之下，啟程未竟之旅",
   "site.summary":
-    "碎界是一款架空世界觀的 2D 六角格回合制策略遊戲，融合棋類策略、RPG 成長、MOBA 技能設計與開放世界探索。",
+    "碎界是一款架空世界觀的 2D 六角格回合制策略遊戲：手牌、走棋、MOBA 技能與對抗、SRPG 四者合一，不屬於目前市面上任何主流類型。",
 
   "nav.world": "碎裂",
   "nav.gameplay": "玩法",
@@ -71,9 +71,9 @@ const zhHant = {
   "footer.langLabel": "語言",
   "footer.summary": "《碎界》官方門面。程序化動態即視覺識別。",
   "footer.rights": "碎界 Shattered Realms",
-  "footer.note": "本站為前端動效展示；伺服器分流／探活為未來後端。",
+  "footer.note": "官網為純靜態部署；節點分流與探活由獨立的服務網域提供。",
 
-  "hero.badge": "旗艦動效建置中",
+  "hero.badge": "正式上線",
 
   // 碎裂 The Shattering（#world）
   "world.eyebrow": "世界觀",
@@ -83,24 +83,25 @@ const zhHant = {
   "world.body":
     "這不是終結——碎裂，是天地保存自身的最後手段。殘片各自漂散，靜待被重新拼合；你將率領探索隊，在虛空中尋回失落的大地。",
 
-  // 玩法 Gameplay（#gameplay）—— 四合一
+  // 玩法 Gameplay（#gameplay）—— 手牌 / 走棋 / MOBA 技能與對抗 / SRPG
   "gameplay.eyebrow": "玩法",
-  "gameplay.titleA": "四種玩法，",
-  "gameplay.titleB": "融於同一張六角棋盤",
+  "gameplay.titleA": "手牌 × 走棋 × MOBA × SRPG，",
+  "gameplay.titleB": "不屬於任何一種主流類型",
   "gameplay.lead":
-    "棋類策略的縝密、RPG 成長的養成、MOBA 技能的爽快、開放世界的探索——在回合制的六角戰場上合而為一。",
-  "gameplay.tactics.name": "棋類策略",
-  "gameplay.tactics.desc":
+    "抽牌組手、六角走位、MOBA 式的技能與對抗、SRPG 的養成與戰役——四條血統不是拼在一起，而是在同一張棋盤上同時運作。",
+  "gameplay.claim": "它不是卡牌遊戲，不是戰棋，也不是 MOBA——目前市面上找不到同一類。",
+  "gameplay.cards.name": "手牌",
+  "gameplay.cards.desc":
+    "卡牌技能構成你的手牌：抽牌、留牌、接續。關鍵牌什麼時候打出去，和打在哪一格同樣重要。",
+  "gameplay.board.name": "走棋",
+  "gameplay.board.desc":
     "在六角棋盤上調度站位：行動點（AP）分配、地形高低與視線、戰爭迷霧下的資訊博弈，每一步都是取捨。",
-  "gameplay.growth.name": "RPG 成長",
-  "gameplay.growth.desc":
-    "局內升級解鎖核心技能，從被動、主動到終極逐階綻放；蒐集素材合成裝備，養出屬於你的角色曲線。",
-  "gameplay.skills.name": "MOBA 技能",
+  "gameplay.skills.name": "MOBA 技能與對抗",
   "gameplay.skills.desc":
-    "核心技能與卡牌技能雙軌並行，操作 EP、烈焰等專屬資源，以狀態、控制與爆發改寫戰局。",
-  "gameplay.explore.name": "開放探索",
-  "gameplay.explore.desc":
-    "地形會回應你的技能——烈焰燒出焦土、河遇火化蒸汽、冰霜消融；野怪棲息、星使流轉，戰場是活的世界。",
+    "核心技能自被動、主動到終極逐階綻放，操作 EP、烈焰等專屬資源；以狀態、控制與爆發正面壓過對手。",
+  "gameplay.srpg.name": "SRPG",
+  "gameplay.srpg.desc":
+    "局內升級、蒐集素材合成裝備，養出屬於你的角色曲線；地形會回應技能，野怪棲息、星使流轉，戰場是活的世界。",
 
   // 英雄 Characters（#characters）—— 程序化佔位＋換裝槽
   "char.eyebrow": "英雄",
@@ -157,7 +158,7 @@ const zhHant = {
   "play.titleA": "選一個節點，",
   "play.titleB": "踏入六角戰場",
   "play.lead":
-    "分流器探活各區節點、擇優連線；選定後即以 iframe 嵌入該節點的即時對戰畫面。本次為前端展示，未接真實分流後端。",
+    "分流服務探活各節點、擇優連線；選定後即以 iframe 嵌入該節點的即時對戰畫面，也可另開新分頁進入。",
   "play.serversTitle": "節點",
   "play.recommended": "建議",
   "play.enter": "進入戰場",
@@ -168,12 +169,10 @@ const zhHant = {
   "play.size.theater": "劇場",
   "play.size.fullscreen": "全屏",
   "play.newTab": "新分頁開啟",
-  "play.mockNote": "節點為後端依就近分流回傳的候選；本頁靜態預覽時以 mock 呈現。",
+  "play.nodeNote": "節點由分流服務依就近與探活結果回傳；目前為單節點，後續會陸續增設。",
   "play.shotsTitle": "戰場一瞥",
   "play.shotNote": "截圖待接",
-  "play.region.hk1": "香港",
-  "play.region.jp1": "東京",
-  "play.region.sg1": "新加坡",
+  "play.region.sr1": "主節點",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -183,7 +182,7 @@ const zhCN: Record<UIKey, string> = {
   "site.nameLatin": "SHATTERED REALMS",
   "site.tagline": "破碎星空之下，启程未竟之旅",
   "site.summary":
-    "碎界是一款架空世界观的 2D 六角格回合制策略游戏，融合棋类策略、RPG 成长、MOBA 技能设计与开放世界探索。",
+    "碎界是一款架空世界观的 2D 六角格回合制策略游戏：手牌、走棋、MOBA 技能与对抗、SRPG 四者合一，不属于目前市面上任何主流类型。",
 
   "nav.world": "碎裂",
   "nav.gameplay": "玩法",
@@ -202,9 +201,9 @@ const zhCN: Record<UIKey, string> = {
   "footer.langLabel": "语言",
   "footer.summary": "《碎界》官方门面。程序化动态即视觉识别。",
   "footer.rights": "碎界 Shattered Realms",
-  "footer.note": "本站为前端动效展示；服务器分流／探活为未来后端。",
+  "footer.note": "官网为纯静态部署；节点分流与探活由独立的服务域名提供。",
 
-  "hero.badge": "旗舰动效建置中",
+  "hero.badge": "正式上线",
 
   "world.eyebrow": "世界观",
   "world.titleA": "碎裂不是天罚，",
@@ -214,22 +213,23 @@ const zhCN: Record<UIKey, string> = {
     "这不是终结——碎裂，是天地保存自身的最后手段。残片各自漂散，静待被重新拼合；你将率领探索队，在虚空中寻回失落的大地。",
 
   "gameplay.eyebrow": "玩法",
-  "gameplay.titleA": "四种玩法，",
-  "gameplay.titleB": "融于同一张六角棋盘",
+  "gameplay.titleA": "手牌 × 走棋 × MOBA × SRPG，",
+  "gameplay.titleB": "不属于任何一种主流类型",
   "gameplay.lead":
-    "棋类策略的缜密、RPG 成长的养成、MOBA 技能的爽快、开放世界的探索——在回合制的六角战场上合而为一。",
-  "gameplay.tactics.name": "棋类策略",
-  "gameplay.tactics.desc":
+    "抽牌组手、六角走位、MOBA 式的技能与对抗、SRPG 的养成与战役——四条血统不是拼在一起，而是在同一张棋盘上同时运作。",
+  "gameplay.claim": "它不是卡牌游戏，不是战棋，也不是 MOBA——目前市面上找不到同一类。",
+  "gameplay.cards.name": "手牌",
+  "gameplay.cards.desc":
+    "卡牌技能构成你的手牌：抽牌、留牌、接续。关键牌什么时候打出去，和打在哪一格同样重要。",
+  "gameplay.board.name": "走棋",
+  "gameplay.board.desc":
     "在六角棋盘上调度站位：行动点（AP）分配、地形高低与视线、战争迷雾下的信息博弈，每一步都是取舍。",
-  "gameplay.growth.name": "RPG 成长",
-  "gameplay.growth.desc":
-    "局内升级解锁核心技能，从被动、主动到终极逐阶绽放；搜集素材合成装备，养出属于你的角色曲线。",
-  "gameplay.skills.name": "MOBA 技能",
+  "gameplay.skills.name": "MOBA 技能与对抗",
   "gameplay.skills.desc":
-    "核心技能与卡牌技能双轨并行，操作 EP、烈焰等专属资源，以状态、控制与爆发改写战局。",
-  "gameplay.explore.name": "开放探索",
-  "gameplay.explore.desc":
-    "地形会回应你的技能——烈焰烧出焦土、河遇火化蒸汽、冰霜消融；野怪栖息、星使流转，战场是活的世界。",
+    "核心技能自被动、主动到终极逐阶绽放，操作 EP、烈焰等专属资源；以状态、控制与爆发正面压过对手。",
+  "gameplay.srpg.name": "SRPG",
+  "gameplay.srpg.desc":
+    "局内升级、搜集素材合成装备，养出属于你的角色曲线；地形会回应技能，野怪栖息、星使流转，战场是活的世界。",
 
   "char.eyebrow": "英雄",
   "char.titleA": "领路的英雄，",
@@ -283,7 +283,7 @@ const zhCN: Record<UIKey, string> = {
   "play.titleA": "选一个节点，",
   "play.titleB": "踏入六角战场",
   "play.lead":
-    "分流器探活各区节点、择优连线；选定后即以 iframe 嵌入该节点的即时对战画面。本次为前端展示，未接真实分流后端。",
+    "分流服务探活各节点、择优连线；选定后即以 iframe 嵌入该节点的实时对战画面，也可另开新标签页进入。",
   "play.serversTitle": "节点",
   "play.recommended": "建议",
   "play.enter": "进入战场",
@@ -294,12 +294,10 @@ const zhCN: Record<UIKey, string> = {
   "play.size.theater": "剧场",
   "play.size.fullscreen": "全屏",
   "play.newTab": "新标签页打开",
-  "play.mockNote": "节点为后端依就近分流返回的候选；本页静态预览时以 mock 呈现。",
+  "play.nodeNote": "节点由分流服务依就近与探活结果返回；目前为单节点，后续会陆续增设。",
   "play.shotsTitle": "战场一瞥",
   "play.shotNote": "截图待接",
-  "play.region.hk1": "香港",
-  "play.region.jp1": "东京",
-  "play.region.sg1": "新加坡",
+  "play.region.sr1": "主节点",
 };
 
 const en: Record<UIKey, string> = {
@@ -307,7 +305,7 @@ const en: Record<UIKey, string> = {
   "site.nameLatin": "SHATTERED REALMS",
   "site.tagline": "Beneath a shattered sky, the journey begins",
   "site.summary":
-    "Shattered Realms is a 2D hex-grid, turn-based strategy game blending board-game tactics, RPG growth, MOBA-style skills and open-world exploration.",
+    "Shattered Realms is a 2D hex-grid, turn-based strategy game fusing a card hand, board movement, MOBA-style skills and confrontation, and SRPG progression — a combination no mainstream genre on the market covers.",
 
   "nav.world": "The Shattering",
   "nav.gameplay": "Gameplay",
@@ -328,9 +326,9 @@ const en: Record<UIKey, string> = {
     "The official face of Shattered Realms. Procedural motion is the visual identity.",
   "footer.rights": "Shattered Realms",
   "footer.note":
-    "This site is a front-end motion showcase; server routing / health checks are a future backend.",
+    "The site is deployed as pure static files; node routing and health checks are served from a separate service domain.",
 
-  "hero.badge": "Flagship motion in progress",
+  "hero.badge": "Now live",
 
   "world.eyebrow": "The World",
   "world.titleA": "The Shattering was not a punishment —",
@@ -341,22 +339,24 @@ const en: Record<UIKey, string> = {
     "This is not the end. The shattering was how the world preserved itself — the fragments drift apart, waiting to be pieced back together. You will lead the expedition that reclaims the lost lands.",
 
   "gameplay.eyebrow": "Gameplay",
-  "gameplay.titleA": "Four genres, ",
-  "gameplay.titleB": "fused on a single hex board",
+  "gameplay.titleA": "Cards × board × MOBA × SRPG — ",
+  "gameplay.titleB": "no mainstream genre fits it",
   "gameplay.lead":
-    "The precision of board tactics, the growth of an RPG, the punch of MOBA skills, the freedom of an open world — united on a turn-based hex battlefield.",
-  "gameplay.tactics.name": "Board Tactics",
-  "gameplay.tactics.desc":
+    "A hand of cards, movement across a hex board, MOBA-style skills and confrontation, SRPG progression and campaigns — four bloodlines that don't sit side by side; they run at once on the same board.",
+  "gameplay.claim":
+    "It isn't a card game, it isn't a tactics game, and it isn't a MOBA — nothing on the market is quite this.",
+  "gameplay.cards.name": "Card Hand",
+  "gameplay.cards.desc":
+    "Card skills make up your hand: draw, hold, chain. When you play the key card matters as much as which tile you play it on.",
+  "gameplay.board.name": "Board Movement",
+  "gameplay.board.desc":
     "Maneuver across a hex grid: budget action points (AP), exploit height and line of sight, and out-read your opponent through the fog of war — every step is a trade-off.",
-  "gameplay.growth.name": "RPG Growth",
-  "gameplay.growth.desc":
-    "Level up mid-match to unlock core skills from passive to ultimate, and craft gear from gathered materials to shape your own build.",
-  "gameplay.skills.name": "MOBA Skills",
+  "gameplay.skills.name": "MOBA Skills & Confrontation",
   "gameplay.skills.desc":
-    "Run core skills and card skills in parallel, manage resources like EP and Flame, and turn the fight with status, control and burst.",
-  "gameplay.explore.name": "Open Exploration",
-  "gameplay.explore.desc":
-    "Terrain answers your skills — flame scorches the earth, fire on water turns to steam, frost melts away; wild monsters roam and envoys wander a living battlefield.",
+    "Core skills bloom from passive to ultimate while you manage EP, Flame and other resources — win the exchange outright with status, control and burst.",
+  "gameplay.srpg.name": "SRPG",
+  "gameplay.srpg.desc":
+    "Level up mid-match and craft gear from gathered materials to shape your own build; terrain answers your skills, monsters roam and envoys wander a living battlefield.",
 
   "char.eyebrow": "Characters",
   "char.titleA": "The heroes who lead, ",
@@ -416,7 +416,7 @@ const en: Record<UIKey, string> = {
   "play.titleA": "Pick a node, ",
   "play.titleB": "step onto the hex battlefield",
   "play.lead":
-    "The router health-checks each regional node and connects you to the best one; your pick is then embedded live via iframe. This is a front-end showcase — no real routing backend yet.",
+    "The routing service health-checks each node and connects you to the best one; your pick is then embedded live via iframe, or opened in a new tab.",
   "play.serversTitle": "Nodes",
   "play.recommended": "Best",
   "play.enter": "Enter the battlefield",
@@ -427,12 +427,11 @@ const en: Record<UIKey, string> = {
   "play.size.theater": "Theater",
   "play.size.fullscreen": "Fullscreen",
   "play.newTab": "Open in new tab",
-  "play.mockNote": "Nodes are the backend's proximity-routed candidates; mocked here in the static preview.",
+  "play.nodeNote":
+    "Nodes come from the routing service, ranked by proximity and live health checks. One node for now — more to come.",
   "play.shotsTitle": "Battlefield glimpses",
   "play.shotNote": "Screenshots incoming",
-  "play.region.hk1": "Hong Kong",
-  "play.region.jp1": "Tokyo",
-  "play.region.sg1": "Singapore",
+  "play.region.sr1": "Primary node",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {

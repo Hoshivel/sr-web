@@ -201,10 +201,22 @@
   backdrop-filter: var(--sr-blur);
 }
 
-/* 劇場模式：高身沉浸舞台（容器寬度、更高）。 */
+/*
+  劇場模式：**滿幅**沉浸舞台——跳出 `.sr-container` 的 max-width，向兩側撐到視窗邊緣
+  （YouTube 劇場模式慣例），再以內距留一圈安全邊避免圓角貼邊。
+  `--play-bleed-w` 由 island 以 `documentElement.clientWidth` 設定（已扣掉捲軸寬）；
+  JS 尚未執行 / 失效時退回 `100vw`（body 的 overflow-x:hidden 吸收捲軸誤差）。
+*/
+.play-launcher.size-theater {
+  width: var(--play-bleed-w, 100vw);
+  max-width: var(--play-bleed-w, 100vw);
+  margin-inline: calc(50% - var(--play-bleed-w, 100vw) / 2);
+  padding-inline: clamp(0.9rem, 3vw, 3rem);
+}
+/* 舞台高度留給節點列與控制列，讓整個啟動器一屏內看得完（不必捲動找按鈕）。 */
 .play-launcher.size-theater .play-view {
   aspect-ratio: auto;
-  height: min(80vh, 880px);
+  height: min(72svh, 860px);
 }
 /* 全屏模式：原生 Fullscreen API 生效。 */
 .play-view:fullscreen {

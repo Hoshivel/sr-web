@@ -1,8 +1,10 @@
 ---
 /*
   玩法 Gameplay（#gameplay）—— 四合一 scroll-reveal。
-  棋類策略 / RPG 成長 / MOBA 技能 / 開放探索：四柱各帶程序化 SVG 母題
+  手牌 / 走棋 / MOBA 技能與對抗 / SRPG：四柱各帶程序化 SVG 母題
   （無美術資產 → 程序化即插圖），以 `[data-reveal]` stagger 進場（Layout 已 boot）。
+  這四條血統是本作的類型定位——不是「卡牌遊戲加戰棋」，也不對應市面任何主流類型，
+  故標題與 `gameplay.claim` 直接把這件事講明。
   靜態 / reduced-motion / 無 JS：四柱直接呈現、母題靜止（全站 reduced-motion 基線關動畫）。
 */
 import { useTranslations, type Locale } from "@/i18n/utils";
@@ -26,27 +28,30 @@ const hexTriad = [hexPoints(18, 19, 7), hexPoints(30, 19, 7), hexPoints(24, 30, 
 
 // 四柱：id → 元素強調色（inline --el）。文案由 i18n 提供。
 const pillars = [
-  { id: "tactics", el: "var(--sr-accent)" },
-  { id: "growth", el: "var(--sr-gold)" },
+  { id: "cards", el: "var(--sr-gold)" },
+  { id: "board", el: "var(--sr-accent)" },
   { id: "skills", el: "var(--sr-violet-light)" },
-  { id: "explore", el: "var(--sr-success)" },
+  { id: "srpg", el: "var(--sr-success)" },
 ] as const;
 ---
 
 <section class="sr-section gameplay" id="gameplay">
   {/* 程序化 SVG 母題精靈：以 currentColor 承接各柱 --el 強調色 */}
   <svg class="gameplay__sprite" aria-hidden="true" focusable="false">
-    <symbol id="motif-tactics" viewBox="0 0 48 48">
+    {/* 手牌：三張攤開的牌，中間那張為待出的關鍵牌 */}
+    <symbol id="motif-cards" viewBox="0 0 48 48">
+      <rect x="9" y="17" width="13" height="19" rx="2.4" transform="rotate(-18 15.5 26.5)" class="card" />
+      <rect x="26" y="17" width="13" height="19" rx="2.4" transform="rotate(18 32.5 26.5)" class="card" />
+      <rect x="17.5" y="14" width="13" height="19" rx="2.4" class="card card--lead" />
+    </symbol>
+    {/* 走棋：蜂巢三連＋落在前導格上的棋子 */}
+    <symbol id="motif-board" viewBox="0 0 48 48">
       {hexTriad.map((p, i) => (
         <polygon points={p} class={i === 2 ? "hex hex--lead" : "hex"} />
       ))}
+      <circle cx="24" cy="30" r="2.6" class="pawn" />
     </symbol>
-    <symbol id="motif-growth" viewBox="0 0 48 48">
-      <rect x="9" y="30" width="6" height="8" rx="1.5" />
-      <rect x="19" y="24" width="6" height="14" rx="1.5" />
-      <rect x="29" y="16" width="6" height="22" rx="1.5" class="bar--lead" />
-      <path d="M31 12 l4 -4 M35 8 h-4 M35 8 v4" class="spark" />
-    </symbol>
+    {/* MOBA 技能與對抗：技能環＋三段技能點 */}
     <symbol id="motif-skills" viewBox="0 0 48 48">
       <circle cx="24" cy="24" r="12" class="orbit" />
       <circle cx="24" cy="24" r="3.4" class="core" />
@@ -54,10 +59,12 @@ const pillars = [
       <circle cx="34.4" cy="30" r="2.4" class="pip pip--2" />
       <circle cx="13.6" cy="30" r="2.4" class="pip pip--3" />
     </symbol>
-    <symbol id="motif-explore" viewBox="0 0 48 48">
-      <circle cx="34" cy="15" r="5" class="sun" />
-      <path d="M6 30 q6 -7 12 -3 t12 -2 12 1" class="ridge ridge--1" />
-      <path d="M6 37 q7 -6 13 -2 t12 -3 11 1" class="ridge ridge--2" />
+    {/* SRPG：逐階成長的角色曲線 */}
+    <symbol id="motif-srpg" viewBox="0 0 48 48">
+      <rect x="9" y="30" width="6" height="8" rx="1.5" />
+      <rect x="19" y="24" width="6" height="14" rx="1.5" />
+      <rect x="29" y="16" width="6" height="22" rx="1.5" class="bar--lead" />
+      <path d="M31 12 l4 -4 M35 8 h-4 M35 8 v4" class="spark" />
     </symbol>
   </svg>
 
@@ -68,6 +75,7 @@ const pillars = [
       <span class="gameplay__title-b sr-gradient-text">{t("gameplay.titleB")}</span>
     </h2>
     <p class="gameplay__lead" data-reveal>{t("gameplay.lead")}</p>
+    <p class="gameplay__claim" data-reveal>{t("gameplay.claim")}</p>
   </div>
 
   <ol class="sr-container gameplay__grid">
@@ -122,6 +130,19 @@ const pillars = [
     max-width: 54ch;
     font-size: var(--sr-text-lg);
     color: var(--sr-text-muted);
+  }
+  /* 類型定位：把「不屬於任何主流類型」講成一句可被引用的話 */
+  .gameplay__claim {
+    display: inline-block;
+    margin: var(--sr-space-6) auto 0;
+    padding: 0.5rem 1.1rem;
+    max-width: 52ch;
+    border: 1px solid var(--sr-border-strong);
+    border-radius: var(--sr-radius-pill);
+    background: color-mix(in srgb, var(--sr-accent) 7%, transparent);
+    font-size: var(--sr-text-sm);
+    line-height: var(--sr-leading);
+    color: var(--sr-text);
   }
 
   .gameplay__grid {
@@ -199,16 +220,31 @@ const pillars = [
     filter: drop-shadow(0 0 6px color-mix(in srgb, var(--el) 55%, transparent));
   }
 
-  /* 母題細節 —— tactics 蜂巢 */
+  /* 母題細節 —— cards 手牌 */
+  .card {
+    opacity: 0.5;
+  }
+  .card--lead {
+    opacity: 1;
+    fill: color-mix(in srgb, currentColor 20%, transparent);
+    animation: motif-breathe 4.4s var(--sr-ease-in-out) infinite;
+  }
+  /* board 蜂巢 + 棋子 */
   .hex {
     opacity: 0.55;
   }
   .hex--lead {
     opacity: 1;
     fill: color-mix(in srgb, currentColor 22%, transparent);
-    animation: motif-breathe 4.4s var(--sr-ease-in-out) infinite;
   }
-  /* growth 成長條 */
+  .pawn {
+    fill: currentColor;
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: motif-step 4.4s var(--sr-ease-in-out) infinite;
+  }
+  /* srpg 成長條 */
   .bar--lead {
     fill: color-mix(in srgb, currentColor 24%, transparent);
     animation: motif-rise 3.6s var(--sr-ease-in-out) infinite;
@@ -241,21 +277,14 @@ const pillars = [
   .pip--3 {
     animation: motif-twinkle 2.8s var(--sr-ease-in-out) 1.8s infinite;
   }
-  /* explore 地景 */
-  .sun {
-    fill: color-mix(in srgb, currentColor 30%, transparent);
-    animation: motif-breathe 5s var(--sr-ease-in-out) infinite;
-  }
-  .ridge {
-    opacity: 0.8;
-  }
-  .ridge--2 {
-    opacity: 0.5;
-  }
-
   @keyframes motif-breathe {
     0%, 100% { opacity: 0.85; }
     50% { opacity: 0.4; }
+  }
+  /* 棋子「走一步」：在前導格內輕輕落定 */
+  @keyframes motif-step {
+    0%, 55%, 100% { transform: translateY(0); opacity: 1; }
+    25% { transform: translateY(-3px); opacity: 0.75; }
   }
   @keyframes motif-rise {
     0%, 100% { transform: scaleY(1); }
