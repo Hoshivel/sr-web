@@ -1,126 +1,342 @@
 /*
-  碎界 sr-web —— Play 分流契約（前端消費端）。
+  碎界 sr-web —— hoshi-svc 通用路由 API 的前端消費端。
 
-  官網（sr.hoshivel.com）是**純靜態部署**：沒有 Node 執行期、也沒有可以把 `/api/`
-  轉給後端的反向代理。因此分流 API 由**獨立網域**提供（如 api.hoshivel.com /
-  svc.hoshivel.com），前端以**跨源** fetch 呼叫，後端以 CORS allowlist 放行本站 origin
-  （見 `backend/README.md`〈部署 / 與前端整合〉）。
-
-  端點優先序（見 `PLAY_ENDPOINTS`）：
-  1. `PUBLIC_SR_API_BASE` 指向的跨源分流後端 —— 即時探活 / 就近分流的真實回應。
-  2. 同源 `/api/play.json` —— 建置期預渲染的靜態後備（跨源端點不可用時）。
-  3. 內建 `FALLBACK_PLAY` 常數 —— 連靜態檔都取不到時的最後防線。
-  三層都回傳同一形狀（`PlayResponse`），選定節點後一律 `iframe.src = region.url`。
-
-  遊戲節點：目前僅單節點 `play.sr.hoshivel.com`。多節點的資料結構與分流邏輯已就緒，
-  日後補節點只需改後端 `config.json`，前端零改動。
+  官網是純靜態站；Play island 直接跨源查詢 hoshi-svc，將通用 RouteDecision 轉為
+  畫面需要的 PlayResponse。前端不再提供靜態／內建節點後備：沒有通過驗證的路由結果
+  就不載入遊戲。唯一允許的降級是 hoshi-svc 先前成功回傳、且仍在
+  expiresAt + staleIfError 容錯期限內的決策。
 */
 
 export interface PlayRegion {
-  /** 節點代號（如 `sr1`）。 */
   id: string;
-  /** 顯示用主機名（遊戲節點主機）。 */
+  region: string;
+  country: string;
+  /** 從 web endpoint URL 安全派生的顯示主機名。 */
   host: string;
-  /** iframe 嵌入目標＝遊戲節點 URL。 */
+  /** iframe／新分頁使用的原始 web endpoint；不得附加查詢參數。 */
   url: string;
-  /** 探活結果：false＝壅塞 / 不可用。 */
   healthy: boolean;
-  /** 往返延遲（ms）。 */
+  degraded: boolean;
   latencyMs: number;
-  /** 負載 0..1。 */
   load: number;
 }
 
 export interface PlayResponse {
   regions: PlayRegion[];
-  /** 回應產生時間（ISO）；真實後端為即時，靜態後備為建置時。 */
-  updatedAt: string;
-  /**
-   * 後端為此用戶選定的最終入點 id（分流決策）。真實後端依 IP 就近＋探活計算後回傳
-   * 收斂的候選清單（regions）＋此建議入點；前端**優先採用**此入點作預選。
-   */
-  recommendedId?: string;
+  recommendedId: string;
+  generatedAt: string;
+  expiresAt: string;
+  /** true 代表網路查詢失敗後使用仍在 staleIfError 期限內的最近成功決策。 */
+  stale: boolean;
 }
 
-/**
- * 分流 API 的來源網域。建置期以 `PUBLIC_SR_API_BASE` 覆寫（見 `.env.example`）；
- * 設為空字串＝同源（例如自行以反向代理把 `/api/` 導到後端的部署）。
- */
-export const API_BASE = (import.meta.env.PUBLIC_SR_API_BASE ?? "https://api.hoshivel.com").replace(
+interface RouteNode {
+  id: string;
+  region: string;
+  country: string;
+  healthy: boolean;
+  degraded?: boolean;
+  load: number;
+  latencyMs: number;
+  endpoints: { web: string };
+}
+
+interface RouteDecision {
+  service: "sr-game";
+  recommended: RouteNode;
+  candidates: RouteNode[];
+  generatedAt: string;
+  expiresAt: string;
+  ttl: number;
+  staleIfError: number;
+  decisionId: string;
+  configVersion: number;
+}
+
+interface CacheEnvelope {
+  endpoint: string;
+  decision: RouteDecision;
+}
+
+type FailureKind = "timeout" | "unavailable" | "invalid" | "network";
+
+export class PlayUnavailableError extends Error {
+  readonly kind: FailureKind;
+  readonly status?: number;
+
+  constructor(kind: FailureKind, message: string, status?: number) {
+    super(message);
+    this.name = "PlayUnavailableError";
+    this.kind = kind;
+    this.status = status;
+  }
+}
+
+export const HOSHI_SVC_BASE = (import.meta.env.PUBLIC_HOSHI_SVC_BASE ?? "https://svc.hoshivel.com").replace(
   /\/+$/,
   "",
 );
+export const ROUTE_ENDPOINT = `${HOSHI_SVC_BASE}/v1/services/sr-game/route?endpoint=web`;
 
-/** 同源後備：建置期預渲染的靜態 JSON（見 `src/pages/api/play.json.ts`）。 */
-export const STATIC_PLAY_PATH = "/api/play.json";
+const ROUTING_KEY_STORAGE = "sr.play.routing-key.v1";
+const ROUTE_CACHE_STORAGE = "sr.play.route-decision.v1";
+const ROUTING_KEY_RE = /^[A-Za-z0-9._~-]{16,128}$/;
 
-/** 依序嘗試的端點（去重：API_BASE 為空時兩者相同）。 */
-export const PLAY_ENDPOINTS: string[] = [
-  ...new Set([`${API_BASE}${STATIC_PLAY_PATH}`, STATIC_PLAY_PATH]),
-];
-
-/** 遊戲節點主機（單節點；後端會以自身設定覆寫此後備）。 */
-export const GAME_HOST = "play.sr.hoshivel.com";
-
-/**
- * 內建後備節點：分流後端與靜態後備都取不到時使用。指向正式遊戲節點——分流服務掛了
- * 不該連帶讓玩家進不了遊戲，只是少了「就近 / 探活」的加值。
- */
-export const FALLBACK_PLAY: PlayResponse = {
-  regions: [{ id: "sr1", host: GAME_HOST, url: `https://${GAME_HOST}/`, healthy: true, latencyMs: 0, load: 0 }],
-  updatedAt: new Date().toISOString(),
-  recommendedId: "sr1",
-};
-
-/** 建議節點：健康節點中延遲最低者（前端後備挑選；後端未給 recommendedId 時採用）。 */
-export function recommendRegion(regions: PlayRegion[]): PlayRegion | null {
-  const healthy = regions.filter((r) => r.healthy);
-  const pool = healthy.length > 0 ? healthy : regions;
-  return pool.reduce<PlayRegion | null>((best, r) => (!best || r.latencyMs < best.latencyMs ? r : best), null);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/**
- * 決定預選入點：**優先採用後端的 `recommendedId`**（後端主導分流），其次前端後備
- * `recommendRegion`，再退回第一個節點。回傳選定節點的 id（無節點則 null）。
- */
-export function pickEntryId(res: PlayResponse): string | null {
-  if (res.recommendedId && res.regions.some((r) => r.id === res.recommendedId)) {
-    return res.recommendedId;
+function isFiniteNumber(value: unknown, min: number, max = Number.POSITIVE_INFINITY): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function parseTimestamp(value: unknown): number | null {
+  if (typeof value !== "string" || value.length === 0) return null;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function validWebURL(value: unknown): value is string {
+  if (typeof value !== "string" || value.length === 0) return false;
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.host.length > 0 &&
+      url.username === "" &&
+      url.password === "" &&
+      url.hash === ""
+    );
+  } catch {
+    return false;
   }
-  return recommendRegion(res.regions)?.id ?? res.regions[0]?.id ?? null;
 }
 
-/** 回應形狀守衛：後備鏈只在拿到「至少一個節點」時才採用該層。 */
-export function isPlayResponse(v: unknown): v is PlayResponse {
-  if (typeof v !== "object" || v === null) return false;
-  const { regions } = v as { regions?: unknown };
+function isRouteNode(value: unknown): value is RouteNode {
+  if (!isRecord(value) || !isRecord(value.endpoints)) return false;
   return (
-    Array.isArray(regions) &&
-    regions.length > 0 &&
-    regions.every((r) => typeof r === "object" && r !== null && typeof (r as PlayRegion).id === "string")
+    typeof value.id === "string" &&
+    value.id.trim().length > 0 &&
+    typeof value.region === "string" &&
+    typeof value.country === "string" &&
+    typeof value.healthy === "boolean" &&
+    (value.degraded === undefined || typeof value.degraded === "boolean") &&
+    isFiniteNumber(value.load, 0, 1) &&
+    isFiniteNumber(value.latencyMs, 0) &&
+    validWebURL(value.endpoints.web)
   );
 }
 
-/**
- * 依序嘗試各端點取回分流回應；全部失敗則回傳內建後備。
- * @param timeoutMs 單一端點的逾時（避免跨源端點吊住時 Play 區塊卡在骨架）。
- */
-export async function fetchPlay(timeoutMs = 4000): Promise<PlayResponse> {
-  for (const endpoint of PLAY_ENDPOINTS) {
+/** 嚴格驗證通用路由回應；未知欄位可共存，但所有既定欄位與語意都必須有效。 */
+export function isRouteDecision(value: unknown): value is RouteDecision {
+  if (!isRecord(value) || value.service !== "sr-game") return false;
+  if (!isRouteNode(value.recommended) || !Array.isArray(value.candidates) || value.candidates.length === 0) {
+    return false;
+  }
+  const recommendedNode = value.recommended;
+  if (!value.candidates.every(isRouteNode)) return false;
+
+  const generatedAt = parseTimestamp(value.generatedAt);
+  const expiresAt = parseTimestamp(value.expiresAt);
+  if (generatedAt === null || expiresAt === null || expiresAt < generatedAt) return false;
+  if (!isNonNegativeInteger(value.ttl) || !isNonNegativeInteger(value.staleIfError)) return false;
+  if (typeof value.decisionId !== "string" || value.decisionId.trim().length === 0) return false;
+  if (!isNonNegativeInteger(value.configVersion)) return false;
+
+  const ids = new Set<string>();
+  for (const node of value.candidates) {
+    if (!node.healthy && node.degraded !== true) return false;
+    if (ids.has(node.id)) return false;
+    ids.add(node.id);
+  }
+  const recommended = value.candidates.find((node) => node.id === recommendedNode.id);
+  return (
+    recommended !== undefined &&
+    (recommendedNode.healthy || recommendedNode.degraded === true) &&
+    (recommended.healthy || recommended.degraded === true) &&
+    recommended.endpoints.web === recommendedNode.endpoints.web &&
+    recommended.region === recommendedNode.region &&
+    recommended.country === recommendedNode.country &&
+    recommended.healthy === recommendedNode.healthy &&
+    (recommended.degraded === true) === (recommendedNode.degraded === true) &&
+    recommended.load === recommendedNode.load &&
+    recommended.latencyMs === recommendedNode.latencyMs
+  );
+}
+
+function getStorage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function generateRoutingKey(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return `anon_${globalThis.crypto.randomUUID()}`;
+  }
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    const bytes = new Uint8Array(24);
+    globalThis.crypto.getRandomValues(bytes);
+    return `anon_${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+  }
+  // 舊瀏覽器的最後退化；不含使用者資料，仍只作穩定分配而非身分或認證。
+  return `anon_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
+}
+
+function routingKey(): string {
+  const storage = getStorage();
+  if (storage) {
     try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-      try {
-        const res = await fetch(endpoint, { signal: ctrl.signal, credentials: "omit" });
-        if (!res.ok) continue;
-        const data: unknown = await res.json();
-        if (isPlayResponse(data)) return data;
-      } finally {
-        clearTimeout(timer);
-      }
+      const existing = storage.getItem(ROUTING_KEY_STORAGE);
+      if (existing && ROUTING_KEY_RE.test(existing)) return existing;
     } catch {
-      // 該端點不可用（網路 / CORS / 逾時 / 非 JSON）→ 試下一層。
+      // localStorage 被瀏覽器封鎖時，這次頁面仍可用一個匿名 key 查詢。
     }
   }
-  return FALLBACK_PLAY;
+
+  const generated = generateRoutingKey();
+  if (storage) {
+    try {
+      storage.setItem(ROUTING_KEY_STORAGE, generated);
+    } catch {
+      // 無持久化能力時只影響跨頁黏著，不影響這次路由查詢。
+    }
+  }
+  return generated;
+}
+
+function staleDeadline(decision: RouteDecision): number | null {
+  const expiresAt = parseTimestamp(decision.expiresAt);
+  if (expiresAt === null) return null;
+  const deadline = expiresAt + decision.staleIfError * 1000;
+  return Number.isFinite(deadline) ? deadline : null;
+}
+
+function readCachedDecision(now = Date.now()): { decision: RouteDecision; fresh: boolean } | null {
+  const storage = getStorage();
+  if (!storage) return null;
+  try {
+    const raw = storage.getItem(ROUTE_CACHE_STORAGE);
+    if (!raw) return null;
+    const value: unknown = JSON.parse(raw);
+    if (!isRecord(value) || value.endpoint !== ROUTE_ENDPOINT || !isRouteDecision(value.decision)) {
+      storage.removeItem(ROUTE_CACHE_STORAGE);
+      return null;
+    }
+    const deadline = staleDeadline(value.decision);
+    if (deadline === null || now > deadline) {
+      storage.removeItem(ROUTE_CACHE_STORAGE);
+      return null;
+    }
+    return { decision: value.decision, fresh: now <= Date.parse(value.decision.expiresAt) };
+  } catch {
+    try {
+      storage.removeItem(ROUTE_CACHE_STORAGE);
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+}
+
+function cacheDecision(decision: RouteDecision): void {
+  const storage = getStorage();
+  if (!storage) return;
+  const envelope: CacheEnvelope = { endpoint: ROUTE_ENDPOINT, decision };
+  try {
+    storage.setItem(ROUTE_CACHE_STORAGE, JSON.stringify(envelope));
+  } catch {
+    // 容量不足或隱私模式只會失去 stale fallback，不得讓成功的線上結果失效。
+  }
+}
+
+function toPlayResponse(decision: RouteDecision, stale: boolean): PlayResponse {
+  return {
+    regions: decision.candidates.map((node) => ({
+      id: node.id,
+      region: node.region,
+      country: node.country,
+      host: new URL(node.endpoints.web).host,
+      url: node.endpoints.web,
+      healthy: node.healthy,
+      degraded: node.degraded === true || !node.healthy,
+      latencyMs: node.latencyMs,
+      load: node.load,
+    })),
+    recommendedId: decision.recommended.id,
+    generatedAt: decision.generatedAt,
+    expiresAt: decision.expiresAt,
+    stale,
+  };
+}
+
+export function pickEntryId(response: PlayResponse): string | null {
+  return response.regions.some((region) => region.id === response.recommendedId) ? response.recommendedId : null;
+}
+
+/**
+ * 讀取 sr-game 的 web route。TTL 內直接重用成功快取；線上請求失敗時，只在服務端
+ * 指定的 staleIfError 期限內使用最近成功結果。逾期、503 或畸形回應且無可用快取時
+ * 一律拋出 PlayUnavailableError，絕不自行捏造可用節點。
+ */
+export async function fetchPlay(timeoutMs = 4000): Promise<PlayResponse> {
+  const cached = readCachedDecision();
+  if (cached?.fresh) return toPlayResponse(cached.decision, false);
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  let failure: PlayUnavailableError;
+  try {
+    const response = await fetch(ROUTE_ENDPOINT, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "X-Hoshi-Routing-Key": routingKey(),
+      },
+      signal: controller.signal,
+      credentials: "omit",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new PlayUnavailableError("unavailable", `route endpoint returned HTTP ${response.status}`, response.status);
+    }
+    const value: unknown = await response.json();
+    if (!isRouteDecision(value)) {
+      throw new PlayUnavailableError("invalid", "route endpoint returned an invalid decision");
+    }
+    const deadline = staleDeadline(value);
+    if (deadline === null || Date.now() > deadline) {
+      throw new PlayUnavailableError("invalid", "route endpoint returned an expired decision");
+    }
+    cacheDecision(value);
+    return toPlayResponse(value, false);
+  } catch (error) {
+    if (error instanceof PlayUnavailableError) {
+      failure = error;
+    } else if (timedOut) {
+      failure = new PlayUnavailableError("timeout", "route request timed out");
+    } else if (error instanceof SyntaxError) {
+      failure = new PlayUnavailableError("invalid", "route endpoint returned malformed JSON");
+    } else {
+      failure = new PlayUnavailableError("network", "route request failed");
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const stale = readCachedDecision();
+  if (stale) return toPlayResponse(stale.decision, true);
+  throw failure;
 }

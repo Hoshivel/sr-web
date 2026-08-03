@@ -1,7 +1,6 @@
 /*
   /sitemap.xml —— 手捲 sitemap（零依賴），列出各語系首頁並互標 hreflang。
-  只收可索引的內容頁；`/play/session/`（noindex iframe 頁）與 `/api/*` 不列。
-  靜態站預渲染為靜態檔；robots.txt 指向此處。
+  只收可索引的內容頁。靜態站預渲染為靜態檔；robots.txt 指向此處。
 */
 import type { APIRoute } from "astro";
 import { LOCALES, localizedPath, HTML_LANG, DEFAULT_LOCALE } from "@/i18n/utils";

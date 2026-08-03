@@ -169,10 +169,13 @@ const zhHant = {
   "play.size.theater": "劇場",
   "play.size.fullscreen": "全屏",
   "play.newTab": "新分頁開啟",
-  "play.nodeNote": "節點由分流服務依就近與探活結果回傳；目前為單節點，後續會陸續增設。",
+  "play.nodeNote": "節點由 Hoshivel 路由服務依健康、距離與容量政策收斂；官網不會自行猜測或覆寫入口。",
+  "play.unavailable": "目前無法取得可用節點",
+  "play.unavailableHint": "路由服務沒有提供可信的遊戲入口；請稍後重新查詢。",
+  "play.retry": "重新查詢",
+  "play.stale": "路由服務暫時無法連線；目前使用仍在容錯期限內的最近成功結果。",
   "play.shotsTitle": "戰場一瞥",
   "play.shotNote": "截圖待接",
-  "play.region.sr1": "主節點",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -294,10 +297,13 @@ const zhCN: Record<UIKey, string> = {
   "play.size.theater": "剧场",
   "play.size.fullscreen": "全屏",
   "play.newTab": "新标签页打开",
-  "play.nodeNote": "节点由分流服务依就近与探活结果返回；目前为单节点，后续会陆续增设。",
+  "play.nodeNote": "节点由 Hoshivel 路由服务依健康、距离与容量策略收敛；官网不会自行猜测或覆盖入口。",
+  "play.unavailable": "目前无法取得可用节点",
+  "play.unavailableHint": "路由服务没有提供可信的游戏入口；请稍后重新查询。",
+  "play.retry": "重新查询",
+  "play.stale": "路由服务暂时无法连接；目前使用仍在容错期限内的最近成功结果。",
   "play.shotsTitle": "战场一瞥",
   "play.shotNote": "截图待接",
-  "play.region.sr1": "主节点",
 };
 
 const en: Record<UIKey, string> = {
@@ -428,10 +434,13 @@ const en: Record<UIKey, string> = {
   "play.size.fullscreen": "Fullscreen",
   "play.newTab": "Open in new tab",
   "play.nodeNote":
-    "Nodes come from the routing service, ranked by proximity and live health checks. One node for now — more to come.",
+    "Hoshivel routing narrows nodes by health, distance, and capacity policy; this site never guesses or rewrites an entry point.",
+  "play.unavailable": "No playable node is available",
+  "play.unavailableHint": "The routing service did not provide a trusted game entry point. Please try again shortly.",
+  "play.retry": "Check again",
+  "play.stale": "The routing service is temporarily unreachable; using the latest successful result within its failover window.",
   "play.shotsTitle": "Battlefield glimpses",
   "play.shotNote": "Screenshots incoming",
-  "play.region.sr1": "Primary node",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {

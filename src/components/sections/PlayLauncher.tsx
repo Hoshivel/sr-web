@@ -1,19 +1,18 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
-import { FALLBACK_PLAY, fetchPlay, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
+import { fetchPlay, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
 import "./PlayLauncher.css";
 
 /*
   Play 啟動器（island）—— 官網版分流器。
-  版面（由上而下）：橫向可滑動節點卡片 → 嵌入視窗（iframe）→ 控制列（進入 / 尺寸模式 /
-  新分頁）。以 `fetchPlay()` 向**跨源分流後端**（api.hoshivel.com；靜態站沒有反代可用）
-  取得後端**就近收斂**的候選＋建議入點，失敗則逐層退回同源靜態 JSON / 內建常數；
-  預選**優先採用後端 `recommendedId`**（後端主導分流），選定即以 iframe 嵌入該節點。
-  嵌入視窗尺寸可切換：正常 / 劇場（滿幅）/ 全屏（原生 Fullscreen API），並可拖拽調整高度。
+  以 hoshi-svc 的通用 sr-game route API 取得已探活、已收斂的 web endpoints。只有按下
+  「進入戰場」後才建立 iframe，且 iframe／新分頁一律使用服務回傳的原始 URL，不附加
+  前端自造的 query。沒有有效線上或 stale 路由時顯示不可用，不猜測遊戲節點。
 */
 
 type SizeMode = "normal" | "theater" | "fullscreen";
+type LoadState = "loading" | "ready" | "unavailable";
 const MIN_H = 260;
 const MAX_H = 1000;
 
@@ -22,32 +21,51 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   const [regions, setRegions] = useState<PlayRegion[] | null>(null);
   const [recId, setRecId] = useState<string | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [usingStale, setUsingStale] = useState(false);
   const [connected, setConnected] = useState(false);
   const [size, setSize] = useState<SizeMode>("normal");
-  const [dragH, setDragH] = useState<number | null>(null); // 拖拽覆寫的高度（px）；null＝依模式預設
+  const [dragH, setDragH] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef(0);
 
-  // 取回後端收斂候選；預選優先採用後端建議入點。三層端點皆不可用 → 內建後備節點。
-  useEffect(() => {
-    let alive = true;
-    const apply = (data: PlayResponse) => {
-      if (!alive) return;
+  const refresh = useCallback(async () => {
+    const request = ++requestRef.current;
+    setLoadState("loading");
+    setRegions(null);
+    setRecId(null);
+    setSelId(null);
+    setUsingStale(false);
+    setConnected(false);
+    try {
+      const data: PlayResponse = await fetchPlay();
+      if (request !== requestRef.current) return;
+      const entry = pickEntryId(data);
+      if (!entry) {
+        setLoadState("unavailable");
+        return;
+      }
       setRegions(data.regions);
-      setRecId(data.recommendedId ?? null);
-      setSelId(pickEntryId(data));
-    };
-    fetchPlay()
-      .then(apply)
-      .catch(() => apply(FALLBACK_PLAY));
-    return () => {
-      alive = false;
-    };
+      setRecId(data.recommendedId);
+      setSelId(entry);
+      setUsingStale(data.stale);
+      setLoadState("ready");
+    } catch {
+      if (request !== requestRef.current) return;
+      setLoadState("unavailable");
+    }
   }, []);
 
-  // 劇場模式滿幅：以 documentElement.clientWidth（已扣掉捲軸寬）覆寫 CSS 的 100vw 後備，
-  // 避免滿幅舞台比可視區寬出一條捲軸而被裁切。JS 未執行時 CSS 仍以 100vw 生效。
+  useEffect(() => {
+    void refresh();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [refresh]);
+
+  // 劇場模式滿幅：以 documentElement.clientWidth（已扣掉捲軸寬）校正 100vw。
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -65,9 +83,8 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     };
   }, [size]);
 
-  const sel = regions?.find((r) => r.id === selId) ?? null;
+  const selected = regions?.find((region) => region.id === selId) ?? null;
 
-  // 全屏：優先原生 Fullscreen API（跨出版面覆蓋整個螢幕）。
   useEffect(() => {
     const el = viewRef.current;
     if (!el) return;
@@ -78,43 +95,44 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     }
   }, [size]);
 
-  // 使用者按 Esc 退出原生全屏 → 還原為正常模式。
   useEffect(() => {
-    const onFs = () => {
+    const onFullscreenChange = () => {
       if (!document.fullscreenElement && size === "fullscreen") setSize("normal");
     };
-    document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, [size]);
 
-  const src = sel
-    ? `${sel.url}?region=${encodeURIComponent(sel.id)}&host=${encodeURIComponent(sel.host)}&ping=${sel.latencyMs}&load=${Math.round(sel.load * 100)}${connected ? "&connect=1" : ""}`
-    : undefined;
+  // 只有明確進入後才把 URL 交給 iframe，避免節點卡片一出現就建立遊戲連線。
+  const selectedAvailable = selected !== null && (selected.healthy || selected.degraded === true);
+  const frameURL = connected && selectedAvailable && selected ? selected.url : undefined;
 
   const pick = (id: string) => {
     setSelId(id);
-    setConnected(false); // 換節點回到待命
+    setConnected(false);
   };
-  const regionLabel = (r: PlayRegion) => t(`play.region.${r.id}` as UIKey) || r.host;
-  const chooseSize = (m: SizeMode) => {
-    setDragH(null); // 切換模式時清除拖拽覆寫，套用該模式預設尺寸
-    setSize(m);
+  const regionLabel = (region: PlayRegion) => {
+    const label = region.region.trim() || region.country.trim();
+    return label ? label.toUpperCase() : region.host;
+  };
+  const chooseSize = (mode: SizeMode) => {
+    setDragH(null);
+    setSize(mode);
   };
   const openNewTab = () => {
-    if (src) window.open(src, "_blank", "noopener,noreferrer");
+    if (selectedAvailable && selected) window.open(selected.url, "_blank", "noopener,noreferrer");
   };
 
-  // 拖拽把手：調整嵌入視窗高度（全屏模式不適用）。
-  const onHandleDown = (e: ReactPointerEvent) => {
+  const onHandleDown = (event: ReactPointerEvent) => {
     if (size === "fullscreen" || !viewRef.current) return;
-    e.preventDefault();
-    const startY = e.clientY;
+    event.preventDefault();
+    const startY = event.clientY;
     const startH = viewRef.current.getBoundingClientRect().height;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+    (event.target as Element).setPointerCapture?.(event.pointerId);
     setDragging(true);
-    const onMove = (ev: PointerEvent) => {
-      const h = Math.min(MAX_H, Math.max(MIN_H, startH + (ev.clientY - startY)));
-      setDragH(h);
+    const onMove = (moveEvent: PointerEvent) => {
+      const height = Math.min(MAX_H, Math.max(MIN_H, startH + (moveEvent.clientY - startY)));
+      setDragH(height);
     };
     const onUp = () => {
       setDragging(false);
@@ -129,65 +147,83 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
 
   return (
     <div className={`play-launcher size-${size}${dragging ? " is-dragging" : ""}`} ref={rootRef}>
-      {/* 節點：橫向可滑動卡片（置於嵌入視窗上方） */}
-      <div className="play-nodes-bar" role="group" aria-label={t("play.serversTitle")}>
-        {!regions && <div className="play-ncard play-ncard--skeleton" aria-hidden="true" />}
-        {regions?.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            aria-pressed={selId === r.id}
-            className={`play-ncard${selId === r.id ? " is-selected" : ""}${r.healthy ? "" : " is-degraded"}`}
-            onClick={() => pick(r.id)}
-          >
-            <span className="play-ncard__top">
-              <span className={`play-ncard__dot${r.healthy ? "" : " is-degraded"}`} aria-hidden="true" />
-              <b>{regionLabel(r)}</b>
-              {recId === r.id && <span className="play-ncard__rec">{t("play.recommended")}</span>}
+      <div
+        className="play-nodes-bar"
+        role="group"
+        aria-label={t("play.serversTitle")}
+        aria-busy={loadState === "loading"}
+      >
+        {loadState === "loading" && <div className="play-ncard play-ncard--skeleton" aria-hidden="true" />}
+        {loadState === "unavailable" && (
+          <div className="play-route-state" role="status">
+            <span className="play-route-state__mark" aria-hidden="true">◈</span>
+            <span>
+              <strong>{t("play.unavailable")}</strong>
+              <small>{t("play.unavailableHint")}</small>
             </span>
-            <small className="play-ncard__host">{r.host}</small>
-            <span className="play-ncard__stat">
-              {/* 後備節點沒有量測值（latencyMs 0）→ 顯示破折號，不謊報 0ms */}
-              <span className="play-ncard__ping">
-                {r.latencyMs > 0 ? (
-                  <>
-                    {r.latencyMs}
-                    <i>ms</i>
-                  </>
-                ) : (
-                  "—"
-                )}
+            <button type="button" className="sr-btn sr-btn--ghost" onClick={() => void refresh()}>
+              {t("play.retry")}
+            </button>
+          </div>
+        )}
+        {regions?.map((region) => {
+          const degraded = region.degraded || !region.healthy;
+          return (
+            <button
+              key={region.id}
+              type="button"
+              aria-pressed={selId === region.id}
+              className={`play-ncard${selId === region.id ? " is-selected" : ""}${degraded ? " is-degraded" : ""}`}
+              onClick={() => pick(region.id)}
+            >
+              <span className="play-ncard__top">
+                <span className={`play-ncard__dot${degraded ? " is-degraded" : ""}`} aria-hidden="true" />
+                <b>{regionLabel(region)}</b>
+                {recId === region.id && <span className="play-ncard__rec">{t("play.recommended")}</span>}
               </span>
-              <span className="play-ncard__load" aria-hidden="true">
-                <span style={{ width: `${Math.round(r.load * 100)}%` }} />
+              <small className="play-ncard__host">{region.host}</small>
+              <span className="play-ncard__stat">
+                <span className="play-ncard__ping">
+                  {region.latencyMs > 0 ? (
+                    <>
+                      {Math.round(region.latencyMs)}
+                      <i>ms</i>
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </span>
+                <span className="play-ncard__load" aria-hidden="true">
+                  <span style={{ width: `${Math.round(region.load * 100)}%` }} />
+                </span>
               </span>
-            </span>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
 
-      {/* 嵌入視窗 */}
       <div className={`play-view${connected ? " is-connected" : ""}`} ref={viewRef} style={viewStyle}>
-        {src ? (
+        {frameURL ? (
           <iframe
             className="play-frame"
-            title={sel ? `${regionLabel(sel)} · ${sel.host}` : "session"}
-            src={src}
-            loading="lazy"
+            title={selected ? `${regionLabel(selected)} · ${selected.host}` : "session"}
+            src={frameURL}
             allowFullScreen
             sandbox="allow-scripts allow-same-origin"
           />
         ) : (
           <div className="play-frame play-frame--empty" aria-hidden="true" />
         )}
-        {!connected && sel && (
+        {loadState === "ready" && !connected && selected && (
           <div className="play-view__idle">
             <span className="play-view__idle-tag">{t("play.idleHint")}</span>
           </div>
         )}
+        {loadState === "unavailable" && (
+          <div className="play-view__message" role="status">{t("play.unavailable")}</div>
+        )}
       </div>
 
-      {/* 拖拽把手（調整高度；全屏模式隱藏） */}
       {size !== "fullscreen" && (
         <div
           className="play-resize"
@@ -200,12 +236,11 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         </div>
       )}
 
-      {/* 控制列（置於嵌入視窗下方） */}
       <div className="play-controls">
         <button
           type="button"
           className="sr-btn sr-btn--primary play-enter"
-          disabled={!sel || !sel.healthy}
+          disabled={!selectedAvailable}
           onClick={() => setConnected(true)}
         >
           {t("play.enter")}
@@ -219,24 +254,30 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         <span className="play-controls__spacer" />
 
         <div className="play-sizes" role="group" aria-label={t("play.viewSize")}>
-          {(["normal", "theater", "fullscreen"] as SizeMode[]).map((m) => (
+          {(["normal", "theater", "fullscreen"] as SizeMode[]).map((mode) => (
             <button
-              key={m}
+              key={mode}
               type="button"
-              className={`play-size-btn${size === m ? " is-active" : ""}`}
-              aria-pressed={size === m}
-              onClick={() => chooseSize(m)}
+              className={`play-size-btn${size === mode ? " is-active" : ""}`}
+              aria-pressed={size === mode}
+              onClick={() => chooseSize(mode)}
             >
-              {t(`play.size.${m}` as UIKey)}
+              {t(`play.size.${mode}` as UIKey)}
             </button>
           ))}
         </div>
 
-        <button type="button" className="sr-btn sr-btn--ghost play-newtab" disabled={!sel} onClick={openNewTab}>
+        <button
+          type="button"
+          className="sr-btn sr-btn--ghost play-newtab"
+          disabled={!selectedAvailable}
+          onClick={openNewTab}
+        >
           {t("play.newTab")} ↗
         </button>
       </div>
 
+      {usingStale && <p className="play-route-stale" role="status">{t("play.stale")}</p>}
       <p className="play-note">{t("play.nodeNote")}</p>
     </div>
   );

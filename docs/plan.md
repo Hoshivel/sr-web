@@ -11,6 +11,11 @@
 > **`play.sr.hoshivel.com`**（目前單節點）；分流 API 因此改掛獨立網域（如
 > `api.hoshivel.com` / `svc.hoshivel.com`）由前端跨源呼叫。本檔以下段落保留原始規劃時的
 > `sr.oha.li` 敘述作為歷史紀錄，實際網域以本註記與 `README.md` 為準。
+>
+> **更新（2026-08-03）**：Play 已遷移至 `hoshi-svc` 通用路由 API：
+> `GET https://svc.hoshivel.com/v1/services/sr-game/route?endpoint=web`。舊的靜態
+> `/api/play.json`、內建假健康節點、`/play/session/` mock 與原本的 `sr-web/backend`
+> 均已在 hoshi-svc 通過驗證後移除；本倉庫現在是純靜態官網。
 
 需求核心：官網要有**旗艦級動效**，而不是普通的 HTML+JS —— 「配得上門面」。
 
@@ -24,7 +29,7 @@
 - 技術棧：**Astro + React islands**（strict TS）
 - 動效強度：**旗艦級 WebGL 捲動電影**
 - 素材走向：**程序化即美術，預留換裝槽**（日後有正式立繪/截圖可直接換上）
-- 範圍：**前端動效站 + 假 Play 流程**（真正的分流後端本次不做，但定義好 API 介面約定）
+- 範圍：**前端動效站 + hoshi-svc Play 流程**（原規劃的假流程已於 2026-08-03 汰換）
 
 ---
 
@@ -68,8 +73,8 @@
 | 3 | **玩法 Gameplay** | 四合一（**手牌 / 走棋 / MOBA 技能與對抗 / SRPG**——2026-08-02 依實際類型定位改寫，原為「棋類策略/RPG 成長/MOBA 技能/開放探索」）；scroll-reveal；招牌**可反應地形**（火→焦土、河+火→蒸汽、野火蔓延、冰融）、高低差/視線、卡牌手層、戰爭迷霧 |
 | 4 | **主題曲 Chapters / World Tree** | snowpass `❄`（已上線）/ starseal `✶`（即將）；互動式「碎界樹」（複用 `Entry.tsx` 物理）或氛圍隨捲動 morph（冰藍→星紫）|
 | 5 | **英雄 Characters** | 白棠 / 暗影 / 赤焰 / 青蘿 卡片；元素光暈、題詞、玩法幻想；**程序化佔位 + 換裝槽** |
-| 6 | **即時展示 / Media** | 無截圖 → 小型 **Pixi 六角格即時展示**；預留截圖廊換裝槽 |
-| 7 | **Play 啟動器（island）** | mock 伺服器清單（region hk1/jp1、health/latency/load）→ 回傳 url → iframe 嵌入或 redirect |
+| 6 | **Media** | 程序化截圖佔位；預留正式截圖廊換裝槽 |
+| 7 | **Play 啟動器（island）** | hoshi-svc RouteDecision → 建議／候選節點 → 使用者進入後才 iframe 嵌入原始 web endpoint |
 | 8 | **Footer** | 導覽、語言切換、致謝 |
 
 ---
@@ -84,22 +89,21 @@
 
 ---
 
-## Play 流程 —— 本次 mock，定義未來介面約定
+## Play 流程 —— hoshi-svc 通用路由
 
-> **更新（2026-07-21）**：真實分流後端**已實作**，位於 `backend/`（Go、零第三方相依）。
-> 它於 `GET /api/play.json` 回傳與 `src/lib/play.ts` 同形狀的即時節點快照（背景探活 /
-> 分流 / 負載均衡），可無痛替換下述 mock 靜態端點、前端不改。細節見 `backend/README.md`
-> 與 `sessions/2026-07-21-sr-web-backend.md`。以下為原始介面約定設計（仍成立）。
->
-> **更新（2026-08-02）**：官網改為純靜態部署後，`/api/` 已無反向代理可用，分流後端改掛
-> 獨立網域，前端以 `PUBLIC_SR_API_BASE` 跨源呼叫（預設 `https://api.hoshivel.com`），
-> 並保留「同源預渲染 JSON → 內建常數」兩層後備。**回應形狀不變**，介面約定照舊。
-
-- Play island 呼叫 `GET /api/play`（或 `/api/servers`）。**本次**由靜態 JSON / Astro endpoint 回傳 mock regions（`hk1.svc.oha.li`、`jp1.svc.oha.li`），欄位 `region / url / healthy / latencyMs / load`。挑一個 → iframe 嵌入或 redirect。
-- **寫死 API 介面約定**，讓未來 Go「分流/探活/負載均衡」後端無痛替換、前端不改。
-  - 遊戲伺服器**已有** `GET /healthz`（純文字 `ok`）可供未來後端輪詢。
-  - 遊戲 client 可用 `VITE_WS_BASE` / `VITE_API_BASE` 絕對 URL 指向任意 host（`net/endpoints.ts`）。
-- **CORS**：若 `sr.oha.li` 跨源呼叫/嵌入遊戲後端，需把其 https origin 加入遊戲後端 `allowedOrigins`（`docs/deployment.md §7`），否則 `/ws` 403。
+- Play island 呼叫
+  `GET ${PUBLIC_HOSHI_SVC_BASE}/v1/services/sr-game/route?endpoint=web`。
+- 瀏覽器建立不含個資的穩定 routing key，保存在 localStorage，且只經
+  `X-Hoshi-Routing-Key` 標頭送出；不得進 query string。
+- `src/lib/play.ts` 嚴格驗證完整 RouteDecision，將 `candidates[].endpoints.web` 轉為
+  Play UI 節點，並以 `recommended.id` 預選。
+- TTL 內可重用最後成功決策；線上查詢失敗時，只能沿用到
+  `expiresAt + staleIfError`。逾時、503、畸形回應且無合規 stale 決策時顯示不可用，
+  不回退到靜態或內建節點。
+- 選節點不會預載遊戲；按下「進入戰場」後才建立 iframe。iframe 與新分頁均使用
+  hoshi-svc 回傳的原始 web endpoint，不附加前端 query。
+- hoshi-svc CORS 允許 `https://sr.hoshivel.com`、`GET` 與
+  `X-Hoshi-Routing-Key`；遊戲主機另需允許本站 WebSocket origin 與 iframe 嵌入。
 
 ---
 
@@ -130,15 +134,15 @@
 - **Phase 3 — 捲動電影框架 + 碎裂區** ✅：`src/lib/scrollCinema.ts` 單例 boot（Lenis 平滑捲動 + GSAP/ScrollTrigger 同步 + 錨點平滑捲動）；碎裂區 `Shattering.astro`（#world）pin+scrub 讓種子化殘片由凝聚向虛空四散＋淡出＋去飽和（招牌「褪色」溶解），招牌句「碎裂不是天罰，是天地最後一次自救」。reduced-motion 全程降級為靜態。`npm run build` 綠（Lenis/GSAP 動態 chunk）。
 - **Phase 4 — 玩法 + 英雄** ✅（**待視覺簽核**）：玩法四柱 `Gameplay.astro`（#gameplay）＝棋類策略/RPG 成長/MOBA 技能/開放探索 scroll-reveal grid，各帶程序化 inline-SVG 母題（蜂巢六邊形/成長條/技能環/地景）＋元素色頂線＋hover 浮起；英雄卡 `Characters.astro`（#characters）＝白棠/暗影/赤焰/青蘿，元素徽記（❄☾❂❦）＋種子化星座佔位＝**換裝槽**（日後疊 `.hero-card__art` 立繪）＋元素 tag/漸層名/題詞/玩法幻想＋桌機指標微傾。三語文案（`gameplay.*`/`char.*`）蒸餾自遊戲角色 lore 與玩法規則。reduced-motion/觸控全降級、無新增首屏重 JS。`npm run build` 綠。
 - **Phase 5 — 主題曲 / 碎界樹** ✅（**待視覺簽核**）：`WorldTree.tsx`（React island，改編自遊戲 `ui/meta/Entry.tsx`）複用 spring-damper 物理（拖曳拋擲＋彎曲擺動枝條＋盤根 tendril＋formation 耦合），改進為官網版——去後端/store 依賴自足吃 i18n、**seed 決定性佈局**（SSR hydration 安全）、**響應式**（viewBox 設計座標＋節點 %／拖曳以 stage 實寬換算）、**章節氛圍 morph**（hover/選取節點→`--wt-accent` 冰藍↔星紫過場）、reduced-motion 靜態、觸控可拖。3 節點碎界◈（起源）→風雪過境❄（第一章/已上線）→星痕紀元✶（第二章/即將）＋章節詳情卡。`Chapters.astro`（#chapters）殼＋`WorldTree.css`（wt- 前綴）。三語文案源自 `theme.json`＋遊戲 `theme.*.story`。`npm run build` 綠、SSR 靜態樹無 FOUC、島 8.2KB gz client:visible。
-- **Phase 6 — Play 啟動器（mock）+ 即時 Pixi 展示 + media 換裝槽** ✅（**待視覺簽核**）：介面約定 `src/lib/play.ts`（`PlayRegion`/`PlayResponse`＋mock hk1/jp1/sg1＋`recommendRegion`）＋靜態 endpoint `src/pages/api/play.json.ts`（→`/api/play.json`）。`PlayLauncher.tsx`（island）fetch 節點清單（探活/延遲/負載/建議、自動預選）→選節點→**iframe 嵌入**同源 `/play/session/`（`iframe.src = region.url`＋query）；「進入戰場」加 `connect=1`→LIVE。`session.astro`（noindex 獨立頁）＝`HexField.tsx` Pixi 六角戰場即時展示（發光格盤＋掃描光束＋元素單位，複用 VoidField 動態載入/降級）＋語言中性遙測 HUD＋靜態 fallback。`Play.astro`（#play）殼＋三格程序化截圖換裝槽（`.play-shot__art` 疊圖）。三語 `play.*`。**iframe vs redirect → 已定：iframe 嵌入**。介面約定寫死使未來 Go 分流後端無痛替換。`npm run build` 綠（4 頁＋endpoint）。
-- **Phase 7 — 打磨** ✅（**待視覺簽核**）：SEO——手捲 `sitemap.xml`（三語系＋hreflang）＋`robots.txt`（disallow `/play/session/`、`/api/`）＋head 補 `og:url`/`og:site_name`/`og:image:alt`/`twitter:image:alt`/`<link rel="sitemap">`。a11y／行動——Header 可存取行動選單（hamburger＋`aria-expanded`/`aria-controls`；Esc／外點／點連結／回桌機關閉；Play 併入選單）、Play 節點清單 `listbox`→`role=group`＋`aria-pressed`（鍵盤原生）。效能——Hero `VoidField` 與 Play `HexField` 於分頁隱藏（Page Visibility）或離開視窗（IntersectionObserver）時暫停 Pixi ticker，省 GPU/CPU/電量；CLS 由既有預留尺寸（Hero SSR canvas／碎界樹 SSR 靜態樹／Play view aspect-ratio／iframe 有框）避免。品牌化 `404.astro`。部署備註見 `README.md`。`npm run build` 綠（5 頁＋2 endpoint）、`astro check` 0 errors。
+- **Phase 6 — Play 啟動器 + media 換裝槽** ✅（**待視覺簽核**）：原始 mock 流程已於 2026-08-03 遷移為 hoshi-svc 通用 RouteDecision；具嚴格驗證、匿名黏著 key、TTL/stale cache、不可用與重試 UI。選節點不預載，按 Enter 才 iframe 嵌入原始 web endpoint；另開新頁同樣不改 URL。靜態 `/api/play.json`、`/play/session/` 與只供 mock 使用的 `HexField` 已移除。`Play.astro` 保留三格程序化截圖換裝槽。
+- **Phase 7 — 打磨** ✅（**待視覺簽核**）：SEO——手捲 `sitemap.xml`（三語系＋hreflang）＋`robots.txt`＋完整社群 meta。a11y／行動——Header 可存取行動選單、Play 節點 `role=group`＋`aria-pressed`、不可用狀態與重試。效能——Hero `VoidField` 於分頁隱藏或離開視窗時暫停 Pixi ticker；Play iframe 只在使用者明確進入後載入。品牌化 `404.astro`。
 
 ---
 
 ## 驗證方式（端到端）
 
 1. 每階段 `npm run build`（Astro / strict TS）綠燈。
-2. `npm run dev` 實跑：Hero 渲染、捲動電影 scrub、Play 回傳 mock URL 並嵌入、章節氛圍 morph、角色 reveal。
+2. `npm run dev` 實跑：Hero 渲染、捲動電影 scrub、Play 通用路由成功／失敗／stale／重試與 iframe 進入、章節氛圍 morph、角色 reveal。
 3. 視覺回歸：預裝 Chromium/Playwright 截圖比對（helper 於代理 scratchpad `shot.mjs`）。
 4. 無障礙：DevTools 開 `prefers-reduced-motion` → 每效果有靜態 fallback。
 5. Lighthouse：桌機 perf ≥ 90、SEO/a11y 達標；island 晚注水無 CLS。
@@ -151,5 +155,5 @@
 
 - ~~字標是否加 display web font~~ —— **已定（Phase 1）**：**不加**。維持 `system-ui` + 漸層字標，避免二進位資產與字型載入成本、保留效能預算給動效；字標的識別力來自漸層 + ◈ 標記。日後若要 display font 再於局部區塊評估。
 - ~~英文章節名~~ —— **已定**：以 `theme.json` 統一為 `Snowbound Passage` / `Age of Starmarks`，已寫入 `src/i18n/ui.ts`。
-- ~~Play 採 **iframe** vs **redirect**~~ —— **已定（Phase 6）：iframe 嵌入**（同源 mock 對戰頁；真實後端只換 `region.url`＋將 `sr.oha.li` 加入遊戲後端 `allowedOrigins`）。
+- ~~Play 採 **iframe** vs **redirect**~~ —— **已定（Phase 6）：iframe 嵌入**；只在使用者按下進入後載入 hoshi-svc 提供的原始 web endpoint，並將 `https://sr.hoshivel.com` 加入遊戲後端允許來源。
 - **Phase 2 前置門檻**：Hero 為視覺定調關鍵；依計畫應**先交付 Hero 預覽供簽核**再往下（Phase 3+）。

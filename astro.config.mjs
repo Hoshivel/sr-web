@@ -6,7 +6,7 @@ import react from "@astrojs/react";
 // output 預設為 'static'：把效能預算留給動效（Pixi / GSAP island 才注水），
 // 也讓官網能以**純靜態**方式部署（無 Node 執行期、無反向代理）。
 // 部署目標：sr.hoshivel.com；遊戲節點：play.sr.hoshivel.com；
-// 分流 API 走獨立網域（見 src/lib/play.ts 的 PUBLIC_SR_API_BASE）。
+// 服務路由走 hoshi-svc 獨立網域（見 src/lib/play.ts 的 PUBLIC_HOSHI_SVC_BASE）。
 export default defineConfig({
   site: "https://sr.hoshivel.com",
   integrations: [react()],

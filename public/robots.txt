@@ -1,7 +1,4 @@
 User-agent: *
 Allow: /
-# iframe 對戰展示頁（noindex）與後備 JSON 端點不需被索引
-Disallow: /play/session/
-Disallow: /api/
 
 Sitemap: https://sr.hoshivel.com/sitemap.xml

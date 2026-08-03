@@ -29,6 +29,37 @@
   border-radius: var(--sr-radius-pill);
 }
 
+.play-route-state {
+  flex: 1 1 100%;
+  min-height: 5.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--sr-danger) 35%, var(--sr-border));
+  border-radius: var(--sr-radius);
+  background: color-mix(in srgb, var(--sr-danger) 6%, var(--sr-surface-2));
+}
+.play-route-state__mark {
+  color: var(--sr-danger);
+  font-size: 1.25rem;
+}
+.play-route-state > span:nth-child(2) {
+  min-width: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.play-route-state strong {
+  color: var(--sr-text-bright);
+  font-size: var(--sr-text-sm);
+}
+.play-route-state small {
+  color: var(--sr-text-muted);
+  line-height: var(--sr-leading);
+}
+
 .play-ncard {
   position: relative;
   flex: 0 0 auto;
@@ -178,6 +209,16 @@
 .play-frame--empty {
   background: var(--sr-bg-deep);
 }
+.play-view__message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  color: var(--sr-text-muted);
+  font-size: var(--sr-text-sm);
+  text-align: center;
+}
 .play-view__idle {
   position: absolute;
   inset: auto 0 0 0;
@@ -311,10 +352,26 @@
   line-height: var(--sr-leading);
   color: var(--sr-text-dim);
 }
+.play-route-stale {
+  margin: 0.1rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border-left: 2px solid var(--sr-gold);
+  color: var(--sr-text-muted);
+  background: color-mix(in srgb, var(--sr-gold) 6%, transparent);
+  font-size: var(--sr-text-xs);
+  line-height: var(--sr-leading);
+}
 
 @media (max-width: 560px) {
   .play-ncard {
     width: 11.5rem;
+  }
+  .play-route-state {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .play-route-state > button {
+    margin-left: 2rem;
   }
   .play-controls {
     gap: 0.5rem;

@@ -6,10 +6,10 @@
 */
 interface ImportMetaEnv {
   /**
-   * 分流 API 的來源網域（如 `https://api.hoshivel.com`）。
-   * 未設定時採 `src/lib/play.ts` 的預設值；設為空字串＝同源呼叫。
+   * hoshi-svc 公開資料平面的來源網域（如 `https://svc.hoshivel.com`）。
+   * 未設定時採 `src/lib/play.ts` 的預設值。
    */
-  readonly PUBLIC_SR_API_BASE?: string;
+  readonly PUBLIC_HOSHI_SVC_BASE?: string;
 }
 
 interface ImportMeta {
