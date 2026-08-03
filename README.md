@@ -31,6 +31,7 @@ sr 是一個架空世界觀的 2D 六角格回合制策略遊戲：**手牌 + �
 # 前端（官網靜態站）
 npm install      # 安裝相依
 npm run dev      # 本地開發（Astro）
+hoshi-build build  # 出貨產物（設定在 .hoshi-build.yaml）
 npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
