@@ -1,7 +1,8 @@
 # sr-web 旗艦官網 — 實作計畫（倉庫內權威副本）
 
 > 本檔為已核准實作計畫的**倉庫內權威副本**（原稿在代理環境的 plan 目錄，屬臨時性、不隨倉庫保存）。
-> 任何代理冷接手時，以本檔 + `sessions/2026-07-20-sr-web-flagship.md` 為準。
+> 任何代理冷接手時，以本檔 ＋ [workspace](https://github.com/Hoshivel/workspace)
+> `sessions/` 裡對應的會話日誌為準（若有）。
 
 ## Context（為什麼做這個）
 
@@ -120,7 +121,8 @@
 ## Repo 慣例（沿用 ShatteredRealms 家族）
 
 - 文件/註解**正體中文**；狀態關鍵字 `Editing`/`editing`/`idle` 保持原樣。
-- **sessions/ 會話日誌**：`sessions/2026-07-20-sr-web-flagship.md`（目標 + 待辦 + `Editing`），每階段更新。
+- **會話日誌**：正本在 [workspace](https://github.com/Hoshivel/workspace) 的
+  `sessions/`（目標 + 待辦 + `Editing`），每階段更新。**本倉庫不維護 `sessions/`。**
 - Runtime = **cloud** → 每完成一小階段 commit + push 到 `claude/sr-web-animation-planning-u1vujx`。
 - 若日後加 CI，以 branch 過濾只在 `main` 觸發。
 
