@@ -35,10 +35,13 @@ git clone https://github.com/Hoshivel/workspace.git ../workspace   # 雲端：�
 改動後執行；綠燈再把會話日誌的 `Editing` 設回 `idle`：
 
 ```sh
-npm run build      # ＝ astro check && astro build（TypeScript 與內容都會檢查）
+hoshi test         # ＝ npm run build ＝ astro check && astro build
+hoshi dev -open    # 本機開發（astro dev，:4321）
 ```
 
-`astro check` 是這個倉庫唯一的型別關卡，不要用 `astro build` 跳過它。
+`astro check` 是這個倉庫唯一的型別關卡，不要用 `astro build` 跳過它——
+`test.scripts` 之所以是 `build` 而不是 `preview` 就是為了這個。
+流程的正本在 hoshi-standards `engineering/build.md` §3、§6。
 
 ## 3. 這個倉庫的特殊規則
 
