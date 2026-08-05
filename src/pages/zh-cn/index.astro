@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Home from "@/components/Home.astro";
+
+// 简体中文平行路由 /zh-cn。
+const locale = "zh-CN" as const;
+---
+
+<Layout locale={locale}>
+  <Home locale={locale} />
+</Layout>

@@ -1,0 +1,33 @@
+{
+  "name": "sr-web",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "碎界 Shattered Realms — 官方門面網站 (sr.hoshivel.com)",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/react": "^6.0.2",
+    "astro": "^7.1.6",
+    "gsap": "^3.12.5",
+    "lenis": "^1.1.0",
+    "pixi.js": "^8.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.0"
+  }
+}

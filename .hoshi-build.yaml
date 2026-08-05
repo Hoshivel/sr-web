@@ -1,0 +1,16 @@
+# hoshi-build 設定。規範見 hoshi-standards engineering/build.md，
+# 鍵位參考見 hoshi-build 的 docs/config.md。
+#
+# 靜態站，沒有後端（分流由 hoshi-svc 的通用 route API 負責）。
+# `npm run build`（＝ astro check && astro build）本來就寫進 dist/，
+# 所以 hoshi-build 不會有複製動作。
+name: sr-web
+type: npm
+output: dist/
+
+dev:
+  processes:
+    - name: web
+      run: npm run dev
+      # astro dev 的預設埠。宣告出來，-open 才知道要等哪個埠就緒。
+      ports: [4321]

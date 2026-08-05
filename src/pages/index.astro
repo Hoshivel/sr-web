@@ -1,0 +1,12 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Home from "@/components/Home.astro";
+
+// zh-Hant（預設語言）掛根路由 /。
+// 簡體 /zh-cn、英文 /en 為對應 locale 的平行路由（見 src/pages/）。
+const locale = "zh-Hant" as const;
+---
+
+<Layout locale={locale}>
+  <Home locale={locale} />
+</Layout>

@@ -1,0 +1,76 @@
+---
+/*
+  語言切換器 —— 純 SSR 連結（無 JS）。
+  三語各連到「同一邏輯頁」的對應 locale URL；目前語言標 aria-current。
+  精簡標籤（繁/简/EN）＋完整名放 title/aria-label。
+*/
+import {
+  useTranslations,
+  localizedPath,
+  LOCALES,
+  LOCALE_LABEL,
+  LOCALE_SHORT,
+  HTML_LANG,
+  type Locale,
+} from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+  /** 邏輯路徑（不含 locale 前綴），預設首頁。 */
+  path?: string;
+  class?: string;
+}
+const { locale, path = "/", class: className } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<nav class:list={["sr-lang", className]} aria-label={t("a11y.langMenu")}>
+  {
+    LOCALES.map((l) => {
+      const active = l === locale;
+      return (
+        <a
+          href={localizedPath(l, path)}
+          class:list={["sr-lang__item", { "is-active": active }]}
+          hreflang={HTML_LANG[l]}
+          title={LOCALE_LABEL[l]}
+          aria-current={active ? "true" : undefined}
+        >
+          {LOCALE_SHORT[l]}
+        </a>
+      );
+    })
+  }
+</nav>
+
+<style>
+  .sr-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius-pill);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .sr-lang__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    padding: 0.22rem 0.5rem;
+    border-radius: var(--sr-radius-pill);
+    font-size: var(--sr-text-xs);
+    color: var(--sr-text-muted);
+    transition:
+      color var(--sr-dur-fast) var(--sr-ease-out),
+      background-color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .sr-lang__item:hover {
+    color: var(--sr-text-bright);
+  }
+  .sr-lang__item.is-active {
+    color: var(--sr-text-bright);
+    background: rgba(143, 169, 255, 0.16);
+  }
+</style>

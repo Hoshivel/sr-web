@@ -1,0 +1,188 @@
+---
+/*
+  開始遊戲 Play（#play）—— hoshi-svc 路由啟動器＋ iframe 遊戲入口＋截圖換裝槽。
+  header/footer 的「開始遊戲」與 hero Play CTA 皆錨至此。
+  啟動器互動邏輯在 `PlayLauncher` island（client:visible）；截圖廊為靜態換裝槽。
+*/
+import PlayLauncher from "@/components/sections/PlayLauncher.tsx";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+// 截圖換裝槽：程序化佔位海報（種子化星點），日後疊 <img class="play-shot__art"> 換上真截圖。
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function stars(seed: number, n: number) {
+  const rnd = mulberry32(seed);
+  return Array.from({ length: n }, () => ({
+    x: +(rnd() * 160).toFixed(1),
+    y: +(rnd() * 90).toFixed(1),
+    r: +(0.4 + rnd() * 1.2).toFixed(2),
+  }));
+}
+const shots = [
+  { glyph: "◆", el: "var(--sr-accent)", seed: 0xb1a5e },
+  { glyph: "❄", el: "var(--sr-chapter-snowpass)", seed: 0x5f0a7 },
+  { glyph: "✶", el: "var(--sr-chapter-starseal)", seed: 0x57a12 },
+].map((s) => ({ ...s, stars: stars(s.seed, 16) }));
+---
+
+<section class="sr-section play" id="play">
+  <div class="sr-container play__head">
+    <p class="sr-eyebrow" data-reveal>{t("play.eyebrow")}</p>
+    <h2 class="play__title" data-reveal>
+      <span class="play__title-a">{t("play.titleA")}</span>
+      <span class="play__title-b sr-gradient-text">{t("play.titleB")}</span>
+    </h2>
+    <p class="play__lead" data-reveal>{t("play.lead")}</p>
+  </div>
+
+  <div class="sr-container play__stage" data-reveal>
+    <PlayLauncher client:visible locale={locale} />
+  </div>
+
+  <!-- 截圖換裝槽（media）：程序化佔位，日後換真截圖 -->
+  <div class="sr-container play__media">
+    <p class="play__media-title" data-reveal>{t("play.shotsTitle")}</p>
+    <ul class="play__shots">
+      {shots.map((s) => (
+        <li class="play-shot" style={`--el:${s.el}`} data-reveal>
+          {/* 換裝槽：日後疊 <img class="play-shot__art"> 覆蓋此佔位 */}
+          <svg class="play-shot__stars" viewBox="0 0 160 90" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            {s.stars.map((st) => <circle cx={st.x} cy={st.y} r={st.r} />)}
+          </svg>
+          <span class="play-shot__glyph" aria-hidden="true">{s.glyph}</span>
+          <span class="play-shot__note">{t("play.shotNote")}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .play {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(60% 50% at 50% 20%, rgba(122, 91, 255, 0.06), transparent 70%),
+      var(--sr-void);
+  }
+  .play__head {
+    text-align: center;
+    max-width: 60rem;
+  }
+  .play__title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12em;
+    margin-top: var(--sr-space-3);
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-2xl);
+    line-height: var(--sr-leading-tight);
+    letter-spacing: 0.02em;
+  }
+  .play__title-a {
+    color: var(--sr-text-bright);
+  }
+  .play__lead {
+    margin: var(--sr-space-6) auto 0;
+    max-width: 52ch;
+    font-size: var(--sr-text-lg);
+    color: var(--sr-text-muted);
+  }
+  .play__stage {
+    margin-top: var(--sr-space-12);
+  }
+
+  /* 截圖換裝槽 */
+  .play__media {
+    margin-top: var(--sr-space-16);
+  }
+  .play__media-title {
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wider);
+    text-transform: uppercase;
+    color: var(--sr-text-muted);
+    text-align: center;
+  }
+  .play__shots {
+    list-style: none;
+    margin: var(--sr-space-6) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.8rem, 2vw, 1.4rem);
+  }
+  .play-shot {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius);
+    background:
+      radial-gradient(70% 80% at 50% 30%, color-mix(in srgb, var(--el) 24%, transparent), transparent 72%),
+      linear-gradient(180deg, var(--sr-bg-deep), var(--sr-surface-1));
+    transition: border-color var(--sr-dur) var(--sr-ease-out), transform var(--sr-dur) var(--sr-ease-out);
+  }
+  .play-shot:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--el) 45%, var(--sr-border));
+  }
+  /* 日後正式截圖：疊此層覆蓋佔位 */
+  .play-shot :global(.play-shot__art) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 3;
+  }
+  .play-shot__stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--sr-star);
+    opacity: 0.42;
+  }
+  .play-shot__glyph {
+    position: relative;
+    z-index: 2;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    color: var(--el);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--el) 60%, transparent);
+  }
+  .play-shot__note {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    text-align: center;
+    font-size: 0.62rem;
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+    color: var(--sr-text-dim);
+  }
+
+  @media (max-width: 640px) {
+    .play__shots {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

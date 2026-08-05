@@ -1,0 +1,391 @@
+/*
+  Play 啟動器樣式（play- 前綴、隨 island chunk 載入）。
+  版面由上而下：橫向可滑動節點卡片（.play-nodes-bar）→ 嵌入視窗（.play-view）→
+  可拖拽把手（.play-resize）→ 控制列（.play-controls：進入 / 尺寸模式 / 新分頁）。
+*/
+
+.play-launcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* ---- 節點：橫向可滑動卡片 ---- */
+.play-nodes-bar {
+  display: flex;
+  gap: 0.7rem;
+  overflow-x: auto;
+  padding: 0.35rem 0.15rem 0.7rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sr-border-strong) transparent;
+}
+.play-nodes-bar::-webkit-scrollbar {
+  height: 6px;
+}
+.play-nodes-bar::-webkit-scrollbar-thumb {
+  background: var(--sr-border-strong);
+  border-radius: var(--sr-radius-pill);
+}
+
+.play-route-state {
+  flex: 1 1 100%;
+  min-height: 5.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--sr-danger) 35%, var(--sr-border));
+  border-radius: var(--sr-radius);
+  background: color-mix(in srgb, var(--sr-danger) 6%, var(--sr-surface-2));
+}
+.play-route-state__mark {
+  color: var(--sr-danger);
+  font-size: 1.25rem;
+}
+.play-route-state > span:nth-child(2) {
+  min-width: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.play-route-state strong {
+  color: var(--sr-text-bright);
+  font-size: var(--sr-text-sm);
+}
+.play-route-state small {
+  color: var(--sr-text-muted);
+  line-height: var(--sr-leading);
+}
+
+.play-ncard {
+  position: relative;
+  flex: 0 0 auto;
+  width: 13.5rem;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  border: 1px solid var(--sr-border);
+  border-radius: var(--sr-radius);
+  background: var(--sr-surface-2);
+  cursor: pointer;
+  transition:
+    border-color var(--sr-dur-fast) var(--sr-ease-out),
+    background var(--sr-dur-fast) var(--sr-ease-out),
+    transform var(--sr-dur-fast) var(--sr-ease-out);
+}
+.play-ncard:hover {
+  border-color: var(--sr-border-strong);
+  transform: translateY(-2px);
+}
+.play-ncard.is-selected {
+  border-color: var(--sr-accent);
+  background: color-mix(in srgb, var(--sr-accent) 10%, var(--sr-surface-2));
+  box-shadow: var(--sr-ring-accent);
+}
+.play-ncard.is-degraded {
+  opacity: 0.72;
+}
+.play-ncard--skeleton {
+  width: 13.5rem;
+  height: 5.4rem;
+  background: linear-gradient(90deg, var(--sr-surface-2), var(--sr-surface-3), var(--sr-surface-2));
+  background-size: 200% 100%;
+  animation: play-shimmer 1.4s ease-in-out infinite;
+  cursor: default;
+}
+@keyframes play-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.play-ncard__top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.play-ncard__top b {
+  font-size: var(--sr-text-sm);
+  color: var(--sr-text-bright);
+  font-weight: 600;
+}
+.play-ncard__dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sr-success);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sr-success) 70%, transparent);
+}
+.play-ncard__dot.is-degraded {
+  background: var(--sr-gold);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sr-gold) 60%, transparent);
+}
+.play-ncard__host {
+  font-size: 0.72rem;
+  color: var(--sr-text-dim);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.play-ncard__stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.1rem;
+}
+.play-ncard__ping {
+  font-size: var(--sr-text-sm);
+  color: var(--sr-text);
+  font-variant-numeric: tabular-nums;
+}
+.play-ncard__ping i {
+  font-style: normal;
+  font-size: 0.66rem;
+  color: var(--sr-text-dim);
+  margin-left: 0.1rem;
+}
+.play-ncard__load {
+  flex: 1;
+  max-width: 5.5rem;
+  height: 4px;
+  border-radius: var(--sr-radius-pill);
+  background: var(--sr-surface-4);
+  overflow: hidden;
+}
+.play-ncard__load > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--sr-accent), var(--sr-violet-light));
+}
+.play-ncard.is-degraded .play-ncard__load > span {
+  background: linear-gradient(90deg, var(--sr-gold), var(--sr-danger));
+}
+.play-ncard__rec {
+  position: absolute;
+  top: -0.55rem;
+  right: 0.6rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0a0c12;
+  background: var(--sr-accent-grad);
+  border-radius: var(--sr-radius-pill);
+  padding: 0.1rem 0.5rem;
+  box-shadow: var(--sr-glow-accent);
+}
+
+/* ---- 嵌入視窗（iframe） ---- */
+.play-view {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--sr-border);
+  border-radius: var(--sr-radius-lg);
+  overflow: hidden;
+  background: var(--sr-bg-deep);
+  transition: border-color var(--sr-dur) var(--sr-ease-out), box-shadow var(--sr-dur) var(--sr-ease-out);
+}
+.play-view.is-connected {
+  border-color: color-mix(in srgb, var(--sr-success) 45%, var(--sr-border));
+  box-shadow: 0 0 42px color-mix(in srgb, var(--sr-accent) 16%, transparent);
+}
+.play-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+.play-frame--empty {
+  background: var(--sr-bg-deep);
+}
+.play-view__message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  color: var(--sr-text-muted);
+  font-size: var(--sr-text-sm);
+  text-align: center;
+}
+.play-view__idle {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 0.9rem;
+  background: linear-gradient(to top, rgba(6, 7, 11, 0.75), transparent);
+  pointer-events: none;
+}
+.play-view__idle-tag {
+  font-size: var(--sr-text-xs);
+  letter-spacing: var(--sr-tracking-wide);
+  text-transform: uppercase;
+  color: var(--sr-text);
+  border: 1px solid var(--sr-border-strong);
+  border-radius: var(--sr-radius-pill);
+  padding: 0.3rem 0.8rem;
+  background: rgba(6, 7, 11, 0.55);
+  -webkit-backdrop-filter: var(--sr-blur);
+  backdrop-filter: var(--sr-blur);
+}
+
+/*
+  劇場模式：**滿幅**沉浸舞台——跳出 `.sr-container` 的 max-width，向兩側撐到視窗邊緣
+  （YouTube 劇場模式慣例），再以內距留一圈安全邊避免圓角貼邊。
+  `--play-bleed-w` 由 island 以 `documentElement.clientWidth` 設定（已扣掉捲軸寬）；
+  JS 尚未執行 / 失效時退回 `100vw`（body 的 overflow-x:hidden 吸收捲軸誤差）。
+*/
+.play-launcher.size-theater {
+  width: var(--play-bleed-w, 100vw);
+  max-width: var(--play-bleed-w, 100vw);
+  margin-inline: calc(50% - var(--play-bleed-w, 100vw) / 2);
+  padding-inline: clamp(0.9rem, 3vw, 3rem);
+}
+/* 舞台高度留給節點列與控制列，讓整個啟動器一屏內看得完（不必捲動找按鈕）。 */
+.play-launcher.size-theater .play-view {
+  aspect-ratio: auto;
+  height: min(72svh, 860px);
+}
+/* 全屏模式：原生 Fullscreen API 生效。 */
+.play-view:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}
+
+/* ---- 拖拽把手：調整視窗高度 ---- */
+.play-resize {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  margin-top: -0.35rem;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.play-resize__grip {
+  width: 46px;
+  height: 4px;
+  border-radius: var(--sr-radius-pill);
+  background: var(--sr-border-strong);
+  transition: background var(--sr-dur-fast) var(--sr-ease-out), width var(--sr-dur-fast) var(--sr-ease-out);
+}
+.play-resize:hover .play-resize__grip {
+  background: var(--sr-accent);
+  width: 62px;
+}
+/* 拖拽時遮住 iframe 指標，避免它吞掉 pointermove */
+.play-launcher.is-dragging {
+  user-select: none;
+}
+.play-launcher.is-dragging .play-frame {
+  pointer-events: none;
+}
+
+/* ---- 控制列 ---- */
+.play-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.play-controls__spacer {
+  flex: 1 1 auto;
+}
+.play-enter {
+  padding: 0.62rem 1.3rem;
+}
+.play-enter:disabled,
+.play-newtab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+/* 尺寸模式分段按鈕 */
+.play-sizes {
+  display: inline-flex;
+  border: 1px solid var(--sr-border);
+  border-radius: var(--sr-radius-pill);
+  overflow: hidden;
+  background: var(--sr-surface-2);
+}
+.play-size-btn {
+  padding: 0.45rem 0.9rem;
+  font-size: var(--sr-text-xs);
+  color: var(--sr-text-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--sr-dur-fast) var(--sr-ease-out), background var(--sr-dur-fast) var(--sr-ease-out);
+}
+.play-size-btn + .play-size-btn {
+  border-left: 1px solid var(--sr-border);
+}
+.play-size-btn:hover {
+  color: var(--sr-text-bright);
+}
+.play-size-btn.is-active {
+  color: #0a0c12;
+  background: var(--sr-accent-grad);
+  font-weight: 600;
+}
+
+.play-note {
+  margin-top: 0.1rem;
+  font-size: var(--sr-text-xs);
+  line-height: var(--sr-leading);
+  color: var(--sr-text-dim);
+}
+.play-route-stale {
+  margin: 0.1rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border-left: 2px solid var(--sr-gold);
+  color: var(--sr-text-muted);
+  background: color-mix(in srgb, var(--sr-gold) 6%, transparent);
+  font-size: var(--sr-text-xs);
+  line-height: var(--sr-leading);
+}
+
+@media (max-width: 560px) {
+  .play-ncard {
+    width: 11.5rem;
+  }
+  .play-route-state {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .play-route-state > button {
+    margin-left: 2rem;
+  }
+  .play-controls {
+    gap: 0.5rem;
+  }
+  .play-enter {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-ncard,
+  .play-ncard--skeleton,
+  .play-resize__grip {
+    transition: none;
+    animation: none;
+  }
+}

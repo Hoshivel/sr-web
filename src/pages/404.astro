@@ -1,0 +1,71 @@
+---
+/*
+  404 —— 品牌化「碎散於虛空」頁。靜態站單一 404（以預設語言 zh-Hant 為主、附英文副標）。
+*/
+import Layout from "@/layouts/Layout.astro";
+import Mark from "@/components/brand/Mark.astro";
+import { useTranslations, DEFAULT_LOCALE } from "@/i18n/utils";
+
+const t = useTranslations(DEFAULT_LOCALE);
+---
+
+<Layout locale={DEFAULT_LOCALE} title={`404 — ${t("site.name")}`} description="頁面碎散於虛空。">
+  <main id="main" class="nf">
+    <div class="sr-container nf__inner">
+      <div class="nf__mark" aria-hidden="true"><Mark size={72} glow /></div>
+      <p class="nf__code">404</p>
+      <h1 class="nf__title sr-gradient-text">頁面碎散於虛空</h1>
+      <p class="nf__sub">This page drifted into the void.</p>
+      <a class="sr-btn sr-btn--primary nf__home" href="/" data-magnetic>{t("a11y.home")}</a>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .nf {
+    position: relative;
+    min-height: 72vh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    background:
+      radial-gradient(55% 45% at 50% 38%, rgba(122, 91, 255, 0.1), transparent 70%),
+      var(--sr-void);
+  }
+  .nf__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nf__mark {
+    margin-bottom: var(--sr-space-2);
+    animation: nf-float 4.6s var(--sr-ease-in-out) infinite;
+  }
+  @keyframes nf-float {
+    0%, 100% { transform: translateY(0); opacity: 0.9; }
+    50% { transform: translateY(-6px); opacity: 1; }
+  }
+  .nf__code {
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-2xl);
+    letter-spacing: var(--sr-tracking-wide);
+    color: var(--sr-text-dim);
+  }
+  .nf__title {
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-xl);
+    letter-spacing: 0.02em;
+  }
+  .nf__sub {
+    color: var(--sr-text-muted);
+    letter-spacing: 0.04em;
+    font-size: var(--sr-text-sm);
+  }
+  .nf__home {
+    margin-top: var(--sr-space-6);
+    padding: 0.72rem 1.5rem;
+  }
+</style>

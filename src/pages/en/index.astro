@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Home from "@/components/Home.astro";
+
+// English parallel route /en.
+const locale = "en" as const;
+---
+
+<Layout locale={locale}>
+  <Home locale={locale} />
+</Layout>

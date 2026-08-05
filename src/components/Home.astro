@@ -1,0 +1,256 @@
+---
+/*
+  首頁內容（單一權威來源；三個 locale 路由共用，靠 locale prop 切換文案）。
+  Phase 2：Hero 分層——bg（程序化虛空，2b/2c 注入 canvas island）／scrim／content。
+  Phase 3+ 的捲動電影區塊接於本檔 Hero 之後。
+*/
+import Mark from "@/components/brand/Mark.astro";
+import VoidField from "@/components/hero/VoidField.tsx";
+import Starfield from "@/components/hero/Starfield.tsx";
+import Shattering from "@/components/sections/Shattering.astro";
+import Gameplay from "@/components/sections/Gameplay.astro";
+import Chapters from "@/components/sections/Chapters.astro";
+import Characters from "@/components/sections/Characters.astro";
+import Play from "@/components/sections/Play.astro";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+// en 的大標題本身即拉丁字，不再重複拉丁副標
+const showLatin = locale !== "en";
+
+// CTA 目標：Play → Phase 6 啟動器；Learn → Phase 3 世界（碎裂）區塊
+const playHref = "#play";
+const learnHref = "#world";
+---
+
+<main id="main">
+  <section class="hero" id="top">
+    <!-- 背景層：程序化虛空。Pixi VoidField（WebGL）在下，Starfield（星座）疊於其上 -->
+    <div class="hero__bg" aria-hidden="true">
+      <VoidField client:visible />
+      <Starfield client:visible interactive density={1} />
+    </div>
+    <!-- 底部漸隱，讓 Hero 融入後續區塊 -->
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <!-- 中央徑向壓暗：保證字標 / 標語在虛空之上仍清晰可讀 -->
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="sr-container hero__content">
+      <div class="hero__mark" data-reveal>
+        <Mark size={64} glow title={t("site.name")} />
+      </div>
+      <h1 class="hero__title sr-gradient-text" data-reveal>{t("site.name")}</h1>
+      {showLatin && <p class="hero__latin" data-reveal>{t("site.nameLatin")}</p>}
+      <p class="hero__tagline" data-reveal>{t("site.tagline")}</p>
+
+      <div class="hero__cta" data-reveal>
+        <a class="sr-btn sr-btn--primary" href={playHref} data-magnetic>
+          {t("cta.play")}
+        </a>
+        <a class="sr-btn sr-btn--ghost" href={learnHref} data-magnetic>
+          {t("cta.learn")}
+        </a>
+      </div>
+    </div>
+
+    <a class="hero__scroll" href={learnHref} aria-label={t("cta.learn")}>
+      <span class="hero__scroll-track"><span class="hero__scroll-dot"></span></span>
+    </a>
+  </section>
+
+  <!-- Phase 3：碎裂 The Shattering（世界觀捲動電影） -->
+  <Shattering locale={locale} />
+
+  <!-- Phase 4：玩法四合一 + 英雄卡 -->
+  <Gameplay locale={locale} />
+
+  <!-- Phase 5：主題曲 / 碎界樹（章節） -->
+  <Chapters locale={locale} />
+
+  <Characters locale={locale} />
+
+  <!-- Phase 6：開始遊戲 Play（hoshi-svc 路由 + iframe 遊戲入口 + 截圖換裝槽） -->
+  <Play locale={locale} />
+</main>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  /* 程序化虛空底：徑向輝光（canvas island 疊於其上） */
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: var(--sr-z-bg);
+    background:
+      radial-gradient(
+        60% 50% at 50% 28%,
+        rgba(122, 162, 255, 0.14),
+        transparent 70%
+      ),
+      radial-gradient(
+        45% 40% at 72% 82%,
+        rgba(122, 91, 255, 0.12),
+        transparent 70%
+      ),
+      var(--sr-void);
+  }
+  /* 注入的 canvas 鋪滿背景層、指標穿透 */
+  .hero__bg :global(canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  /* Pixi 虛空的宿主容器：填滿背景層（Pixi resizeTo 依此取尺寸） */
+  .hero__bg :global(.sr-voidfield) {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent 62%,
+      rgba(6, 7, 11, 0.55) 88%,
+      var(--sr-void) 100%
+    );
+  }
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background: radial-gradient(
+      50% 46% at 50% 44%,
+      rgba(6, 7, 11, 0.58),
+      transparent 68%
+    );
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: var(--sr-z-content);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .hero__mark {
+    margin-bottom: 0.5rem;
+    animation: hero-pulse 4.2s var(--sr-ease-in-out) infinite;
+  }
+  @keyframes hero-pulse {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 0.92;
+    }
+    50% {
+      transform: translateY(-4px) scale(1.05);
+      opacity: 1;
+    }
+  }
+
+  .hero__title {
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-display);
+    letter-spacing: var(--sr-tracking-wide);
+    line-height: 1;
+    padding-inline: 0.2em;
+    filter: drop-shadow(0 2px 24px rgba(122, 162, 255, 0.28));
+  }
+  .hero__latin {
+    color: var(--sr-text-muted);
+    letter-spacing: var(--sr-tracking-wider);
+    font-size: var(--sr-text-sm);
+    text-transform: uppercase;
+  }
+  .hero__tagline {
+    margin-top: 1.2rem;
+    color: var(--sr-text);
+    letter-spacing: 0.06em;
+    font-size: var(--sr-text-lg);
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.85rem;
+    margin-top: 2.4rem;
+  }
+  .hero__cta .sr-btn {
+    padding: 0.8rem 1.6rem;
+    font-size: var(--sr-text-base);
+  }
+
+  /* 捲動指示：底部脈動小點，邀請往下 */
+  .hero__scroll {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--sr-z-content);
+    display: grid;
+    place-items: center;
+  }
+  .hero__scroll-track {
+    display: block;
+    width: 24px;
+    height: 38px;
+    border: 1px solid var(--sr-border-strong);
+    border-radius: var(--sr-radius-pill);
+    position: relative;
+  }
+  .hero__scroll-dot {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--sr-accent);
+    animation: hero-scroll 1.8s var(--sr-ease-in-out) infinite;
+  }
+  @keyframes hero-scroll {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    30% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(16px);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero__cta .sr-btn {
+      width: min(20rem, 100%);
+    }
+  }
+</style>
