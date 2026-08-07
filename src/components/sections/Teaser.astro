@@ -67,11 +67,29 @@ const PREVIEWS = [
           <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z" /></svg>
         </span>
 
-        <div class="teaser__controls" data-teaser-controls>
-          <button class="teaser__btn" type="button" data-teaser-prev aria-label={t("teaser.prev")}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
-          </button>
+        {/* 上一段 / 下一段：貼在畫面左右兩側，切片段的動作與播放控制分開 */}
+        {PREVIEWS.length > 1 && (
+          <>
+            <button
+              class="teaser__side teaser__side--prev"
+              type="button"
+              data-teaser-prev
+              aria-label={t("teaser.prev")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+            </button>
+            <button
+              class="teaser__side teaser__side--next"
+              type="button"
+              data-teaser-next
+              aria-label={t("teaser.next")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z" /></svg>
+            </button>
+          </>
+        )}
 
+        <div class="teaser__controls" data-teaser-controls>
           {/* 兩組文案都掛在 data-* 上，腳本切狀態時直接取用，不必在 JS 裡再寫死三語 */}
           <button
             class="teaser__btn teaser__btn--play"
@@ -83,10 +101,6 @@ const PREVIEWS = [
           >
             <svg class="i-play is-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
             <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
-          </button>
-
-          <button class="teaser__btn" type="button" data-teaser-next aria-label={t("teaser.next")}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z" /></svg>
           </button>
 
           <input
@@ -114,6 +128,18 @@ const PREVIEWS = [
             <svg class="i-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9zm12.5 3l2.5 2.5-1 1L15.5 13 13 15.5l-1-1L14.5 12 12 9.5l1-1 2.5 2.5L18 8.5l1 1z" /></svg>
             <svg class="i-sound is-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9zm11.5 3a4 4 0 00-2-3.5v7a4 4 0 002-3.5zm-2-7.8v2a6 6 0 010 11.6v2a8 8 0 000-15.6z" /></svg>
           </button>
+
+          {/* 音量：靜音時滑桿歸零；由零往上拉即自動取消靜音 */}
+          <input
+            class="teaser__volume"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+            step="1"
+            data-teaser-volume
+            aria-label={t("teaser.volume")}
+          />
 
           <button
             class="teaser__btn"
@@ -219,6 +245,44 @@ const PREVIEWS = [
     opacity: 1;
   }
 
+  /* ---- 左右側的上一段 / 下一段 ---- */
+  .teaser__side {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--sr-border-strong);
+    border-radius: 50%;
+    color: var(--sr-text-bright);
+    background: rgba(6, 7, 11, 0.55);
+    -webkit-backdrop-filter: var(--sr-blur);
+    backdrop-filter: var(--sr-blur);
+    opacity: 0.55;
+    transition:
+      opacity var(--sr-dur-fast) var(--sr-ease-out),
+      border-color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .teaser__side svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  .teaser__side:hover,
+  .teaser__side:focus-visible {
+    opacity: 1;
+    border-color: var(--sr-accent);
+  }
+  .teaser__side--prev {
+    left: clamp(0.6rem, 2vw, 1.2rem);
+  }
+  .teaser__side--next {
+    right: clamp(0.6rem, 2vw, 1.2rem);
+  }
+
   /* ---- 控制列 ---- */
   .teaser__controls {
     position: absolute;
@@ -307,6 +371,43 @@ const PREVIEWS = [
     box-shadow: 0 0 8px rgba(143, 169, 255, 0.6);
   }
 
+  /* 音量：與進度條共用滑桿外觀，但短、不搶版面 */
+  .teaser__volume {
+    flex: none;
+    width: 74px;
+    height: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .teaser__volume::-webkit-slider-runnable-track,
+  .teaser__volume::-moz-range-track {
+    height: 4px;
+    border-radius: var(--sr-radius-pill);
+    background: linear-gradient(
+      to right,
+      var(--sr-text-bright) calc(var(--level, 0) * 1%),
+      rgba(255, 255, 255, 0.25) calc(var(--level, 0) * 1%)
+    );
+  }
+  .teaser__volume::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: var(--sr-text-bright);
+  }
+  .teaser__volume::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sr-text-bright);
+  }
+
   .teaser__time {
     flex: none;
     font-size: var(--sr-text-xs);
@@ -336,6 +437,12 @@ const PREVIEWS = [
     background: var(--sr-accent);
   }
 
+  @media (max-width: 640px) {
+    /* 窄螢幕先讓位給進度條：音量收起，靜音鈕仍在 */
+    .teaser__volume {
+      display: none;
+    }
+  }
   @media (max-width: 480px) {
     .teaser__btn {
       width: 30px;
@@ -349,8 +456,16 @@ const PREVIEWS = [
       width: 54px;
       height: 54px;
     }
+    .teaser__side {
+      width: 36px;
+      height: 36px;
+    }
+    .teaser__side svg {
+      width: 17px;
+      height: 17px;
+    }
     .teaser__time {
-      display: none; /* 窄螢幕先讓位給進度條 */
+      display: none;
     }
   }
 </style>
@@ -374,8 +489,10 @@ const PREVIEWS = [
     const seek = q<HTMLInputElement>("[data-teaser-seek]");
     const timeEl = q<HTMLElement>("[data-teaser-time]");
     const muteBtn = q<HTMLButtonElement>("[data-teaser-mute]");
+    const volume = q<HTMLInputElement>("[data-teaser-volume]");
     const fsBtn = q<HTMLButtonElement>("[data-teaser-fs]");
-    if (!videos.length || !frame || !toggle || !seek || !timeEl || !muteBtn || !fsBtn) return;
+    if (!videos.length || !frame || !toggle || !seek || !timeEl || !muteBtn || !volume || !fsBtn)
+      return;
 
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     // 文案一律自 data-* 取；腳本不重寫一份三語字串
@@ -406,6 +523,22 @@ const PREVIEWS = [
       timeEl.textContent = `${fmt(v.currentTime)} / ${fmt(d)}`;
     };
 
+    // 靜音與音量套到全部片段，並同步圖示、aria 與滑桿位置
+    const applySound = (muted: boolean, level: number) => {
+      const lvl = Math.min(1, Math.max(0, level));
+      videos.forEach((v) => {
+        v.muted = muted;
+        v.volume = lvl;
+      });
+      const shown = muted ? 0 : lvl;
+      volume.value = String(Math.round(shown * 100));
+      volume.style.setProperty("--level", String(shown * 100));
+      muteBtn.querySelector(".i-muted")!.classList.toggle("is-off", !muted);
+      muteBtn.querySelector(".i-sound")!.classList.toggle("is-off", muted);
+      muteBtn.setAttribute("aria-pressed", String(muted));
+      muteBtn.setAttribute("aria-label", muted ? labels.unmute : labels.mute);
+    };
+
     const paintPlayState = () => {
       const isPaused = active().paused;
       player.toggleAttribute("data-paused", isPaused);
@@ -426,7 +559,9 @@ const PREVIEWS = [
       const v = videos[i];
       v.hidden = false;
       if (v.preload === "none") v.preload = "auto";
+      // 音量與靜音沿用：切片段不該把使用者調好的聲音重設
       v.muted = prev.muted;
+      v.volume = prev.volume;
       current = i;
 
       dots.forEach((d, di) => d.setAttribute("aria-current", String(di === i)));
@@ -462,14 +597,18 @@ const PREVIEWS = [
       seek.style.setProperty("--progress", String(Number(seek.value) / 10));
     });
 
-    // ---- 靜音 ----
+    // ---- 靜音 / 音量 ----
+    // 靜音鈕與音量滑桿是同一個狀態的兩個面：靜音＝滑桿歸零，從零往上拉＝自動取消靜音。
     muteBtn.addEventListener("click", () => {
-      const next = !active().muted;
-      videos.forEach((v) => (v.muted = next));
-      muteBtn.querySelector(".i-muted")!.classList.toggle("is-off", !next);
-      muteBtn.querySelector(".i-sound")!.classList.toggle("is-off", next);
-      muteBtn.setAttribute("aria-pressed", String(next));
-      muteBtn.setAttribute("aria-label", next ? labels.unmute : labels.mute);
+      const muted = !active().muted;
+      // 從靜音解除時，若音量停在 0 就給一個聽得見的預設值
+      const level = muted ? active().volume : active().volume || 1;
+      applySound(muted, level);
+    });
+
+    volume.addEventListener("input", () => {
+      const level = Number(volume.value) / 100;
+      applySound(level === 0, level);
     });
 
     // ---- 全螢幕 ----
@@ -510,6 +649,9 @@ const PREVIEWS = [
     });
 
     if (reduced) videos.forEach((v) => v.pause());
+    // 起手：靜音（瀏覽器只允許靜音自動播放），滑桿歸零但底層音量留 1，
+    // 按下取消靜音就直接聽得見。
+    applySound(true, 1);
     paint();
     paintPlayState();
   }
