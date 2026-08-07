@@ -1,10 +1,18 @@
 ---
 /*
-  英雄 Characters（#characters）—— 四張英雄卡。
-  白棠 / 暗影 / 赤焰 / 青蘿，各帶元素光暈、題詞、玩法幻想。
-  無美術資產 → 立繪位以「程序化元素徽記＋種子化星座」佔位；
-  此區即「換裝槽」：日後正式立繪只需在 `.hero-card__portrait` 疊上 <img class="hero-card__art">。
-  進場靠 `[data-reveal]` stagger（Layout 已 boot）；指標微傾為漸進增強（見底部 script）。
+  角色與群像 Characters（#characters）—— 四段人物介紹。
+
+  刻意「不是圖鑑」：本作沒有誰站在世界的中心，所以這一區不做四張並排的角色卡
+  （那是抽卡遊戲的陳列櫃），改成左右交錯的群像列——每個人各佔一段，讀起來像
+  人物介紹而不是可選單位一覽。
+
+  資訊順序也照這個原則排：**先是誰，再能打什麼**。
+  role（在哪一段故事裡遇見他）→ name → epithet → seeking（他在找什麼，主文）
+  → combat（戰鬥定位，次級資訊，以細線隔開並降階）。
+
+  立繪已接（`public/art/portraits/`）；未接者維持程序化佔位（元素徽記＋種子化星座），
+  日後新增角色留 `art: null` 即可走佔位分支。
+  進場靠 `[data-reveal]` stagger（Layout 已 boot）。
 */
 import { useTranslations, type Locale } from "@/i18n/utils";
 
@@ -14,7 +22,7 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// 種子化星座：每位英雄一組決定性星點（呼應 Starfield 品牌），佔位立繪的紋理。
+// 種子化星座：每位角色一組決定性星點（呼應 Starfield 品牌），立繪背後的紋理。
 function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -38,11 +46,11 @@ function constellation(seed: number) {
   return { stars, path };
 }
 
-// 四位英雄：id → 元素徽記字符 + 元素強調色（inline --el）+ 立繪（art）。文案由 i18n
+// 四位角色：id → 元素徽記字符 + 元素強調色（inline --el）+ 立繪（art）。文案由 i18n
 // 提供。art 為 null＝立繪待接（程序化佔位）；有值＝疊上正式立繪換裝槽。以 `as const`
 // 保 id 為字面量（供 i18n 鍵推導）；渲染時以區域變數 `art` 判斷，避免佔位分支被
-// 收斂為 never（日後新增英雄可留 art: null 走佔位）。
-const heroes = [
+// 收斂為 never（日後新增角色可留 art: null 走佔位）。
+const figures = [
   { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01, art: "/art/portraits/hakuto.webp" as string | null },
   { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0, art: "/art/portraits/shadow.webp" as string | null },
   { id: "sekien", glyph: "❂", el: "var(--sr-gold)", seed: 0xf1a3e, art: "/art/portraits/sekien.webp" as string | null },
@@ -60,24 +68,23 @@ const heroes = [
     <p class="characters__lead" data-reveal>{t("char.lead")}</p>
   </div>
 
-  <ul class="sr-container characters__grid">
-    {heroes.map((h) => {
-      const c = constellation(h.seed);
+  <ul class="sr-container characters__list">
+    {figures.map((f) => {
+      const c = constellation(f.seed);
       return (
-        <li class="hero-card" style={`--el:${h.el}`} data-hero={h.id} data-reveal>
-          {/* 換裝槽：正式立繪（已接者）疊在程序化元素光暈＋星座之上；未接者維持佔位 */}
-          <div class={`hero-card__portrait${h.art ? " has-art" : ""}`}>
-            <svg class="hero-card__stars" viewBox="0 0 100 130" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
-              <path d={c.path} class="hero-card__constellation" />
+        <li class="figure" style={`--el:${f.el}`} data-figure={f.id} data-reveal>
+          <div class={`figure__portrait${f.art ? " has-art" : ""}`}>
+            <svg class="figure__stars" viewBox="0 0 100 130" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+              <path d={c.path} class="figure__constellation" />
               {c.stars.map((s) => (
                 <circle cx={s.x} cy={s.y} r={s.r} />
               ))}
             </svg>
-            {h.art ? (
+            {f.art ? (
               <img
-                class="hero-card__art"
-                src={h.art}
-                alt={t(`char.${h.id}.name`)}
+                class="figure__art"
+                src={f.art}
+                alt={t(`char.${f.id}.name`)}
                 width="720"
                 height="960"
                 loading="lazy"
@@ -85,17 +92,28 @@ const heroes = [
               />
             ) : (
               <>
-                <span class="hero-card__sigil" aria-hidden="true">{h.glyph}</span>
-                <span class="hero-card__slot-note">{t("char.slotNote")}</span>
+                <span class="figure__sigil" aria-hidden="true">{f.glyph}</span>
+                <span class="figure__slot-note">{t("char.slotNote")}</span>
               </>
             )}
           </div>
 
-          <div class="hero-card__body">
-            <span class="hero-card__element">{t(`char.${h.id}.element`)}</span>
-            <h3 class="hero-card__name sr-gradient-text">{t(`char.${h.id}.name`)}</h3>
-            <p class="hero-card__epithet">{t(`char.${h.id}.epithet`)}</p>
-            <p class="hero-card__fantasy">{t(`char.${h.id}.fantasy`)}</p>
+          <div class="figure__body">
+            {/* 先告訴訪客在哪一段故事裡會遇見這個人 */}
+            <p class="figure__role">{t(`char.${f.id}.role`)}</p>
+            <h3 class="figure__name sr-gradient-text">{t(`char.${f.id}.name`)}</h3>
+            <p class="figure__epithet">{t(`char.${f.id}.epithet`)}</p>
+            {/* 主文：他在找什麼——這才是「他是誰」 */}
+            <p class="figure__seeking">{t(`char.${f.id}.seeking`)}</p>
+
+            {/* 次級資訊：他能打什麼 */}
+            <div class="figure__combat">
+              <p class="figure__combat-label">
+                <span class="figure__combat-tag">{t("char.combat")}</span>
+                <span class="figure__combat-el">{t(`char.${f.id}.element`)}</span>
+              </p>
+              <p class="figure__combat-text">{t(`char.${f.id}.fantasy`)}</p>
+            </div>
           </div>
         </li>
       );
@@ -136,51 +154,56 @@ const heroes = [
     color: var(--sr-text-muted);
   }
 
-  .characters__grid {
+  /* 群像：一人一段，彼此以細線分隔——不是並排的陳列櫃 */
+  .characters__list {
     list-style: none;
     margin-top: var(--sr-space-16);
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(1rem, 2vw, 1.5rem);
-  }
-
-  .hero-card {
-    --tiltx: 0deg;
-    --tilty: 0deg;
-    position: relative;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--sr-border);
-    border-radius: var(--sr-radius-lg);
-    background: var(--sr-surface-1);
-    overflow: hidden;
-    transform: perspective(900px) rotateX(var(--tiltx)) rotateY(var(--tilty));
-    transform-style: preserve-3d;
-    transition:
-      transform var(--sr-dur) var(--sr-ease-out),
-      border-color var(--sr-dur) var(--sr-ease-out),
-      box-shadow var(--sr-dur) var(--sr-ease-out);
-  }
-  .hero-card:hover {
-    border-color: color-mix(in srgb, var(--el) 50%, var(--sr-border));
-    box-shadow:
-      var(--sr-shadow-2),
-      0 0 46px color-mix(in srgb, var(--el) 24%, transparent);
+    gap: var(--sr-space-16);
   }
 
-  /* 換裝槽：程序化立繪佔位（3:4 直幅） */
-  .hero-card__portrait {
+  .figure {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: clamp(1.5rem, 5vw, 4rem);
+  }
+  .figure + .figure {
+    padding-top: var(--sr-space-16);
+    border-top: 1px solid var(--sr-border);
+  }
+  /* 左右交錯：讀起來像人物介紹的跨頁，而不是一列格子。
+     欄寬也要跟著翻面——否則立繪會落進寬欄，變成比正文還大的一張巨圖。 */
+  .figure:nth-child(even) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  }
+  .figure:nth-child(even) .figure__portrait {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .figure:nth-child(even) .figure__body {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* 立繪：無卡框、底部融進虛空——刻意不做成一張「卡」 */
+  .figure__portrait {
     position: relative;
     aspect-ratio: 3 / 4;
     display: grid;
     place-items: center;
     overflow: hidden;
-    background:
-      radial-gradient(75% 60% at 50% 32%, color-mix(in srgb, var(--el) 26%, transparent), transparent 72%),
-      linear-gradient(180deg, var(--sr-bg-deep), var(--sr-surface-1));
+    border-radius: var(--sr-radius-lg);
+    background: radial-gradient(
+      70% 58% at 50% 34%,
+      color-mix(in srgb, var(--el) 20%, transparent),
+      transparent 72%
+    );
+    -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
   }
-  /* 已接立繪：透明底全身立繪疊在元素光暈＋星座之上（換裝槽） */
-  .hero-card__portrait :global(.hero-card__art) {
+  .figure__portrait :global(.figure__art) {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -188,138 +211,141 @@ const heroes = [
     object-fit: contain;
     object-position: center bottom;
     z-index: 3;
-    filter: drop-shadow(0 8px 26px color-mix(in srgb, var(--el) 32%, transparent));
-    transition: transform var(--sr-dur-slow, 0.5s) var(--sr-ease-out);
+    filter: drop-shadow(0 8px 26px color-mix(in srgb, var(--el) 30%, transparent));
   }
-  .hero-card:hover .hero-card__art {
-    transform: translateY(-2%) scale(1.03);
-  }
-  /* 有立繪的卡：加強元素光暈與底部立足暈染 */
-  .hero-card__portrait.has-art {
-    background:
-      radial-gradient(78% 66% at 50% 26%, color-mix(in srgb, var(--el) 30%, transparent), transparent 74%),
-      radial-gradient(60% 22% at 50% 100%, color-mix(in srgb, var(--el) 28%, transparent), transparent 70%),
-      linear-gradient(180deg, var(--sr-bg-deep), var(--sr-surface-1));
-  }
-  .hero-card__stars {
+  .figure__stars {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     fill: var(--sr-star);
-    opacity: 0.5;
+    opacity: 0.4;
   }
-  .hero-card__constellation {
+  .figure__constellation {
     fill: none;
     stroke: var(--el);
     stroke-width: 0.5;
-    opacity: 0.5;
+    opacity: 0.45;
   }
-  .hero-card__sigil {
+  .figure__sigil {
     position: relative;
     z-index: 2;
     font-size: clamp(3.2rem, 8vw, 4.6rem);
     line-height: 1;
     color: var(--el);
     text-shadow: 0 0 26px color-mix(in srgb, var(--el) 70%, transparent);
-    transform: translateZ(40px);
-    animation: hero-float 5.6s var(--sr-ease-in-out) infinite;
+    animation: figure-float 5.6s var(--sr-ease-in-out) infinite;
   }
-  @keyframes hero-float {
-    0%, 100% { transform: translateZ(40px) translateY(0); }
-    50% { transform: translateZ(40px) translateY(-6px); }
+  @keyframes figure-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
   }
-  .hero-card__slot-note {
+  .figure__slot-note {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0.5rem;
+    bottom: 12%;
     z-index: 2;
     text-align: center;
-    font-size: 0.66rem;
-    letter-spacing: var(--sr-tracking-wide);
-    text-transform: uppercase;
-    color: var(--sr-text-dim);
-    opacity: 0;
-    transition: opacity var(--sr-dur) var(--sr-ease-out);
-  }
-  .hero-card:hover .hero-card__slot-note {
-    opacity: 0.9;
-  }
-
-  .hero-card__body {
-    padding: var(--sr-space-4) var(--sr-space-4) var(--sr-space-6);
-    border-top: 1px solid var(--sr-border);
-  }
-  .hero-card__element {
-    display: inline-block;
     font-size: var(--sr-text-xs);
     letter-spacing: var(--sr-tracking-wide);
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--el) 78%, var(--sr-text-muted));
+    color: var(--sr-text-dim);
   }
-  .hero-card__name {
-    margin-top: var(--sr-space-2);
+
+  /* ---- 文字：先是誰，再能打什麼 ---- */
+  .figure__body {
+    max-width: 56ch;
+  }
+  .figure__role {
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--el) 72%, var(--sr-text-muted));
+  }
+  .figure__name {
+    margin-top: var(--sr-space-3);
     font-family: var(--sr-font-display);
     font-weight: 800;
     font-size: var(--sr-text-xl);
     line-height: 1.1;
     letter-spacing: 0.02em;
   }
-  .hero-card__epithet {
+  .figure__epithet {
     margin-top: var(--sr-space-1);
     font-size: var(--sr-text-sm);
-    color: var(--sr-text-muted);
+    color: var(--sr-text-dim);
   }
-  .hero-card__fantasy {
-    margin-top: var(--sr-space-3);
+  /* 主文：他在找什麼 */
+  .figure__seeking {
+    margin-top: var(--sr-space-6);
+    font-size: var(--sr-text-lg);
+    line-height: var(--sr-leading);
+    color: var(--sr-text);
+    max-width: 44ch;
+  }
+
+  /* 次級：戰鬥定位。細線隔開、字級與明度都降一階 */
+  .figure__combat {
+    margin-top: var(--sr-space-8);
+    padding-top: var(--sr-space-4);
+    border-top: 1px solid var(--sr-border);
+    max-width: 46ch;
+  }
+  .figure__combat-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+  }
+  .figure__combat-tag {
+    color: var(--sr-text-dim);
+  }
+  .figure__combat-el {
+    color: color-mix(in srgb, var(--el) 78%, var(--sr-text-muted));
+  }
+  .figure__combat-text {
+    margin-top: var(--sr-space-2);
     font-size: var(--sr-text-sm);
     line-height: var(--sr-leading);
     color: var(--sr-text-muted);
   }
 
-  @media (max-width: 900px) {
-    .characters__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  @media (max-width: 480px) {
-    .characters__grid {
-      grid-template-columns: 1fr;
+  @media (max-width: 760px) {
+    .characters__list {
       margin-top: var(--sr-space-12);
+      gap: var(--sr-space-12);
+    }
+    /* 單欄時取消交錯，立繪一律在上（nth-child 的權重比 .figure 高，要一併壓掉） */
+    .figure,
+    .figure:nth-child(even) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--sr-space-6);
+    }
+    .figure + .figure {
+      padding-top: var(--sr-space-12);
+    }
+    .figure:nth-child(even) .figure__portrait,
+    .figure:nth-child(even) .figure__body {
+      grid-column: 1;
+      grid-row: auto;
+    }
+    /* 立繪的子元素全是 absolute，內容尺寸為 0：置中必須給定寬，
+       不能用 margin-inline:auto——那會取消 grid 的 stretch，讓它塌成 0 寬。 */
+    .figure__portrait {
+      width: min(20rem, 100%);
+      justify-self: center;
+    }
+    .figure__body {
+      max-width: none;
     }
   }
 </style>
-
-<script>
-  /*
-    英雄卡指標微傾（3D parallax）—— 漸進增強。
-    守衛：reduced-motion 或非精細指標（觸控）→ 不啟用，卡片維持平面靜態。
-    以 CSS 變數 --tiltx/--tilty 驅動 rotateX/Y（sigil 以 translateZ 產生景深）。
-  */
-  function initTilt() {
-    const rm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const fine = window.matchMedia?.("(pointer: fine)").matches;
-    if (rm || !fine) return;
-
-    const cards = document.querySelectorAll<HTMLElement>("#characters .hero-card");
-    const MAX = 6; // 最大傾角（deg）
-    cards.forEach((card) => {
-      const onMove = (e: PointerEvent) => {
-        const r = card.getBoundingClientRect();
-        const px = (e.clientX - r.left) / r.width - 0.5; // -0.5..0.5
-        const py = (e.clientY - r.top) / r.height - 0.5;
-        card.style.setProperty("--tilty", `${(px * MAX * 2).toFixed(2)}deg`);
-        card.style.setProperty("--tiltx", `${(-py * MAX * 2).toFixed(2)}deg`);
-      };
-      const reset = () => {
-        card.style.setProperty("--tilty", "0deg");
-        card.style.setProperty("--tiltx", "0deg");
-      };
-      card.addEventListener("pointermove", onMove);
-      card.addEventListener("pointerleave", reset);
-    });
-  }
-
-  initTilt();
-</script>

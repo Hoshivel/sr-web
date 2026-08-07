@@ -13,6 +13,11 @@ pnpm-debug.log*
 .env
 .env.production
 *.local
+
+# 預覽影片：本機暫放（brand-assets 的原檔，合計約 158 MB）。
+# 上線時改為外部 URL——見 src/components/sections/Teaser.astro 的 PREVIEWS。
+# 不入版控：靜態站的產物不該扛著上百 MB 的二進位檔。
+public/media/*.mp4
 # macOS / editor
 .DS_Store
 .vscode/

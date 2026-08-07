@@ -34,7 +34,7 @@ const nav = [
       <Wordmark locale={locale} variant="compact" glow />
     </a>
 
-    <nav class="sr-header__nav" id="sr-primary-nav" aria-label={t("nav.world")}>
+    <nav class="sr-header__nav" id="sr-primary-nav" aria-label={t("a11y.primaryNav")}>
       {nav.map((item) => (
         <a class="sr-header__link" href={item.href}>{item.label}</a>
       ))}
