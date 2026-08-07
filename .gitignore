@@ -14,10 +14,12 @@ pnpm-debug.log*
 .env.production
 *.local
 
-# 預覽影片：本機暫放（brand-assets 的原檔，合計約 158 MB）。
-# 上線時改為外部 URL——見 src/components/sections/Teaser.astro 的 PREVIEWS。
-# 不入版控：靜態站的產物不該扛著上百 MB 的二進位檔。
-public/media/*.mp4
+# 影片一律放外部存儲，**不要放進 public/**。
+# public/ 會被原封不動複製進 dist/，也就是部署產物——擺在這裡等於連同上百 MB
+# 的影片一起上傳，.gitignore 擋得住 git 卻擋不住 dist/。
+# 來源設定見 src/config/media.ts 與 .env.example 的 PUBLIC_MEDIA_BASE。
+# 本規則只是最後一道保險，防止有人又把影片丟回來。
+public/media/
 # macOS / editor
 .DS_Store
 .vscode/

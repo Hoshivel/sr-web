@@ -11,6 +11,7 @@ import Mark from "@/components/brand/Mark.astro";
 import VoidField from "@/components/hero/VoidField.tsx";
 import Starfield from "@/components/hero/Starfield.tsx";
 import Teaser from "@/components/sections/Teaser.astro";
+import { HAS_PREVIEWS } from "@/config/media";
 import Shattering from "@/components/sections/Shattering.astro";
 import Gameplay from "@/components/sections/Gameplay.astro";
 import Chapters from "@/components/sections/Chapters.astro";
@@ -27,10 +28,11 @@ const t = useTranslations(locale);
 const showLatin = locale !== "en";
 
 // CTA 目標：Play → Phase 6 啟動器；Learn → 世界（碎裂）區塊。
-// 捲動指示另指 #teaser——它才是 Hero 的下一個區塊，不該把實機片段跳過去。
+// 捲動指示指向 Hero 的下一個區塊：有預覽就是 #teaser，沒有就直接到 #world
+// （影片來源未設定時整個預覽區塊不輸出，錨點也不能留在那裡指空）。
 const playHref = "#play";
 const learnHref = "#world";
-const nextHref = "#teaser";
+const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
 ---
 
 <main id="main">
@@ -68,8 +70,9 @@ const nextHref = "#teaser";
     </a>
   </section>
 
-  <!-- 實機片段：先讓訪客看它動起來，再談世界為何碎裂（換裝槽，尚無影片資產） -->
-  <Teaser locale={locale} />
+  <!-- 預覽：先讓訪客看它動起來，再談世界為何碎裂。
+       影片來源由 src/config/media.ts 決定（外部存儲）；未設定時整區不輸出。 -->
+  {HAS_PREVIEWS && <Teaser locale={locale} />}
 
   <!-- 碎裂 The Shattering（世界觀捲動電影）：世界為何碎裂，以及沒有誰站在中心 -->
   <Shattering locale={locale} />

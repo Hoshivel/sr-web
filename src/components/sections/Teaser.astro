@@ -9,6 +9,7 @@
   預設靜音（瀏覽器只允許靜音自動播放），使用者可自行取消靜音。
   無 JS：第一段照樣顯示並自動播放，控制列不作用（漸進增強）。
 */
+import { PREVIEWS } from "@/config/media";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -16,21 +17,11 @@ interface Props {
 }
 const { locale } = Astro.props;
 const t = useTranslations(locale);
-
-/*
-  換裝槽：預覽片段。**上線時把 src 改成外部 URL**（CDN／物件儲存）即可，
-  版面與腳本都不必動。
-
-  現況為本機暫放：檔案來自 brand-assets，經 `public/media/` 提供，
-  且已在 .gitignore 排除（合計約 158 MB，不入版控）。
-  兩段皆 1920×1080（16:9），故框體固定 16/9。
-*/
-const PREVIEWS = [
-  { src: "/media/preview-1.mp4", type: "video/mp4" },
-  { src: "/media/preview-hakuto.mp4", type: "video/mp4" },
-];
+// 片段來源一律由 src/config/media.ts 決定（外部存儲，不隨網站部署）。
+// 沒有可播的片段就整區不輸出——首頁已據 HAS_PREVIEWS 判斷，這裡再守一次。
 ---
 
+{PREVIEWS.length > 0 && (
 <section class="sr-section teaser" id="teaser">
   <div class="sr-container teaser__head">
     <p class="sr-eyebrow" data-reveal>{t("teaser.eyebrow")}</p>
@@ -171,6 +162,7 @@ const PREVIEWS = [
     </div>
   </div>
 </section>
+)}
 
 <style>
   .teaser {
