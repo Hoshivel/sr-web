@@ -9,8 +9,9 @@ type: npm
 output: dist/
 
 dev:
-  processes:
-    - name: web
-      run: npm run dev
-      # astro dev 的預設埠。宣告出來，-open 才知道要等哪個埠就緒。
-      ports: [4321]
+    open: http://localhost:4321
+    processes:
+      - name: web
+        run: npm run dev
+        # astro dev 的預設埠。宣告出來，-open 才知道要等哪個埠就緒。
+        ports: [ 4321, 4322 ]

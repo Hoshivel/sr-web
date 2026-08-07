@@ -159,8 +159,9 @@ const shards = Array.from({ length: COUNT }, () => {
   .shatter__lead {
     margin-top: var(--sr-space-8);
   }
+  /* 核心命題：與前後同色，只靠字重站出來（CJK 的合成斜體不好看，用粗體）。 */
   .shatter__claim {
-    color: var(--sr-text-bright);
+    font-weight: 700;
   }
 </style>
 
