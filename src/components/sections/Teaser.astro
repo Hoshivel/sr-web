@@ -1,0 +1,652 @@
+---
+/*
+  預覽 Teaser（#teaser）—— Hero 之後的第一個區塊。
+  只有眉標與播放器，沒有標題或說明文字：先讓訪客看它動起來，話留給後面的區塊。
+
+  自製播放控制器（不用瀏覽器原生 controls）：
+  上一段 / 播放暫停 / 下一段 ＋ 可拖曳進度條 ＋ 時間 ＋ 靜音 ＋ 全螢幕。
+  片尾**不重複循環，自動接下一段**（循環回第一段），像一份播放清單。
+  預設靜音（瀏覽器只允許靜音自動播放），使用者可自行取消靜音。
+  無 JS：第一段照樣顯示並自動播放，控制列不作用（漸進增強）。
+*/
+import { PREVIEWS } from "@/config/media";
+import { useTranslations, type Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+// 片段來源一律由 src/config/media.ts 決定（外部存儲，不隨網站部署）。
+// 沒有可播的片段就整區不輸出——首頁已據 HAS_PREVIEWS 判斷，這裡再守一次。
+---
+
+{PREVIEWS.length > 0 && (
+<section class="sr-section teaser" id="teaser">
+  <div class="sr-container teaser__head">
+    <p class="sr-eyebrow" data-reveal>{t("teaser.eyebrow")}</p>
+  </div>
+
+  <div class="sr-container teaser__stage" data-reveal>
+    <div
+      class="teaser__player"
+      data-teaser-player
+      role="group"
+      aria-roledescription="video playlist"
+      aria-label={t("teaser.videoLabel")}
+    >
+      <div class="teaser__frame" data-teaser-frame>
+        {PREVIEWS.map((v, i) => (
+          <video
+            class="teaser__video"
+            data-slide={i}
+            aria-label={`${t("teaser.videoLabel")} ${i + 1} / ${PREVIEWS.length}`}
+            width="1920"
+            height="1080"
+            autoplay={i === 0}
+            muted
+            playsinline
+            preload={i === 0 ? "auto" : "none"}
+            hidden={i !== 0}
+          >
+            <source src={v.src} type={v.type} />
+          </video>
+        ))}
+
+        {/* 暫停時浮現的中央播放標記；真正可聚焦的控制項在控制列上 */}
+        <span class="teaser__center" data-teaser-center aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z" /></svg>
+        </span>
+
+        {/* 上一段 / 下一段：貼在畫面左右兩側，切片段的動作與播放控制分開 */}
+        {PREVIEWS.length > 1 && (
+          <>
+            <button
+              class="teaser__side teaser__side--prev"
+              type="button"
+              data-teaser-prev
+              aria-label={t("teaser.prev")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+            </button>
+            <button
+              class="teaser__side teaser__side--next"
+              type="button"
+              data-teaser-next
+              aria-label={t("teaser.next")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z" /></svg>
+            </button>
+          </>
+        )}
+
+        <div class="teaser__controls" data-teaser-controls>
+          {/* 兩組文案都掛在 data-* 上，腳本切狀態時直接取用，不必在 JS 裡再寫死三語 */}
+          <button
+            class="teaser__btn teaser__btn--play"
+            type="button"
+            data-teaser-toggle
+            data-play={t("teaser.play")}
+            data-pause={t("teaser.pause")}
+            aria-label={t("teaser.pause")}
+          >
+            <svg class="i-play is-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
+          </button>
+
+          <input
+            class="teaser__seek"
+            type="range"
+            min="0"
+            max="1000"
+            value="0"
+            step="1"
+            data-teaser-seek
+            aria-label={t("teaser.seek")}
+          />
+
+          <span class="teaser__time" data-teaser-time aria-hidden="true">0:00 / 0:00</span>
+
+          <button
+            class="teaser__btn"
+            type="button"
+            data-teaser-mute
+            data-mute={t("teaser.mute")}
+            data-unmute={t("teaser.unmute")}
+            aria-label={t("teaser.unmute")}
+            aria-pressed="true"
+          >
+            <svg class="i-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9zm12.5 3l2.5 2.5-1 1L15.5 13 13 15.5l-1-1L14.5 12 12 9.5l1-1 2.5 2.5L18 8.5l1 1z" /></svg>
+            <svg class="i-sound is-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9zm11.5 3a4 4 0 00-2-3.5v7a4 4 0 002-3.5zm-2-7.8v2a6 6 0 010 11.6v2a8 8 0 000-15.6z" /></svg>
+          </button>
+
+          {/* 音量：靜音時滑桿歸零；由零往上拉即自動取消靜音 */}
+          <input
+            class="teaser__volume"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+            step="1"
+            data-teaser-volume
+            aria-label={t("teaser.volume")}
+          />
+
+          <button
+            class="teaser__btn"
+            type="button"
+            data-teaser-fs
+            data-fs={t("teaser.fullscreen")}
+            data-exit={t("teaser.exitFullscreen")}
+            aria-label={t("teaser.fullscreen")}
+          >
+            <svg class="i-fs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zM6 15v3h3v2H4v-5zm12 3v-3h2v5h-5v-2z" /></svg>
+            <svg class="i-fs-exit is-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4V7h3V4zm6 0h2v3h3v2h-5zM4 15h5v5H7v-3H4zm11 5v-5h5v2h-3v3z" /></svg>
+          </button>
+        </div>
+      </div>
+
+      {PREVIEWS.length > 1 && (
+        <div class="teaser__dots">
+          {PREVIEWS.map((_, i) => (
+            <button
+              class="teaser__dot"
+              type="button"
+              data-teaser-dot={i}
+              aria-current={i === 0 ? "true" : "false"}
+              aria-label={`${t("teaser.videoLabel")} ${i + 1}`}
+            ></button>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+)}
+
+<style>
+  .teaser {
+    position: relative;
+    background:
+      radial-gradient(65% 55% at 50% 0%, rgba(122, 162, 255, 0.07), transparent 70%),
+      var(--sr-void);
+  }
+  .teaser__head {
+    text-align: center;
+  }
+  .teaser__stage {
+    margin-top: var(--sr-space-6);
+  }
+
+  .teaser__frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius-lg);
+    background: var(--sr-bg-deep);
+    box-shadow: var(--sr-shadow-3);
+    cursor: pointer;
+  }
+  /* 全螢幕時取消圓角與比例鎖，交給螢幕 */
+  .teaser__frame:fullscreen {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+  .teaser__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--sr-bg-deep);
+  }
+  .teaser__video[hidden] {
+    display: none;
+  }
+
+  /* 暫停時的中央標記 */
+  .teaser__center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 68px;
+    height: 68px;
+    padding-left: 4px; /* ▶ 視覺重心偏左 */
+    border: 1px solid var(--sr-border-strong);
+    border-radius: 50%;
+    color: var(--sr-text-bright);
+    background: rgba(6, 7, 11, 0.55);
+    -webkit-backdrop-filter: var(--sr-blur);
+    backdrop-filter: var(--sr-blur);
+    opacity: 0;
+    transition: opacity var(--sr-dur-fast) var(--sr-ease-out);
+    pointer-events: none;
+  }
+  .teaser__center svg {
+    fill: currentColor;
+  }
+  .teaser__player[data-paused] .teaser__center {
+    opacity: 1;
+  }
+
+  /* ---- 左右側的上一段 / 下一段 ---- */
+  .teaser__side {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--sr-border-strong);
+    border-radius: 50%;
+    color: var(--sr-text-bright);
+    background: rgba(6, 7, 11, 0.55);
+    -webkit-backdrop-filter: var(--sr-blur);
+    backdrop-filter: var(--sr-blur);
+    opacity: 0.55;
+    transition:
+      opacity var(--sr-dur-fast) var(--sr-ease-out),
+      border-color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .teaser__side svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  .teaser__side:hover,
+  .teaser__side:focus-visible {
+    opacity: 1;
+    border-color: var(--sr-accent);
+  }
+  .teaser__side--prev {
+    left: clamp(0.6rem, 2vw, 1.2rem);
+  }
+  .teaser__side--next {
+    right: clamp(0.6rem, 2vw, 1.2rem);
+  }
+
+  /* ---- 控制列 ---- */
+  .teaser__controls {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: clamp(0.25rem, 1vw, 0.6rem);
+    padding: clamp(0.5rem, 2vw, 0.9rem);
+    cursor: default;
+    background: linear-gradient(to top, rgba(6, 7, 11, 0.88), rgba(6, 7, 11, 0));
+  }
+
+  .teaser__btn {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--sr-radius-sm);
+    color: var(--sr-text-bright);
+    opacity: 0.85;
+    transition:
+      opacity var(--sr-dur-fast) var(--sr-ease-out),
+      background var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .teaser__btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  .teaser__btn svg.is-off {
+    display: none;
+  }
+  .teaser__btn:hover,
+  .teaser__btn:focus-visible {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  /* 進度條：以 --progress(0–100) 畫出已播段 */
+  .teaser__seek {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 16px;
+    margin-inline: clamp(0.15rem, 1vw, 0.5rem);
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .teaser__seek::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: var(--sr-radius-pill);
+    background: linear-gradient(
+      to right,
+      var(--sr-accent) calc(var(--progress, 0) * 1%),
+      rgba(255, 255, 255, 0.25) calc(var(--progress, 0) * 1%)
+    );
+  }
+  .teaser__seek::-moz-range-track {
+    height: 4px;
+    border-radius: var(--sr-radius-pill);
+    background: linear-gradient(
+      to right,
+      var(--sr-accent) calc(var(--progress, 0) * 1%),
+      rgba(255, 255, 255, 0.25) calc(var(--progress, 0) * 1%)
+    );
+  }
+  .teaser__seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: var(--sr-text-bright);
+    box-shadow: 0 0 8px rgba(143, 169, 255, 0.6);
+  }
+  .teaser__seek::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sr-text-bright);
+    box-shadow: 0 0 8px rgba(143, 169, 255, 0.6);
+  }
+
+  /* 音量：與進度條共用滑桿外觀，但短、不搶版面 */
+  .teaser__volume {
+    flex: none;
+    width: 74px;
+    height: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .teaser__volume::-webkit-slider-runnable-track,
+  .teaser__volume::-moz-range-track {
+    height: 4px;
+    border-radius: var(--sr-radius-pill);
+    background: linear-gradient(
+      to right,
+      var(--sr-text-bright) calc(var(--level, 0) * 1%),
+      rgba(255, 255, 255, 0.25) calc(var(--level, 0) * 1%)
+    );
+  }
+  .teaser__volume::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: var(--sr-text-bright);
+  }
+  .teaser__volume::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sr-text-bright);
+  }
+
+  .teaser__time {
+    flex: none;
+    font-size: var(--sr-text-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--sr-text-muted);
+    white-space: nowrap;
+  }
+
+  /* ---- 片段切換點 ---- */
+  .teaser__dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: var(--sr-space-4);
+  }
+  .teaser__dot {
+    width: 34px;
+    height: 4px;
+    border-radius: var(--sr-radius-pill);
+    background: var(--sr-border-strong);
+    transition: background var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .teaser__dot:hover {
+    background: var(--sr-text-dim);
+  }
+  .teaser__dot[aria-current="true"] {
+    background: var(--sr-accent);
+  }
+
+  @media (max-width: 640px) {
+    /* 窄螢幕先讓位給進度條：音量收起，靜音鈕仍在 */
+    .teaser__volume {
+      display: none;
+    }
+  }
+  @media (max-width: 480px) {
+    .teaser__btn {
+      width: 30px;
+      height: 30px;
+    }
+    .teaser__btn svg {
+      width: 17px;
+      height: 17px;
+    }
+    .teaser__center {
+      width: 54px;
+      height: 54px;
+    }
+    .teaser__side {
+      width: 36px;
+      height: 36px;
+    }
+    .teaser__side svg {
+      width: 17px;
+      height: 17px;
+    }
+    .teaser__time {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    自製播放器：一份播放清單，一次只播一段。
+    片尾不循環，自動接下一段（末段回到第一段）；切走的暫停並倒回 0，
+    非當前段以 preload="none" 起手，首次切到才拉取（這些檔案很大）。
+  */
+  function initTeaser() {
+    const player = document.querySelector<HTMLElement>("[data-teaser-player]");
+    if (!player) return;
+
+    const q = <T extends Element>(sel: string) => player.querySelector<T>(sel);
+    const videos = [...player.querySelectorAll<HTMLVideoElement>(".teaser__video")];
+    const dots = [...player.querySelectorAll<HTMLButtonElement>("[data-teaser-dot]")];
+    const frame = q<HTMLElement>("[data-teaser-frame]");
+    const controls = q<HTMLElement>("[data-teaser-controls]");
+    const toggle = q<HTMLButtonElement>("[data-teaser-toggle]");
+    const seek = q<HTMLInputElement>("[data-teaser-seek]");
+    const timeEl = q<HTMLElement>("[data-teaser-time]");
+    const muteBtn = q<HTMLButtonElement>("[data-teaser-mute]");
+    const volume = q<HTMLInputElement>("[data-teaser-volume]");
+    const fsBtn = q<HTMLButtonElement>("[data-teaser-fs]");
+    if (!videos.length || !frame || !toggle || !seek || !timeEl || !muteBtn || !volume || !fsBtn)
+      return;
+
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    // 文案一律自 data-* 取；腳本不重寫一份三語字串
+    const labels = {
+      play: toggle.dataset.play ?? "",
+      pause: toggle.dataset.pause ?? "",
+      mute: muteBtn.dataset.mute ?? "",
+      unmute: muteBtn.dataset.unmute ?? "",
+      fs: fsBtn.dataset.fs ?? "",
+      exitFs: fsBtn.dataset.exit ?? "",
+    };
+    let current = 0;
+    let scrubbing = false;
+
+    const fmt = (s: number) => {
+      if (!Number.isFinite(s) || s < 0) s = 0;
+      const m = Math.floor(s / 60);
+      return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    };
+    const active = () => videos[current];
+
+    const paint = () => {
+      const v = active();
+      const d = Number.isFinite(v.duration) ? v.duration : 0;
+      const pct = d ? (v.currentTime / d) * 100 : 0;
+      if (!scrubbing) seek.value = String(Math.round(pct * 10));
+      seek.style.setProperty("--progress", String(pct));
+      timeEl.textContent = `${fmt(v.currentTime)} / ${fmt(d)}`;
+    };
+
+    // 靜音與音量套到全部片段，並同步圖示、aria 與滑桿位置
+    const applySound = (muted: boolean, level: number) => {
+      const lvl = Math.min(1, Math.max(0, level));
+      videos.forEach((v) => {
+        v.muted = muted;
+        v.volume = lvl;
+      });
+      const shown = muted ? 0 : lvl;
+      volume.value = String(Math.round(shown * 100));
+      volume.style.setProperty("--level", String(shown * 100));
+      muteBtn.querySelector(".i-muted")!.classList.toggle("is-off", !muted);
+      muteBtn.querySelector(".i-sound")!.classList.toggle("is-off", muted);
+      muteBtn.setAttribute("aria-pressed", String(muted));
+      muteBtn.setAttribute("aria-label", muted ? labels.unmute : labels.mute);
+    };
+
+    const paintPlayState = () => {
+      const isPaused = active().paused;
+      player.toggleAttribute("data-paused", isPaused);
+      toggle.querySelector(".i-play")!.classList.toggle("is-off", !isPaused);
+      toggle.querySelector(".i-pause")!.classList.toggle("is-off", isPaused);
+      toggle.setAttribute("aria-label", isPaused ? labels.play : labels.pause);
+    };
+
+    const show = (next: number, autoplay = true) => {
+      const i = (next + videos.length) % videos.length;
+      if (i === current) return;
+
+      const prev = videos[current];
+      prev.pause();
+      prev.currentTime = 0;
+      prev.hidden = true;
+
+      const v = videos[i];
+      v.hidden = false;
+      if (v.preload === "none") v.preload = "auto";
+      // 音量與靜音沿用：切片段不該把使用者調好的聲音重設
+      v.muted = prev.muted;
+      v.volume = prev.volume;
+      current = i;
+
+      dots.forEach((d, di) => d.setAttribute("aria-current", String(di === i)));
+      if (autoplay && !reduced) void v.play().catch(() => {});
+      paint();
+      paintPlayState();
+    };
+
+    // ---- 播放 / 暫停 ----
+    const togglePlay = () => {
+      const v = active();
+      if (v.paused) void v.play().catch(() => {});
+      else v.pause();
+    };
+    toggle.addEventListener("click", togglePlay);
+    frame.addEventListener("click", (e) => {
+      if (controls?.contains(e.target as Node)) return; // 點控制列不切換播放
+      togglePlay();
+    });
+
+    // ---- 上一段 / 下一段 / 圓點 ----
+    q<HTMLButtonElement>("[data-teaser-prev]")?.addEventListener("click", () => show(current - 1));
+    q<HTMLButtonElement>("[data-teaser-next]")?.addEventListener("click", () => show(current + 1));
+    dots.forEach((d, i) => d.addEventListener("click", () => show(i)));
+
+    // ---- 進度條 ----
+    seek.addEventListener("pointerdown", () => (scrubbing = true));
+    seek.addEventListener("pointerup", () => (scrubbing = false));
+    seek.addEventListener("input", () => {
+      const v = active();
+      if (!Number.isFinite(v.duration)) return;
+      v.currentTime = (Number(seek.value) / 1000) * v.duration;
+      seek.style.setProperty("--progress", String(Number(seek.value) / 10));
+    });
+
+    // ---- 靜音 / 音量 ----
+    // 靜音鈕與音量滑桿是同一個狀態的兩個面：靜音＝滑桿歸零，從零往上拉＝自動取消靜音。
+    muteBtn.addEventListener("click", () => {
+      const muted = !active().muted;
+      // 從靜音解除時，若音量停在 0 就給一個聽得見的預設值
+      const level = muted ? active().volume : active().volume || 1;
+      applySound(muted, level);
+    });
+
+    volume.addEventListener("input", () => {
+      const level = Number(volume.value) / 100;
+      applySound(level === 0, level);
+    });
+
+    // ---- 全螢幕 ----
+    fsBtn.addEventListener("click", () => {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void frame.requestFullscreen?.().catch(() => {});
+    });
+    document.addEventListener("fullscreenchange", () => {
+      const on = document.fullscreenElement === frame;
+      fsBtn.querySelector(".i-fs")!.classList.toggle("is-off", on);
+      fsBtn.querySelector(".i-fs-exit")!.classList.toggle("is-off", !on);
+      fsBtn.setAttribute("aria-label", on ? labels.exitFs : labels.fs);
+    });
+
+    // ---- 每段的事件 ----
+    videos.forEach((v, i) => {
+      v.addEventListener("timeupdate", () => i === current && paint());
+      v.addEventListener("loadedmetadata", () => i === current && paint());
+      v.addEventListener("play", () => i === current && paintPlayState());
+      v.addEventListener("pause", () => i === current && paintPlayState());
+      // 片尾不循環：自動接下一段
+      v.addEventListener("ended", () => i === current && show(current + 1));
+    });
+
+    // ---- 鍵盤：焦點在播放器內時，空白鍵播放暫停、左右鍵微調進度 ----
+    player.addEventListener("keydown", (e) => {
+      const onControl = (e.target as HTMLElement).closest("button, input");
+      if (e.key === " " && !onControl) {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === "ArrowLeft" && e.target !== seek) {
+        e.preventDefault();
+        active().currentTime = Math.max(0, active().currentTime - 5);
+      } else if (e.key === "ArrowRight" && e.target !== seek) {
+        e.preventDefault();
+        active().currentTime = active().currentTime + 5;
+      }
+    });
+
+    if (reduced) videos.forEach((v) => v.pause());
+    // 起手：靜音（瀏覽器只允許靜音自動播放），滑桿歸零但底層音量留 1，
+    // 按下取消靜音就直接聽得見。
+    applySound(true, 1);
+    paint();
+    paintPlayState();
+  }
+
+  initTeaser();
+</script>

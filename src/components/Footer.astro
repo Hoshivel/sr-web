@@ -30,7 +30,7 @@ const nav = [
       <p class="sr-footer__summary" data-reveal>{t("footer.summary")}</p>
     </div>
 
-    <nav class="sr-footer__nav" aria-label={t("nav.gameplay")}>
+    <nav class="sr-footer__nav" aria-label={t("a11y.footerNav")}>
       {nav.map((item) => (
         <a class="sr-footer__link" href={item.href}>{item.label}</a>
       ))}
@@ -43,7 +43,6 @@ const nav = [
   </div>
 
   <div class="sr-container sr-footer__base">
-    <p class="sr-footer__note">{t("footer.note")}</p>
     <p class="sr-footer__rights">
       <span class="sr-glyph sr-glyph-mark" aria-hidden="true"></span>
       © {year} {t("footer.rights")}

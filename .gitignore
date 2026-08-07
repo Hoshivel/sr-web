@@ -13,6 +13,13 @@ pnpm-debug.log*
 .env
 .env.production
 *.local
+
+# 影片一律放外部存儲，**不要放進 public/**。
+# public/ 會被原封不動複製進 dist/，也就是部署產物——擺在這裡等於連同上百 MB
+# 的影片一起上傳，.gitignore 擋得住 git 卻擋不住 dist/。
+# 來源設定見 src/config/media.ts 與 .env.example 的 PUBLIC_MEDIA_BASE。
+# 本規則只是最後一道保險，防止有人又把影片丟回來。
+public/media/
 # macOS / editor
 .DS_Store
 .vscode/

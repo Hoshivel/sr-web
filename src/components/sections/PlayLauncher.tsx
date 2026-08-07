@@ -278,7 +278,6 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
       </div>
 
       {usingStale && <p className="play-route-stale" role="status">{t("play.stale")}</p>}
-      <p className="play-note">{t("play.nodeNote")}</p>
     </div>
   );
 }

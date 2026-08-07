@@ -346,12 +346,6 @@
   font-weight: 600;
 }
 
-.play-note {
-  margin-top: 0.1rem;
-  font-size: var(--sr-text-xs);
-  line-height: var(--sr-leading);
-  color: var(--sr-text-dim);
-}
 .play-route-stale {
   margin: 0.1rem 0 0;
   padding: 0.55rem 0.75rem;

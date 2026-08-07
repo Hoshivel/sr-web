@@ -68,6 +68,11 @@ const shards = Array.from({ length: COUNT }, () => {
     </h2>
     <p class="shatter__lead" data-reveal>{t("world.lead")}</p>
     <p class="shatter__body" data-reveal>{t("world.body")}</p>
+
+    {/* 全站的核心命題：沒有主角，也就沒有中心。後續各區塊都由這句往下長。
+        刻意不做高亮區塊——與前後文同色同級，讓它自己成立。 */}
+    <p class="shatter__claim" data-reveal>{t("world.claim")}</p>
+    <p class="shatter__ensemble" data-reveal>{t("world.ensemble")}</p>
   </div>
 </section>
 
@@ -139,19 +144,25 @@ const shards = Array.from({ length: COUNT }, () => {
     color: var(--sr-text-bright);
   }
 
+  /* 四段同字級同寬、不分區塊；差別只在顏色——
+     其餘三段走灰階，唯獨核心命題留亮色，讓它自己跳出來。 */
+  .shatter__lead,
+  .shatter__body,
+  .shatter__claim,
+  .shatter__ensemble {
+    margin: var(--sr-space-4) auto 0;
+    font-size: var(--sr-text-lg);
+    line-height: var(--sr-leading);
+    color: var(--sr-text-muted);
+    max-width: 46ch;
+  }
   .shatter__lead {
     margin-top: var(--sr-space-8);
-    font-size: var(--sr-text-lg);
-    color: var(--sr-text);
-    max-width: 40ch;
-    margin-inline: auto;
   }
-  .shatter__body {
-    margin-top: var(--sr-space-4);
-    font-size: var(--sr-text-base);
-    color: var(--sr-text-muted);
-    max-width: 52ch;
-    margin-inline: auto;
+  /* 核心命題：與前後同色，靠字重＋斜體站出來。 */
+  .shatter__claim {
+    font-weight: 700;
+    font-style: italic;
   }
 </style>
 

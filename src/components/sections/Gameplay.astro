@@ -1,10 +1,10 @@
 ---
 /*
-  玩法 Gameplay（#gameplay）—— 四合一 scroll-reveal。
+  核心玩法 Gameplay（#gameplay）—— 四合一 scroll-reveal。
   手牌 / 走棋 / MOBA 技能與對抗 / SRPG：四柱各帶程序化 SVG 母題
   （無美術資產 → 程序化即插圖），以 `[data-reveal]` stagger 進場（Layout 已 boot）。
-  這四條血統是本作的類型定位——不是「卡牌遊戲加戰棋」，也不對應市面任何主流類型，
-  故標題與 `gameplay.claim` 直接把這件事講明。
+  四柱不是四個 buzzword：每柱以 `claim` 一行回答「它在 SR 裡決定什麼」，
+  只給焦點、不展開解釋——玩法的細節屬於遊戲本身，不屬於官網。
   靜態 / reduced-motion / 無 JS：四柱直接呈現、母題靜止（全站 reduced-motion 基線關動畫）。
 */
 import { useTranslations, type Locale } from "@/i18n/utils";
@@ -74,8 +74,6 @@ const pillars = [
       <span class="gameplay__title-a">{t("gameplay.titleA")}</span>
       <span class="gameplay__title-b sr-gradient-text">{t("gameplay.titleB")}</span>
     </h2>
-    <p class="gameplay__lead" data-reveal>{t("gameplay.lead")}</p>
-    <p class="gameplay__claim" data-reveal>{t("gameplay.claim")}</p>
   </div>
 
   <ol class="sr-container gameplay__grid">
@@ -86,7 +84,8 @@ const pillars = [
         </span>
         <span class="pillar__index">{String(i + 1).padStart(2, "0")}</span>
         <h3 class="pillar__name">{t(`gameplay.${p.id}.name`)}</h3>
-        <p class="pillar__desc">{t(`gameplay.${p.id}.desc`)}</p>
+        {/* claim＝這根柱子在 SR 裡究竟決定什麼。只給焦點，不展開解釋 */}
+        <p class="pillar__claim">{t(`gameplay.${p.id}.claim`)}</p>
       </li>
     ))}
   </ol>
@@ -125,26 +124,6 @@ const pillars = [
   .gameplay__title-a {
     color: var(--sr-text-bright);
   }
-  .gameplay__lead {
-    margin: var(--sr-space-6) auto 0;
-    max-width: 54ch;
-    font-size: var(--sr-text-lg);
-    color: var(--sr-text-muted);
-  }
-  /* 類型定位：把「不屬於任何主流類型」講成一句可被引用的話 */
-  .gameplay__claim {
-    display: inline-block;
-    margin: var(--sr-space-6) auto 0;
-    padding: 0.5rem 1.1rem;
-    max-width: 52ch;
-    border: 1px solid var(--sr-border-strong);
-    border-radius: var(--sr-radius-pill);
-    background: color-mix(in srgb, var(--sr-accent) 7%, transparent);
-    font-size: var(--sr-text-sm);
-    line-height: var(--sr-leading);
-    color: var(--sr-text);
-  }
-
   .gameplay__grid {
     list-style: none;
     margin-top: var(--sr-space-16);
@@ -311,12 +290,13 @@ const pillars = [
     color: var(--sr-text-bright);
     letter-spacing: 0.01em;
   }
-  .pillar__desc {
-    margin-top: var(--sr-space-3);
+  /* 這根柱子決定什麼——一句話，卡片到此為止 */
+  .pillar__claim {
+    margin-top: var(--sr-space-2);
     font-size: var(--sr-text-base);
-    line-height: var(--sr-leading);
-    color: var(--sr-text-muted);
-    max-width: 46ch;
+    font-weight: 600;
+    line-height: var(--sr-leading-tight);
+    color: color-mix(in srgb, var(--el) 72%, var(--sr-text-bright));
   }
 
   @media (max-width: 720px) {
