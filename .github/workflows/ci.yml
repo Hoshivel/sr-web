@@ -1,0 +1,39 @@
+# 主分支的驗證。
+#
+# `npm run build` ＝ `astro check && astro build`，也就是 `.hoshi-build.yaml` 的
+# `test` 指向的同一個 script。這裡直接呼叫它而不是繞道 `hoshi test`，是因為
+# 本倉庫沒有任何 Go——為了跑一個 npm script 而先裝 Go、再裝 hoshi，換不到
+# 任何額外保證。呼叫的仍然是同一份正本（`package.json` 的 scripts）。
+#
+# **`astro check` 是這個倉庫唯一的型別關卡**，所以這裡跑的是 `build` 而不是
+# `preview`——用後者會安靜地跳過型別檢查。
+name: CI
+
+# 只在 main 跑。工作分支的頻繁推送是雲端會話的持久化手段（workspace
+# AGENTS.md §1.7），不該產生 CI 成本，所以**不掛 `pull_request`**。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # package.json 的 engines 要求 >=22.12.0。
+          node-version: "22"
+          cache: npm
+
+      # `npm ci` 而不是 `npm install`：要驗的是 lockfile 裡那一組版本，
+      # 不是解析當下恰好最新的那一組。
+      - run: npm ci
+
+      - run: npm run build
