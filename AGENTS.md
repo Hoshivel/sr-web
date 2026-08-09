@@ -44,7 +44,7 @@ hoshi dev -open    # 本機開發（astro dev，:4321）
 
 `astro check` 是這個倉庫唯一的型別關卡，不要用 `astro build` 跳過它——
 `test.scripts` 之所以是 `build` 而不是 `preview` 就是為了這個。
-流程的正本在 hoshi-standards `engineering/build.md` §3、§6。
+流程的正本在 hoshi-platform-standards `engineering/build.md` §3、§6。
 
 ## 3. 這個倉庫的特殊規則
 
@@ -52,10 +52,10 @@ hoshi dev -open    # 本機開發（astro dev，:4321）
   分流改由 [hoshi-svc](https://github.com/Hoshivel/hoshi-svc) 的通用 route API 負責。
   **不得**把後端邏輯加回本倉庫——那正是被收斂掉的東西。
 - **直接消費通用 `RouteDecision`**，不保留 `/api/play.json` 相容層。
-- **部署是靜態產物**，依 hoshi-standards `engineering/deployment.md`。
+- **部署是靜態產物**，依 hoshi-platform-standards `engineering/deployment.md`。
   `tools/check-deploy-conformance.py` 曾回報本倉庫有容器產物不合規
   （Dockerfile、compose.yaml 等）——**全倉庫禁用容器**，這些應該清掉。
-- **平臺規範的位置**：**被 import 的**進 hoshi-sdk，**被遵守的**進 hoshi-standards，
+- **平臺規範的位置**：**被 import 的**進 hoshi-platform-sdk，**被遵守的**進 hoshi-platform-standards，
   **會過期的**（待辦、工作日誌、代理規範）進
   [workspace](https://github.com/Hoshivel/workspace)。
 - 文件與註解沿用倉庫既有風格：**正體中文為主**（程式碼註解英文），
