@@ -29,7 +29,8 @@ const t = useTranslations(locale);
 const name = t("site.name");
 const latin = t("site.nameLatin");
 const markSize = size ?? (variant === "full" ? 40 : 26);
-const label = `${name} ${latin}`;
+const hasDistinctLatin = name.toLocaleLowerCase() !== latin.toLocaleLowerCase();
+const label = hasDistinctLatin ? `${name} ${latin}` : name;
 ---
 
 <span class:list={["sr-wordmark", `is-${variant}`, className]}>
@@ -38,7 +39,7 @@ const label = `${name} ${latin}`;
     variant !== "mark" && (
       <span class="sr-wordmark__text">
         <span class="sr-wordmark__name sr-gradient-text">{name}</span>
-        {variant === "full" && <span class="sr-wordmark__latin">{latin}</span>}
+        {variant === "full" && hasDistinctLatin && <span class="sr-wordmark__latin">{latin}</span>}
       </span>
     )
   }

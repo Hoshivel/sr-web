@@ -4,22 +4,26 @@
 */
 import Wordmark from "@/components/brand/Wordmark.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
-import { useTranslations, type Locale } from "@/i18n/utils";
+import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
 
 interface Props {
   locale: Locale;
   path?: string;
+  isHome?: boolean;
 }
-const { locale, path = "/" } = Astro.props;
+const { locale, path = "/", isHome: isHomeProp } = Astro.props;
 const t = useTranslations(locale);
 const year = new Date().getFullYear();
+const home = localizedPath(locale, "/");
+const isHome = isHomeProp ?? (path === "/" || path === "");
+const sectionHref = (section: string) => isHome ? `#${section}` : `${home}#${section}`;
 
 const nav = [
-  { href: "#world", label: t("nav.world") },
-  { href: "#gameplay", label: t("nav.gameplay") },
-  { href: "#chapters", label: t("nav.chapters") },
-  { href: "#characters", label: t("nav.characters") },
-  { href: "#play", label: t("nav.play") },
+  { href: sectionHref("world"), label: t("nav.world") },
+  { href: sectionHref("gameplay"), label: t("nav.gameplay") },
+  { href: sectionHref("chapters"), label: t("nav.chapters") },
+  { href: sectionHref("characters"), label: t("nav.characters") },
+  { href: sectionHref("play"), label: t("nav.play") },
 ];
 ---
 

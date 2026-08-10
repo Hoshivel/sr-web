@@ -77,12 +77,11 @@ const pillars = [
   </div>
 
   <ol class="sr-container gameplay__grid">
-    {pillars.map((p, i) => (
+    {pillars.map((p) => (
       <li class="pillar" style={`--el:${p.el}`} data-pillar={p.id} data-reveal>
         <span class="pillar__motif-wrap" aria-hidden="true">
           <svg class="pillar__motif" viewBox="0 0 48 48"><use href={`#motif-${p.id}`} /></svg>
         </span>
-        <span class="pillar__index">{String(i + 1).padStart(2, "0")}</span>
         <h3 class="pillar__name">{t(`gameplay.${p.id}.name`)}</h3>
         {/* claim＝這根柱子在 SR 裡究竟決定什麼。只給焦點，不展開解釋 */}
         <p class="pillar__claim">{t(`gameplay.${p.id}.claim`)}</p>
@@ -274,16 +273,8 @@ const pillars = [
     50% { opacity: 1; transform: scale(1.15); }
   }
 
-  .pillar__index {
-    display: block;
-    margin-top: var(--sr-space-6);
-    font-size: var(--sr-text-xs);
-    letter-spacing: var(--sr-tracking-wider);
-    color: color-mix(in srgb, var(--el) 70%, var(--sr-text-muted));
-    font-variant-numeric: tabular-nums;
-  }
   .pillar__name {
-    margin-top: var(--sr-space-2);
+    margin-top: var(--sr-space-6);
     font-family: var(--sr-font-display);
     font-weight: 700;
     font-size: var(--sr-text-xl);

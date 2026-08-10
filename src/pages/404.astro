@@ -7,15 +7,21 @@ import Mark from "@/components/brand/Mark.astro";
 import { useTranslations, DEFAULT_LOCALE } from "@/i18n/utils";
 
 const t = useTranslations(DEFAULT_LOCALE);
+const description = "你尋找的頁面可能已經移動，或從未存在。";
 ---
 
-<Layout locale={DEFAULT_LOCALE} title={`404 — ${t("site.name")}`} description="頁面碎散於虛空。">
+<Layout
+  locale={DEFAULT_LOCALE}
+  title={`404 — ${t("site.name")}`}
+  description={description}
+  navigationPath="/"
+>
   <main id="main" class="nf">
     <div class="sr-container nf__inner">
       <div class="nf__mark" aria-hidden="true"><Mark size={72} glow /></div>
       <p class="nf__code">404</p>
       <h1 class="nf__title sr-gradient-text">頁面碎散於虛空</h1>
-      <p class="nf__sub">This page drifted into the void.</p>
+      <p class="nf__sub">{description}</p>
       <a class="sr-btn sr-btn--primary nf__home" href="/" data-magnetic>{t("a11y.home")}</a>
     </div>
   </main>
