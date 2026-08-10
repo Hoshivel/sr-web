@@ -2,6 +2,7 @@
   "name": "sr-web",
   "type": "module",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "private": true,
   "description": "碎界 Shattered Realms — 官方門面網站 (sr.hoshivel.com)",
   "engines": {
