@@ -16,6 +16,29 @@ type LoadState = "loading" | "ready" | "unavailable";
 const MIN_H = 260;
 const MAX_H = 1000;
 
+function SizeIcon({ mode }: { mode: SizeMode }) {
+  if (mode === "normal") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="5" y="6" width="14" height="12" rx="1.5" />
+      </svg>
+    );
+  }
+  if (mode === "theater") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="2.5" y="6" width="19" height="12" rx="1.5" />
+        <path d="M6 9.5h12" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 4H4v4M16 4h4v4M20 16v4h-4M8 20H4v-4" />
+    </svg>
+  );
+}
+
 export default function PlayLauncher({ locale }: { locale: Locale }) {
   const t = useTranslations(locale);
   const [regions, setRegions] = useState<PlayRegion[] | null>(null);
@@ -113,7 +136,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   };
   const regionLabel = (region: PlayRegion) => {
     const label = region.region.trim() || region.country.trim();
-    return label ? label.toUpperCase() : region.host;
+    return label ? label.toUpperCase() : t("play.unknownRegion");
   };
   const chooseSize = (mode: SizeMode) => {
     setDragH(null);
@@ -181,7 +204,6 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
                 <b>{regionLabel(region)}</b>
                 {recId === region.id && <span className="play-ncard__rec">{t("play.recommended")}</span>}
               </span>
-              <small className="play-ncard__host">{region.host}</small>
               <span className="play-ncard__stat">
                 <span className="play-ncard__ping">
                   {region.latencyMs > 0 ? (
@@ -206,7 +228,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         {frameURL ? (
           <iframe
             className="play-frame"
-            title={selected ? `${regionLabel(selected)} · ${selected.host}` : "session"}
+            title={selected ? `${t("play.frameTitle")} · ${regionLabel(selected)}` : t("play.frameTitle")}
             src={frameURL}
             allowFullScreen
             sandbox="allow-scripts allow-same-origin"
@@ -215,12 +237,13 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
           <div className="play-frame play-frame--empty" aria-hidden="true" />
         )}
         {loadState === "ready" && !connected && selected && (
-          <div className="play-view__idle">
-            <span className="play-view__idle-tag">{t("play.idleHint")}</span>
+          <div className="play-view__ready" aria-hidden="true">
+            <svg viewBox="0 0 80 80">
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
+              <circle cx="40" cy="40" r="5" />
+              <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
+            </svg>
           </div>
-        )}
-        {loadState === "unavailable" && (
-          <div className="play-view__message" role="status">{t("play.unavailable")}</div>
         )}
       </div>
 
@@ -237,14 +260,16 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
       )}
 
       <div className="play-controls">
-        <button
-          type="button"
-          className="sr-btn sr-btn--primary play-enter"
-          disabled={!selectedAvailable}
-          onClick={() => setConnected(true)}
-        >
-          {t("play.enter")}
-        </button>
+        {!connected && (
+          <button
+            type="button"
+            className="sr-btn sr-btn--primary play-enter"
+            disabled={!selectedAvailable}
+            onClick={() => setConnected(true)}
+          >
+            {t("play.enter")}
+          </button>
+        )}
         {connected && (
           <button type="button" className="sr-btn sr-btn--ghost" onClick={() => setConnected(false)}>
             {t("play.disconnect")}
@@ -260,9 +285,11 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
               type="button"
               className={`play-size-btn${size === mode ? " is-active" : ""}`}
               aria-pressed={size === mode}
+              aria-label={t(`play.size.${mode}` as UIKey)}
+              title={t(`play.size.${mode}` as UIKey)}
               onClick={() => chooseSize(mode)}
             >
-              {t(`play.size.${mode}` as UIKey)}
+              <SizeIcon mode={mode} />
             </button>
           ))}
         </div>
@@ -271,9 +298,13 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
           type="button"
           className="sr-btn sr-btn--ghost play-newtab"
           disabled={!selectedAvailable}
+          aria-label={t("play.newTab")}
+          title={t("play.newTab")}
           onClick={openNewTab}
         >
-          {t("play.newTab")} ↗
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 5h5v5M19 5l-8 8M17 13v5H6V7h5" />
+          </svg>
         </button>
       </div>
 

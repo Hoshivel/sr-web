@@ -17,9 +17,11 @@ interface Props {
   locale?: Locale;
   title?: string;
   description?: string;
+  /** 404 可把語言切換器導回首頁，同時維持 section 連結指向真正的首頁。 */
+  navigationPath?: string;
 }
 
-const { locale = DEFAULT_LOCALE, title, description } = Astro.props;
+const { locale = DEFAULT_LOCALE, title, description, navigationPath } = Astro.props;
 const t = useTranslations(locale);
 
 const pageTitle =
@@ -32,6 +34,8 @@ const canonical = Astro.site
 
 // hreflang：把同一頁的各語言版本互相標示（含 x-default → 預設語言）。
 const logicalPath = stripLocalePrefix(Astro.url.pathname);
+const chromePath = navigationPath ?? logicalPath;
+const isHomePage = logicalPath === "/";
 const alternates = LOCALES.map((l) => ({
   hreflang: HTML_LANG[l],
   href: Astro.site
@@ -55,8 +59,6 @@ const xDefault = Astro.site
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-    <meta name="generator" content={Astro.generator} />
-
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <meta name="theme-color" content="#06070b" />
@@ -77,15 +79,15 @@ const xDefault = Astro.site
     <meta property="og:image" content="/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={t("site.name")} />
+    <meta property="og:image:alt" content={`${t("site.name")} — ${t("site.tagline")}`} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og.png" />
-    <meta name="twitter:image:alt" content={t("site.name")} />
+    <meta name="twitter:image:alt" content={`${t("site.name")} — ${t("site.tagline")}`} />
   </head>
   <body>
-    <Header locale={locale} path={logicalPath} />
+    <Header locale={locale} path={chromePath} isHome={isHomePage} />
     <slot />
-    <Footer locale={locale} path={logicalPath} />
+    <Footer locale={locale} path={chromePath} isHome={isHomePage} />
 
     <script>
       // 輕量互動啟動：reveal-on-scroll（IntersectionObserver）＋磁吸按鈕。
