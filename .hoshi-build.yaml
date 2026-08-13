@@ -9,9 +9,17 @@ type: npm
 output: dist/
 
 dev:
-    open: http://localhost:4321
+    open: http://localhost:26610
     processes:
       - name: web
         run: npm run dev
-        # astro dev 的預設埠。宣告出來，-open 才知道要等哪個埠就緒。
-        ports: [ 4321, 4322 ]
+        # 26610 是本站在埠計畫裡的區塊（26610-26619，遊戲範圍），不是 astro
+        # 的預設 4321。純靜態站不進 hoshi-deploy 的 inventory `nodes`
+        # ——它由 Cloudflare Pages 服務，不落在任何節點上——但 dev server 仍然
+        # 和其他倉庫搶同一臺開發機上的號碼，所以號碼取自同一份計畫。
+        #
+        # **只列一個。** 先前寫 `[4321, 4322]` 是因為 4321 被占用時 astro 會
+        # 自己滑到 4322，而那正是要消滅的行為：本站與 hoshivel-web 都停在
+        # astro 預設值，兩個一起開時第二個被擠走。現在埠寫在
+        # astro.config.mjs 且 strictPort，滑不動了。
+        ports: [ 26610 ]
