@@ -78,6 +78,30 @@ export const HOSHI_SVC_BASE = (import.meta.env.PUBLIC_HOSHI_SVC_BASE ?? "https:/
 );
 export const ROUTE_ENDPOINT = `${HOSHI_SVC_BASE}/v1/services/sr-game/route?endpoint=web`;
 
+/** localhost / 127.0.0.1 / ::1 —— 只有這三個算本機。 */
+function isLoopbackHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]" || hostname === "::1";
+}
+
+/*
+  節點 URL 是否放行 `http:`。
+
+  **判準是這份建置指向哪一個 hoshi-svc，不是它跑在哪裡。** 只有當
+  `PUBLIC_HOSHI_SVC_BASE` 自己就是 loopback 時才放行——那種建置只可能是
+  某個人的開發機，而它拿到的節點也只可能是那臺機器上的 SR。正式建置指的是
+  `https://svc.hoshivel.com`，於是這個常數是 false，`http:` 的節點照樣被拒絕。
+
+  綁在**建置期的來源位址**而不是 `location.hostname` 是刻意的：後者在正式站
+  被人用 hosts 檔或代理指成 localhost 時會跟著翻成 true，而那正是要擋的情況。
+*/
+const ALLOW_LOOPBACK_NODES = (() => {
+  try {
+    return isLoopbackHost(new URL(HOSHI_SVC_BASE).hostname);
+  } catch {
+    return false;
+  }
+})();
+
 const ROUTING_KEY_STORAGE = "sr.play.routing-key.v1";
 const ROUTE_CACHE_STORAGE = "sr.play.route-decision.v1";
 const ROUTING_KEY_RE = /^[A-Za-z0-9._~-]{16,128}$/;
@@ -104,8 +128,13 @@ function validWebURL(value: unknown): value is string {
   if (typeof value !== "string" || value.length === 0) return false;
   try {
     const url = new URL(value);
+    // https 一律可以；http 只在本機建置（見 ALLOW_LOOPBACK_NODES）且節點本身
+    // 也是 loopback 時放行——放寬的是 protocol，不是「連去哪裡」。
+    const schemeOK =
+      url.protocol === "https:" ||
+      (ALLOW_LOOPBACK_NODES && url.protocol === "http:" && isLoopbackHost(url.hostname));
     return (
-      url.protocol === "https:" &&
+      schemeOK &&
       url.host.length > 0 &&
       url.username === "" &&
       url.password === "" &&

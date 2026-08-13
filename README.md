@@ -30,11 +30,33 @@ sr 是一個架空世界觀的 2D 六角格回合制策略遊戲：**手牌 + �
 ```bash
 # 前端（官網靜態站）
 npm install      # 安裝相依
-npm run dev      # 本地開發（Astro）
+npm run dev      # 本地開發（Astro，:26610）
 hoshi-build build  # 出貨產物（設定在 .hoshi-build.yaml）
 npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```
+
+### 本機要讓 Play 進得去本機的遊戲
+
+`PUBLIC_HOSHI_SVC_BASE` 的預設值是**正式**的 `https://svc.hoshivel.com`，
+所以不設定的話，本機的 Play 拿到的是正式的遊戲位址——開發機上那一份 SR
+沒有任何路徑碰得到。要在本機走完整條分流鏈，三個都要起來：
+
+```bash
+# hoshi-svc（分流）：它的 config.example.json 已經是本機拓撲
+cd ../hoshi-svc && cp config.example.json config.json && hoshi dev   # :26710
+
+# Shattered Realms（後端 :26600 ＋ 前端 :26603）
+cd ../ShatteredRealms && hoshi dev
+
+# 本站：把 svc base 指到本機那一份
+echo 'PUBLIC_HOSHI_SVC_BASE=http://localhost:26710' >> .env
+npm run dev                                                          # :26610
+```
+
+`play.ts` 只在 `PUBLIC_HOSHI_SVC_BASE` **自己是 loopback** 時才放行 `http:`
+的節點 URL；正式建置指向 `https://svc.hoshivel.com`，於是那條放寬是 false，
+`http:` 節點照樣被拒絕。
 
 目前進度：**Phase 1–7 與 hoshi-svc 前端遷移完成**。Play 直接消費通用 RouteDecision，
 嚴格驗證回應；路由服務逾時、503 或回傳畸形資料時，只能在服務端指定的

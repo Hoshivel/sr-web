@@ -39,7 +39,7 @@ git clone https://github.com/Hoshivel/workspace.git ../workspace   # 雲端：�
 
 ```sh
 hoshi test         # ＝ npm run build ＝ astro check && astro build
-hoshi dev -open    # 本機開發（astro dev，:4321）
+hoshi dev -open    # 本機開發（astro dev，:26610）
 ```
 
 `astro check` 是這個倉庫唯一的型別關卡，不要用 `astro build` 跳過它——
