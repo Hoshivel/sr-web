@@ -18,7 +18,11 @@ sr 是一個架空世界觀的 2D 六角格回合制策略遊戲：**手牌 + �
 ## 開發 / 冷接手
 
 - **前端技術棧**：Astro + React islands（strict TS）、GSAP + ScrollTrigger + Lenis、Pixi.js。程序化動態即視覺識別。
-- **前端工具鏈**：Astro 7／Vite 8，需 Node.js `>=22.12.0`；lockfile 已固定通過零漏洞稽核的相依版本。
+- **前端工具鏈**：Astro 7／Vite 8，需 Node.js `>=22.12.0`；相依版本釘在 lockfile。
+  漏洞由 **Dependabot ＋ `security.yml` 的 Trivy** 盯著，不是由這一行宣稱——
+  這裡原本寫「lockfile 已固定通過零漏洞稽核的相依版本」，而它在 2026-08-16 是假的
+  （`nanoid@3.3.17`，GHSA-2v37-7h3g-55p8，經 `@astrojs/react` → `vite` → `postcss`
+  帶進來）。**一句寫死的「目前沒有漏洞」過期時不會有任何症狀。**
 - **Play 路由**：建置時可用 `PUBLIC_HOSHI_SVC_BASE` 指定 hoshi-svc 公開網域（預設
   `https://svc.hoshivel.com`）。瀏覽器保存匿名 routing key，且只經
   `X-Hoshi-Routing-Key` 標頭送出；詳見 [`.env.example`](./.env.example) 與
