@@ -25,13 +25,16 @@ sr 是一個架空世界觀的 2D 六角格回合制策略遊戲：**手牌 + �
   [`src/lib/play.ts`](./src/lib/play.ts)。
 - **遷移完成**：原本的 SR 專用 `backend/` 已在 hoshi-svc 通過驗證後移除；本倉庫
   現在只包含可靜態建置與部署的官網前端。
-- **權威計畫**：[`docs/plan.md`](./docs/plan.md)（網站結構、里程碑與遷移紀錄）。
+- **網站結構與里程碑**：就在本檔（下方〈目前進度〉與〈部署〉）。本倉庫**沒有**
+  `docs/`——這一行原本指向一份不存在的 `docs/plan.md`。還沒做完的事在
+  [workspace](https://github.com/Hoshivel/workspace) 的 `todo/sr-web/`，
+  不在本倉庫（workspace `AGENTS.md` §4.4）。
 
 ```bash
 # 前端（官網靜態站）
 npm install      # 安裝相依
 npm run dev      # 本地開發（Astro，:26610）
-hoshi-build build  # 出貨產物（設定在 .hoshi-build.yaml）
+hoshi build  # 出貨產物（設定在 .hoshi-build.yaml）
 npm run build    # astro check && astro build（strict TS，驗收門檻）
 npm run preview  # 預覽已建置的靜態站
 ```

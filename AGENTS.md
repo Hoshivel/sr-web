@@ -53,8 +53,9 @@ hoshi dev -open    # 本機開發（astro dev，:26610）
   **不得**把後端邏輯加回本倉庫——那正是被收斂掉的東西。
 - **直接消費通用 `RouteDecision`**，不保留 `/api/play.json` 相容層。
 - **部署是靜態產物**，依 hoshi-platform-standards `engineering/deployment.md`。
-  `tools/check-deploy-conformance.py` 曾回報本倉庫有容器產物不合規
-  （Dockerfile、compose.yaml 等）——**全倉庫禁用容器**，這些應該清掉。
+  **全倉庫禁用容器**：不得新增 Dockerfile、compose.yaml 或任何容器產物。
+  由 `hoshi-platform-standards/tools/check-deploy-conformance.py` 檢查
+  （本倉庫目前合規——曾被它抓到的那幾份已經清掉了）。
 - **平臺規範的位置**：**被 import 的**進 hoshi-platform-sdk，**被遵守的**進 hoshi-platform-standards，
   **會過期的**（待辦、工作日誌、代理規範）進
   [workspace](https://github.com/Hoshivel/workspace)。
