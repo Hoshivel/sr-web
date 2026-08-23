@@ -2,7 +2,7 @@
   碎界 sr-web —— 介面文案字典（四語）。
 
   來源：遊戲 `frontend/src/i18n/translations.ts` 與 `story/themes/<id>/theme.json`
-  （官方章節英文名以 theme.json 為準：Snowbound Passage / Age of Starmarks）。
+  （官方章節英文名以 theme.json 為準：Snowstorm's Passage / Age of Starmarks）。
   zh-Hant 為主語言；zh-CN / en / ja 逐鍵齊備（型別強制完整，缺鍵編譯不過）。
   遊戲那一側的字典沒有這層型別（`Dict = Record<string, string>`），所以那裡的
   齊備要另外驗；這裡只要漏一鍵就編不過。
@@ -424,7 +424,7 @@ const en: Record<UIKey, string> = {
   "char.hakuto.name": "Hakuto",
   "char.hakuto.epithet": "Bloom of the Snowbound Realm",
   "char.hakuto.element": "Frost · Purity",
-  "char.hakuto.role": "Viewpoint of Snowbound Passage",
+  "char.hakuto.role": "Viewpoint of Snowstorm's Passage",
   "char.hakuto.seeking":
     "She is looking for someone she failed to protect. Everyone tells her that person is long gone — and her wound is older than her own birth.",
   "char.hakuto.fantasy":
@@ -469,7 +469,7 @@ const en: Record<UIKey, string> = {
   "theme.shattered.tagline": "Beneath a shattered sky, every chapter is born.",
   "theme.shattered.story":
     "Lead an expedition across fragments adrift in the void and piece the lost lands together; every chapter grows from this journey.",
-  "theme.snowpass.name": "Snowbound Passage",
+  "theme.snowpass.name": "Snowstorm's Passage",
   "theme.snowpass.kicker": "Chapter 1",
   "theme.snowpass.tagline":
     "The first blizzard after the world shattered — and the last kindness left on the ice.",
