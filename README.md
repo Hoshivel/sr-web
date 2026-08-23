@@ -78,5 +78,5 @@ npm run dev                                                          # :26610
 - **hoshi-svc**：前端跨源呼叫 `PUBLIC_HOSHI_SVC_BASE`（預設
   `https://svc.hoshivel.com`）。資料平面 CORS 必須允許 `https://sr.hoshivel.com`、
   `GET` 與 `X-Hoshi-Routing-Key`；routing key 不得放進 URL 或日誌。
-- **CORS / iframe**：官網以 iframe 嵌入 `play.sr.hoshivel.com`，需把 `https://sr.hoshivel.com` 加入**遊戲後端** `allowedOrigins`（見 ShatteredRealms `docs/deployment.md §7`），否則 `/ws` 403；遊戲主機也不得以 `X-Frame-Options: DENY` / `frame-ancestors` 拒絕被官網嵌入。
+- **CORS / iframe**：官網以 iframe 嵌入 `play.sr.hoshivel.com`，需把 `https://sr.hoshivel.com` 加入**遊戲後端** `allowedOrigins`（見 ShatteredRealms `docs/deployment.md §7`），否則 `/ws` 403；遊戲主機與 Hoshi ID 也不得以 `X-Frame-Options: DENY` 阻擋。Hoshi ID 的 `frame-ancestors` 精確列入 `sr.hoshivel.com` 與 `play.sr.hoshivel.com`；launcher 的 sandbox 保留表單提交，並只向 iframe 的 `src` origin 與 `id.hoshivel.com` 委派 `publickey-credentials-get`／`publickey-credentials-create`，讓嵌入登入與 passkey 可用而不放行任意來源。
 - **CI**：沿用家族慣例——若日後加 CI，以 branch 過濾只在 `main` 觸發（工作分支頻繁推送不付 CI 成本）。
