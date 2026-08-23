@@ -38,11 +38,12 @@ git clone https://github.com/Hoshivel/workspace.git ../workspace   # 雲端：�
 改動後執行；綠燈再更新該事項的 `Status:`（`Editing` → `待驗證`）：
 
 ```sh
-hoshi test         # ＝ npm run build ＝ astro check && astro build
+hoshi test         # ＝ npm run build ＝ route contract test + astro check + astro build
 hoshi dev -open    # 本機開發（astro dev，:26610）
 ```
 
-`astro check` 是這個倉庫唯一的型別關卡，不要用 `astro build` 跳過它——
+`astro check` 是這個倉庫唯一的型別關卡；route contract test 是 Play 分流契約的
+執行期關卡。不要用 `astro build` 跳過它們——
 `test.scripts` 之所以是 `build` 而不是 `preview` 就是為了這個。
 流程的正本在 hoshi-platform-standards `engineering/build.md` §3、§6。
 

@@ -2,7 +2,7 @@
 # 鍵位參考見 hoshi-build 的 docs/config.md。
 #
 # 靜態站，沒有後端（分流由 hoshi-svc 的通用 route API 負責）。
-# `npm run build`（＝ astro check && astro build）本來就寫進 dist/，
+# `npm run build`（＝ route contract test + astro check + astro build）本來就寫進 dist/，
 # 所以 hoshi-build 不會有複製動作。
 name: sr-web
 type: npm

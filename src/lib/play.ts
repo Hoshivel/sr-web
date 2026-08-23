@@ -33,7 +33,8 @@ export interface PlayResponse {
 interface RouteNode {
   id: string;
   region: string;
-  country: string;
+  /** Optional for compatibility with route responses produced before the key was always emitted. */
+  country?: string;
   healthy: boolean;
   degraded?: boolean;
   load: number;
@@ -72,10 +73,8 @@ export class PlayUnavailableError extends Error {
   }
 }
 
-export const HOSHI_SVC_BASE = (import.meta.env.PUBLIC_HOSHI_SVC_BASE ?? "https://svc.hoshivel.com").replace(
-  /\/+$/,
-  "",
-);
+const DEFAULT_HOSHI_SVC_BASE = import.meta.env?.DEV ? "/__hoshi_svc" : "https://svc.hoshivel.com";
+export const HOSHI_SVC_BASE = (import.meta.env?.PUBLIC_HOSHI_SVC_BASE ?? DEFAULT_HOSHI_SVC_BASE).replace(/\/+$/, "");
 export const ROUTE_ENDPOINT = `${HOSHI_SVC_BASE}/v1/services/sr-game/route?endpoint=web`;
 
 /** localhost / 127.0.0.1 / ::1 —— 只有這三個算本機。 */
@@ -151,7 +150,9 @@ function isRouteNode(value: unknown): value is RouteNode {
     typeof value.id === "string" &&
     value.id.trim().length > 0 &&
     typeof value.region === "string" &&
-    typeof value.country === "string" &&
+    // Older route responses omitted country for nodes without a geographic country.
+    // Rejecting that optional key would discard every otherwise healthy candidate.
+    (value.country === undefined || typeof value.country === "string") &&
     typeof value.healthy === "boolean" &&
     (value.degraded === undefined || typeof value.degraded === "boolean") &&
     isFiniteNumber(value.load, 0, 1) &&
@@ -189,7 +190,7 @@ export function isRouteDecision(value: unknown): value is RouteDecision {
     (recommended.healthy || recommended.degraded === true) &&
     recommended.endpoints.web === recommendedNode.endpoints.web &&
     recommended.region === recommendedNode.region &&
-    recommended.country === recommendedNode.country &&
+    (recommended.country ?? "") === (recommendedNode.country ?? "") &&
     recommended.healthy === recommendedNode.healthy &&
     (recommended.degraded === true) === (recommendedNode.degraded === true) &&
     recommended.load === recommendedNode.load &&
@@ -291,7 +292,7 @@ function toPlayResponse(decision: RouteDecision, stale: boolean): PlayResponse {
     regions: decision.candidates.map((node) => ({
       id: node.id,
       region: node.region,
-      country: node.country,
+      country: node.country ?? "",
       host: new URL(node.endpoints.web).host,
       url: node.endpoints.web,
       healthy: node.healthy,
