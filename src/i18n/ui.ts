@@ -641,6 +641,7 @@ const ja: Record<UIKey, string> = {
   "play.disconnect": "ゲームを離れる",
   "play.frameTitle": "碎界のゲーム画面",
   "play.unknownRegion": "その他の地域",
+  "play.defaultRegion": "デフォルト（自動振り分け）",
   "play.viewSize": "表示モード",
   "play.size.normal": "標準",
   "play.size.theater": "ワイド",
