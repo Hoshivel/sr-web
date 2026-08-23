@@ -73,10 +73,8 @@ export class PlayUnavailableError extends Error {
   }
 }
 
-export const HOSHI_SVC_BASE = (import.meta.env?.PUBLIC_HOSHI_SVC_BASE ?? "https://svc.hoshivel.com").replace(
-  /\/+$/,
-  "",
-);
+const DEFAULT_HOSHI_SVC_BASE = import.meta.env?.DEV ? "/__hoshi_svc" : "https://svc.hoshivel.com";
+export const HOSHI_SVC_BASE = (import.meta.env?.PUBLIC_HOSHI_SVC_BASE ?? DEFAULT_HOSHI_SVC_BASE).replace(/\/+$/, "");
 export const ROUTE_ENDPOINT = `${HOSHI_SVC_BASE}/v1/services/sr-game/route?endpoint=web`;
 
 /** localhost / 127.0.0.1 / ::1 —— 只有這三個算本機。 */

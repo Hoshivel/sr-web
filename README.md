@@ -46,8 +46,10 @@ npm run preview  # 預覽已建置的靜態站
 ### 本機要讓 Play 進得去本機的遊戲
 
 `PUBLIC_HOSHI_SVC_BASE` 的預設值是**正式**的 `https://svc.hoshivel.com`，
-所以不設定的話，本機的 Play 拿到的是正式的遊戲位址——開發機上那一份 SR
-沒有任何路徑碰得到。要在本機走完整條分流鏈，三個都要起來：
+所以不設定的話，Astro dev server 會以只在開發期存在的同源 proxy 查正式服務，
+本機的 Play 拿到的是正式的遊戲位址。proxy 不進 `dist/`，也不會放寬正式服務只允許
+正式站的 CORS。開發機上那一份 SR 沒有任何路徑碰得到；要在本機走完整條分流鏈，
+三個都要起來：
 
 ```bash
 # hoshi-svc（分流）：它的 config.example.json 已經是本機拓撲
