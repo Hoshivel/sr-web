@@ -143,6 +143,8 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     setConnected(false);
   };
   const regionLabel = (region: PlayRegion) => {
+    // `default` asks the edge to choose a region; it is not a geographic code.
+    if (region.region.trim().toLowerCase() === "default") return t("play.defaultRegion");
     const label = region.region.trim() || region.country.trim();
     return label ? label.toUpperCase() : t("play.unknownRegion");
   };

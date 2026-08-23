@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "test": "node --experimental-strip-types --test test/play.test.mjs",
+    "build": "npm test && astro check && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro"

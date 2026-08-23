@@ -1,6 +1,7 @@
 # 主分支的驗證。
 #
-# `npm run build` ＝ `astro check && astro build`，也就是 `.hoshi-build.yaml` 的
+# `npm run build` ＝ route contract test + `astro check && astro build`，也就是
+# `.hoshi-build.yaml` 的
 # `test` 指向的同一個 script。這裡直接呼叫它而不是繞道 `hoshi test`，是因為
 # 本倉庫沒有任何 Go——為了跑一個 npm script 而先裝 Go、再裝 hoshi，換不到
 # 任何額外保證。呼叫的仍然是同一份正本（`package.json` 的 scripts）。
