@@ -24,7 +24,18 @@ export default defineConfig({
   },
   vite: {
     // strictPort：撞到就失敗，不要滑到下一個空號（理由同上）。
-    server: { strictPort: true },
+    server: {
+      strictPort: true,
+      // Production CORS intentionally allows only the production site. Keep local
+      // Play testing same-origin without widening that policy or adding a runtime backend.
+      proxy: {
+        "/__hoshi_svc": {
+          target: "https://svc.hoshivel.com",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/__hoshi_svc/, ""),
+        },
+      },
+    },
     build: {
       // Pixi / GSAP 走各自的 chunk，靠 client:visible 延遲載入。
       cssCodeSplit: true,
