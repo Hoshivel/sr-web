@@ -15,6 +15,14 @@ type SizeMode = "normal" | "theater" | "fullscreen";
 type LoadState = "loading" | "ready" | "unavailable";
 const MIN_H = 260;
 const MAX_H = 1000;
+// The frame starts on the selected game origin and may navigate to Hoshi ID.
+// Naming both through 'src' + the exact identity origin keeps WebAuthn usable
+// after that navigation without delegating credential access to arbitrary
+// content. The feature identifiers are the WebAuthn Level 3 Permissions Policy
+// contract; allow-forms in the sandbox below is separately required for login.
+const FRAME_CREDENTIAL_POLICY =
+  "publickey-credentials-get 'src' https://id.hoshivel.com; " +
+  "publickey-credentials-create 'src' https://id.hoshivel.com";
 
 function SizeIcon({ mode }: { mode: SizeMode }) {
   if (mode === "normal") {
@@ -230,8 +238,9 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
             className="play-frame"
             title={selected ? `${t("play.frameTitle")} · ${regionLabel(selected)}` : t("play.frameTitle")}
             src={frameURL}
+            allow={FRAME_CREDENTIAL_POLICY}
             allowFullScreen
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-forms allow-scripts allow-same-origin"
           />
         ) : (
           <div className="play-frame play-frame--empty" aria-hidden="true" />
