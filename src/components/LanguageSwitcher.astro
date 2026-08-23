@@ -1,8 +1,9 @@
 ---
 /*
   語言切換器 —— 純 SSR 連結（無 JS）。
-  三語各連到「同一邏輯頁」的對應 locale URL；目前語言標 aria-current。
-  精簡標籤（繁/简/EN）＋完整名放 title/aria-label。
+  各語言連到「同一邏輯頁」的對應 locale URL；目前語言標 aria-current。
+  精簡標籤（繁/简/EN/日）＋完整名放 title/aria-label。清單由 LOCALES 推得，
+  加一種語言不必動這裡。
 */
 import {
   useTranslations,

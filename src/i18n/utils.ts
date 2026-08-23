@@ -1,6 +1,6 @@
 /*
   碎界 sr-web —— i18n helper。
-  路由策略：預設語言（zh-Hant）掛根 `/`，其餘掛 `/zh-cn`、`/en`。
+  路由策略：預設語言（zh-Hant）掛根 `/`，其餘掛 `/zh-cn`、`/en`、`/ja`。
   以顯式 locale prop 傳遞，SSR 乾淨、無需 client context。
 */
 

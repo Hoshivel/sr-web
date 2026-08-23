@@ -1,12 +1,14 @@
 /*
-  碎界 sr-web —— 介面文案字典（三語）。
+  碎界 sr-web —— 介面文案字典（四語）。
 
   來源：遊戲 `frontend/src/i18n/translations.ts` 與 `story/themes/<id>/theme.json`
   （官方章節英文名以 theme.json 為準：Snowbound Passage / Age of Starmarks）。
-  zh-Hant 為主語言；zh-CN / en 逐鍵齊備（型別強制完整，缺鍵編譯不過）。
+  zh-Hant 為主語言；zh-CN / en / ja 逐鍵齊備（型別強制完整，缺鍵編譯不過）。
+  遊戲那一側的字典沒有這層型別（`Dict = Record<string, string>`），所以那裡的
+  齊備要另外驗；這裡只要漏一鍵就編不過。
 */
 
-export const LOCALES = ["zh-Hant", "zh-CN", "en"] as const;
+export const LOCALES = ["zh-Hant", "zh-CN", "en", "ja"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "zh-Hant";
@@ -16,6 +18,7 @@ export const LOCALE_PATH: Record<Locale, string> = {
   "zh-Hant": "",
   "zh-CN": "zh-cn",
   en: "en",
+  ja: "ja",
 };
 
 /** `<html lang>` 屬性值。 */
@@ -23,6 +26,7 @@ export const HTML_LANG: Record<Locale, string> = {
   "zh-Hant": "zh-Hant",
   "zh-CN": "zh-CN",
   en: "en",
+  ja: "ja",
 };
 
 /** `og:locale` 值。 */
@@ -30,6 +34,7 @@ export const OG_LOCALE: Record<Locale, string> = {
   "zh-Hant": "zh_Hant",
   "zh-CN": "zh_CN",
   en: "en_US",
+  ja: "ja_JP",
 };
 
 /** 語言切換器顯示名（各以自身語言書寫）。 */
@@ -37,6 +42,7 @@ export const LOCALE_LABEL: Record<Locale, string> = {
   "zh-Hant": "正體中文",
   "zh-CN": "简体中文",
   en: "English",
+  ja: "日本語",
 };
 
 /** 精簡標籤（header 語言切換器用；完整名放 title/aria-label）。 */
@@ -44,6 +50,7 @@ export const LOCALE_SHORT: Record<Locale, string> = {
   "zh-Hant": "繁",
   "zh-CN": "简",
   en: "EN",
+  ja: "日",
 };
 
 // zh-Hant 為鍵的權威來源；其餘語言以 Record<UIKey, string> 強制對齊。
@@ -494,8 +501,157 @@ const en: Record<UIKey, string> = {
   "play.stale": "The connection is unstable, so the most recently available regions are still shown.",
 };
 
+const ja: Record<UIKey, string> = {
+  "site.name": "碎界",
+  "site.nameLatin": "SHATTERED REALMS",
+  "site.tagline": "砕けた星空の下、未完の旅へ",
+  "site.summary":
+    "『碎界』はブラウザで遊べる 2D ヘックス制ターンベース・ストラテジー。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
+
+  // 事件（zh「碎裂」／en "The Shattering"）。ブランドの「碎界」とは別語なので、
+  // 一文字違いで紛れないよう「砕裂」を当てる。
+  "nav.world": "砕裂",
+  "nav.gameplay": "遊び方",
+  "nav.chapters": "碎界の樹",
+  "nav.characters": "キャラクター",
+  "nav.play": "ゲームを始める",
+
+  "cta.play": "ゲームを始める",
+  "cta.learn": "世界を知る",
+
+  "a11y.skip": "本文へスキップ",
+  "a11y.langMenu": "言語を切り替える",
+  "a11y.home": "ホームへ戻る",
+  "a11y.menu": "メニュー",
+  "a11y.primaryNav": "メインナビゲーション",
+  "a11y.footerNav": "フッターナビゲーション",
+
+  "footer.langLabel": "言語",
+  "footer.summary": "砕けた星空の下、未完の旅へ",
+  "footer.rights": "碎界 Shattered Realms",
+
+  "hero.badge": "正式サービス中",
+
+  "teaser.eyebrow": "プレビュー",
+  "teaser.videoLabel": "碎界プレビュー映像",
+  "teaser.prev": "前のクリップ",
+  "teaser.next": "次のクリップ",
+  "teaser.play": "再生",
+  "teaser.pause": "一時停止",
+  "teaser.mute": "ミュート",
+  "teaser.unmute": "ミュート解除",
+  "teaser.volume": "音量",
+  "teaser.seek": "再生位置",
+  "teaser.fullscreen": "全画面",
+  "teaser.exitFullscreen": "全画面を終了",
+
+  "world.eyebrow": "世界観",
+  "world.titleA": "砕けたのは天罰ではなく、",
+  "world.titleB": "天地が自らを救う最後の手だった。",
+  "world.lead":
+    "星痕が断たれ、大地は定まった形を失い、世界は虚空に漂う欠片へと砕けた。",
+  "world.claim": "この世界の中心に立つ者は、誰もいない。",
+  "world.ensemble":
+    "誰もが自分の理由を抱いて進む。道が交わるとき、失われた大地と砕けた真実が、少しずつ姿を現す。",
+
+  "gameplay.eyebrow": "コアゲームプレイ",
+  "gameplay.titleA": "手札、立ち回り、そして技能。",
+  "gameplay.titleB": "一手ごとに戦場は書き換わる",
+  "gameplay.cards.name": "デッキ構築",
+  "gameplay.cards.claim": "戦術を携えて挑み、一枚ごとにその場で選び取る",
+  "gameplay.board.name": "ヘックスの立ち回り",
+  "gameplay.board.claim": "位置を奪い、道を塞ぎ、立ち位置で攻防を変える",
+  "gameplay.skills.name": "キャラクター技能",
+  "gameplay.skills.claim": "連携・制圧・反撃で、交戦の呼吸を握る",
+  "gameplay.srpg.name": "ターン戦術",
+  "gameplay.srpg.claim": "地形と射程、そして行動順を読み解く",
+
+  "char.eyebrow": "キャラクター",
+  "char.titleA": "交わる旅路の先で、",
+  "char.titleB": "それぞれが違う答えへ向かう",
+  "char.lead":
+    "失った人を探す者、まだ光の残る欠片を追う者。出会いのひとつひとつが、互いの旅路に痕を残していく。",
+  "char.combat": "戦闘では",
+  "char.slotNote": "キャラクタービジュアルは近日公開",
+  "char.hakuto.name": "白棠",
+  "char.hakuto.epithet": "雪境の棠",
+  "char.hakuto.element": "氷霜 · 純潔",
+  "char.hakuto.role": "〈風雪の通り道〉主視点",
+  "char.hakuto.seeking":
+    "彼女は、守りきれなかった一人を探している。その人はとうにいないと誰もが言う——そして彼女の傷は、彼女の誕生より古い。",
+  "char.hakuto.fantasy": "後衛で氷霜を重ねて凍結を起こし、敵の進路を封じる。",
+  "char.shadow.name": "暗影",
+  "char.shadow.epithet": "影の君主",
+  "char.shadow.element": "暗影 · 侵蝕",
+  "char.shadow.role": "〈星痕の紀元〉で交差する",
+  "char.shadow.seeking": "彼は一本の鍵を探している。それが何を開けるのかは、語らない。",
+  "char.shadow.fantasy": "影を渡り、侵蝕を重ね、〈万影帰一〉で刈り取る。",
+  "char.sekien.name": "赤焰",
+  "char.sekien.epithet": "炎陽の子",
+  "char.sekien.element": "烈焰 · 再生",
+  "char.sekien.role": "章は未だ開かれず · 南の暖かな光",
+  "char.sekien.seeking":
+    "彼は、まだ陽の届く碎界を探している。人々が残骸の上で生きることに慣れてしまった今、彼が問うのは——夜明けの姿を、まだ覚えているか。",
+  "char.sekien.fantasy":
+    "弓と剣を切り替えて余燼を溜め、倒れてもなお鳳凰となって戦局を燃え直す。",
+  "char.aoiro.name": "青蘿",
+  "char.aoiro.epithet": "星を喰らう荊",
+  "char.aoiro.element": "劇毒 · 蔓",
+  "char.aoiro.role": "〈星痕の紀元〉を一区間ともに往く",
+  "char.aoiro.seeking":
+    "彼女は、誰かに覚えていてもらわなくても生きていける居場所を探している。集落はかつて、彼女を足もとの土地ごと切り離した——だから雇われて同行し、仲間とは言わない。",
+  "char.aoiro.fantasy": "毒を臨界まで押し上げ、蔓で退路を塞ぎ、連射で一気に爆ぜさせる。",
+
+  "chapters.eyebrow": "章",
+  "chapters.titleA": "碎界の樹をたどり、",
+  "chapters.titleB": "旅路の交わる場所を見る",
+  "chapters.lead":
+    "碎界の欠片は、それぞれがひとつの旅路を宿している。道が交わるとき、失われた大地は少しずつ元の姿を取り戻す。",
+  "chapters.hint": "ドラッグで揺らす · タップで開く",
+  "chapters.status.root": "世界の根",
+  "chapters.status.live": "公開中",
+  "chapters.status.soon": "近日公開",
+  "chapters.close": "閉じる",
+  "theme.shattered.name": "碎界",
+  "theme.shattered.kicker": "起源",
+  "theme.shattered.tagline": "砕けた星空の下、すべての章がここから生まれる。",
+  "theme.shattered.story":
+    "探索隊を率いて虚空に漂う欠片を渡り、失われた大地を繋ぎ直す。以降のすべての章は、この旅路から広がっていく。",
+  "theme.snowpass.name": "風雪の通り道",
+  "theme.snowpass.kicker": "第一章",
+  "theme.snowpass.tagline":
+    "世界が砕けたのちの、最初の吹雪。そして氷原に残された、最後の優しさ。",
+  "theme.snowpass.story":
+    "氷原の奥に咲いた一輪の白棠花から生まれた白棠は、吹雪が大地を呑み込んだのちも、世界最後の善意と希望を守り続けている。",
+  "theme.starseal.name": "星痕の紀元",
+  "theme.starseal.kicker": "第二章",
+  "theme.starseal.tagline": "星はもう消えた。残されたのは、その痕だけ。",
+  "theme.starseal.story":
+    "星痕はかつて、河も山も森も運命も、すべて空に刻んでいた。それが砕けたとき、観星者は世界の理を編み直す旅に出る。",
+
+  "play.eyebrow": "ゲームを始める",
+  "play.titleA": "戦術を整え、",
+  "play.titleB": "戦場へ踏み出す",
+  "play.serversTitle": "接続地域",
+  "play.recommended": "最適な接続",
+  "play.enter": "戦場へ入る",
+  "play.disconnect": "ゲームを離れる",
+  "play.frameTitle": "碎界のゲーム画面",
+  "play.unknownRegion": "その他の地域",
+  "play.viewSize": "表示モード",
+  "play.size.normal": "標準",
+  "play.size.theater": "ワイド",
+  "play.size.fullscreen": "全画面",
+  "play.newTab": "新しいタブで遊ぶ",
+  "play.unavailable": "現在、入場できるゲーム地域がありません",
+  "play.unavailableHint": "しばらくしてから、または利用可能な地域を再取得してお試しください。",
+  "play.retry": "再接続",
+  "play.stale": "接続が一時的に不安定なため、直近で利用できた地域を表示しています。",
+};
+
 export const ui: Record<Locale, Record<UIKey, string>> = {
   "zh-Hant": zhHant,
   "zh-CN": zhCN,
   en,
+  ja,
 };
