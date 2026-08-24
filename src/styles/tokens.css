@@ -66,6 +66,14 @@
   --sr-font-sans: system-ui, -apple-system, "Segoe UI", Roboto,
     "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --sr-font-display: var(--sr-font-sans);
+  /* 日文的字體堆疊要在 "Noto Sans TC" 之前岔開。兩種語言共用大部分漢字，
+     但有一批字形不同（直、骨、今、令…）。system-ui 不含 CJK 的機器上
+     （Windows：Segoe UI），日文會一路掉進繁中字體，用中文字形畫出來——
+     讀得懂，而日文讀者一眼看得出不對。
+     `<html lang>` 由 HTML_LANG 決定，`/ja` 上是 "ja"，這個選擇器才會命中。 */
+  --sr-font-sans-ja: system-ui, -apple-system, "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo,
+    "Noto Sans JP", sans-serif;
   --sr-tracking-wide: 0.14em;
   --sr-tracking-wider: 0.28em;
 
@@ -144,4 +152,10 @@
 }
 [data-chapter="starseal"] {
   --sr-chapter: var(--sr-chapter-starseal);
+}
+
+/* 日文頁面（`/ja`，`<html lang="ja">`）換掉 sans 的解析順序。
+   只覆寫一個變數，其餘設計語彙不動。 */
+:root:lang(ja) {
+  --sr-font-sans: var(--sr-font-sans-ja);
 }
