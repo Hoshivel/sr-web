@@ -173,7 +173,7 @@ const zhHant = {
   "theme.shattered.kicker": "起源",
   "theme.shattered.tagline": "破碎星空之下，萬章由此而生。",
   "theme.shattered.story":
-    "率領探索隊穿越漂浮於虛空的碎片，拼回失落的大地；後續篇章都從這段旅途展開。",
+    "來自各片碎界的人們踏上各自的旅途，在漂浮於虛空的碎片間相遇，拼回失落的大地；後續篇章都由這些交會展開。",
   "theme.snowpass.name": "風雪過境",
   "theme.snowpass.kicker": "第一章",
   "theme.snowpass.tagline": "世界破碎後的第一場暴風雪，與冰原上僅存的善意。",
@@ -320,7 +320,7 @@ const zhCN: Record<UIKey, string> = {
   "theme.shattered.kicker": "起源",
   "theme.shattered.tagline": "破碎星空之下，万章由此而生。",
   "theme.shattered.story":
-    "率领探索队穿越漂浮于虚空的碎片，拼回失落的大地；后续篇章都从这段旅途展开。",
+    "来自各片碎界的人们踏上各自的旅途，在漂浮于虚空的碎片间相遇，拼回失落的大地；后续篇章都由这些交会展开。",
   "theme.snowpass.name": "风雪过境",
   "theme.snowpass.kicker": "第一章",
   "theme.snowpass.tagline": "世界破碎后的第一场暴风雪，与冰原上仅存的善意。",
@@ -470,7 +470,7 @@ const en: Record<UIKey, string> = {
   "theme.shattered.kicker": "Origin",
   "theme.shattered.tagline": "Beneath a shattered sky, every chapter is born.",
   "theme.shattered.story":
-    "Lead an expedition across fragments adrift in the void and piece the lost lands together; every chapter grows from this journey.",
+    "Across fragments adrift in the void, many journeys meet and piece the lost lands back together; every later chapter grows from these crossings.",
   "theme.snowpass.name": "Snowstorm's Passage",
   "theme.snowpass.kicker": "Chapter 1",
   "theme.snowpass.tagline":
@@ -505,17 +505,17 @@ const en: Record<UIKey, string> = {
 };
 
 const ja: Record<UIKey, string> = {
-  "site.name": "碎界",
+  "site.name": "砕界",
   "site.nameLatin": "SHATTERED REALMS",
   "site.tagline": "砕けた星空の下、未完の旅へ",
   "site.summary":
-    "『碎界』はブラウザで遊べる 2D ヘックス制ターンベース・ストラテジー。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
+    "『砕界』はブラウザで遊べる 2D ヘックス制ターンベース・ストラテジー。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
 
-  // 事件（zh「碎裂」／en "The Shattering"）。ブランドの「碎界」とは別語なので、
+  // 事件（zh「碎裂」／en "The Shattering"）。ブランドの「砕界」とは別語なので、
   // 一文字違いで紛れないよう「砕裂」を当てる。
   "nav.world": "砕裂",
   "nav.gameplay": "遊び方",
-  "nav.chapters": "碎界の樹",
+  "nav.chapters": "砕界の樹",
   "nav.characters": "キャラクター",
   "nav.play": "ゲームを始める",
 
@@ -531,12 +531,12 @@ const ja: Record<UIKey, string> = {
 
   "footer.langLabel": "言語",
   "footer.summary": "砕けた星空の下、未完の旅へ",
-  "footer.rights": "碎界 Shattered Realms",
+  "footer.rights": "砕界 Shattered Realms",
 
   "hero.badge": "正式サービス中",
 
   "teaser.eyebrow": "プレビュー",
-  "teaser.videoLabel": "碎界プレビュー映像",
+  "teaser.videoLabel": "砕界プレビュー映像",
   "teaser.prev": "前のクリップ",
   "teaser.next": "次のクリップ",
   "teaser.play": "再生",
@@ -594,7 +594,7 @@ const ja: Record<UIKey, string> = {
   "char.sekien.element": "烈焰 · 再生",
   "char.sekien.role": "章は未だ開かれず · 南の暖かな光",
   "char.sekien.seeking":
-    "彼は、まだ陽の届く碎界を探している。人々が残骸の上で生きることに慣れてしまった今、彼が問うのは——夜明けの姿を、まだ覚えているか。",
+    "彼は、まだ陽の届く砕界を探している。人々が残骸の上で生きることに慣れてしまった今、彼が問うのは——夜明けの姿を、まだ覚えているか。",
   "char.sekien.fantasy":
     "弓と剣を切り替えて余燼を溜め、倒れてもなお鳳凰となって戦局を燃え直す。",
   "char.aoiro.name": "青蘿",
@@ -606,20 +606,20 @@ const ja: Record<UIKey, string> = {
   "char.aoiro.fantasy": "毒を臨界まで押し上げ、蔓で退路を塞ぎ、連射で一気に爆ぜさせる。",
 
   "chapters.eyebrow": "章",
-  "chapters.titleA": "碎界の樹をたどり、",
+  "chapters.titleA": "砕界の樹をたどり、",
   "chapters.titleB": "旅路の交わる場所を見る",
   "chapters.lead":
-    "碎界の欠片は、それぞれがひとつの旅路を宿している。道が交わるとき、失われた大地は少しずつ元の姿を取り戻す。",
+    "砕界の欠片は、それぞれがひとつの旅路を宿している。道が交わるとき、失われた大地は少しずつ元の姿を取り戻す。",
   "chapters.hint": "ドラッグで揺らす · タップで開く",
   "chapters.status.root": "世界の根",
   "chapters.status.live": "公開中",
   "chapters.status.soon": "近日公開",
   "chapters.close": "閉じる",
-  "theme.shattered.name": "碎界",
+  "theme.shattered.name": "砕界",
   "theme.shattered.kicker": "起源",
   "theme.shattered.tagline": "砕けた星空の下、すべての章がここから生まれる。",
   "theme.shattered.story":
-    "探索隊を率いて虚空に漂う欠片を渡り、失われた大地を繋ぎ直す。以降のすべての章は、この旅路から広がっていく。",
+    "虚空に漂う欠片を越えて、それぞれの旅路が交わり、失われた大地を繋ぎ直していく。以降のすべての章は、こうした出会いから広がっていく。",
   "theme.snowpass.name": "風雪の通り道",
   "theme.snowpass.kicker": "第一章",
   "theme.snowpass.tagline":
@@ -639,7 +639,7 @@ const ja: Record<UIKey, string> = {
   "play.recommended": "最適な接続",
   "play.enter": "戦場へ入る",
   "play.disconnect": "ゲームを離れる",
-  "play.frameTitle": "碎界のゲーム画面",
+  "play.frameTitle": "砕界のゲーム画面",
   "play.unknownRegion": "その他の地域",
   "play.defaultRegion": "デフォルト（自動振り分け）",
   "play.viewSize": "表示モード",
