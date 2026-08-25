@@ -10,6 +10,11 @@ sr 是一個架空世界觀的 2D 六角格回合制策略遊戲：**手牌 + �
    再由使用者選擇 iframe 嵌入或另開新分頁。
 3. 服務目錄、探活與分流屬於獨立的 `hoshi-svc`，不在這個靜態網站的部署物內。
 
+公開頁面使用 `hoshi_cookie_consent` 區分「只用必要 Cookie」與「記住偏好」。訪客明確
+選擇語言或接受偏好後，語言會寫入 `.hoshivel.com` 範圍的 `hoshi_lang`，供 Hoshivel、
+Hoshi ID 與遊戲入口共用；本站維持固定深色美術方向，不會覆寫其他頁面的外觀偏好。
+偏好 Cookie 不承載分析或追蹤資料，登入與安全 Cookie 也不受這個選項停用。
+
 具體流程：官網 Play → `GET https://svc.hoshivel.com/v1/services/sr-game/route?endpoint=web`
 → 取得建議與候選節點 → 使用者進入後才載入該節點原始 `web` endpoint。
 

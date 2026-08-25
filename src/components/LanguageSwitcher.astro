@@ -14,6 +14,7 @@ import {
   HTML_LANG,
   type Locale,
 } from "@/i18n/utils";
+import { globalLanguageForLocale } from "@/lib/preferences";
 
 interface Props {
   locale: Locale;
@@ -36,6 +37,7 @@ const t = useTranslations(locale);
           hreflang={HTML_LANG[l]}
           title={LOCALE_LABEL[l]}
           aria-current={active ? "true" : undefined}
+          data-hoshi-language={globalLanguageForLocale(l)}
         >
           {LOCALE_SHORT[l]}
         </a>
