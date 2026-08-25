@@ -1,0 +1,133 @@
+---
+import { useTranslations, type Locale } from "@/i18n/utils";
+import { globalLanguageForLocale } from "@/lib/preferences";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const language = globalLanguageForLocale(locale);
+---
+
+<details class="sr-cookie" data-cookie-panel data-language={language} hidden>
+  <summary>{t("cookie.settings")}</summary>
+  <div class="sr-cookie__card">
+    <h2>{t("cookie.title")}</h2>
+    <p>{t("cookie.body")}</p>
+    <div class="sr-cookie__actions">
+      <button class="sr-btn sr-btn--ghost" type="button" data-cookie-essential>
+        {t("cookie.essential")}
+      </button>
+      <button class="sr-btn sr-btn--primary" type="button" data-cookie-accept>
+        {t("cookie.remember")}
+      </button>
+    </div>
+  </div>
+</details>
+
+<style>
+  .sr-cookie {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: var(--sr-z-overlay);
+    width: min(30rem, calc(100% - 2rem));
+  }
+  .sr-cookie > summary {
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--sr-border-strong);
+    border-radius: var(--sr-radius);
+    list-style: none;
+    color: var(--sr-text-muted);
+    background: var(--sr-surface-2);
+    box-shadow: var(--sr-shadow-2);
+    font-size: var(--sr-text-xs);
+    cursor: pointer;
+  }
+  .sr-cookie > summary::-webkit-details-marker {
+    display: none;
+  }
+  .sr-cookie[open] > summary {
+    margin-bottom: 0.5rem;
+    color: var(--sr-accent-ice);
+    border-color: var(--sr-accent);
+  }
+  .sr-cookie__card {
+    padding: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--sr-accent) 62%, var(--sr-border));
+    border-radius: var(--sr-radius-lg);
+    color: var(--sr-text);
+    background: var(--sr-surface-1);
+    box-shadow: var(--sr-shadow-3);
+  }
+  .sr-cookie__card h2 {
+    color: var(--sr-text-bright);
+    font-size: var(--sr-text-lg);
+  }
+  .sr-cookie__card p {
+    margin-top: 0.5rem;
+    color: var(--sr-text-muted);
+    font-size: var(--sr-text-sm);
+    line-height: var(--sr-leading);
+  }
+  .sr-cookie__actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  .sr-cookie__actions .sr-btn {
+    min-height: 2.5rem;
+    padding: 0.55rem 0.95rem;
+  }
+  @media (max-width: 520px) {
+    .sr-cookie {
+      right: 0.6rem;
+      bottom: 0.6rem;
+      width: calc(100% - 1.2rem);
+    }
+    .sr-cookie__actions,
+    .sr-cookie__actions .sr-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  import {
+    acceptPreferences,
+    globalLanguageForLocale,
+    readConsent,
+    rememberLanguage,
+    useEssentialCookies,
+  } from "@/lib/preferences";
+
+  const panel = document.querySelector<HTMLDetailsElement>("[data-cookie-panel]");
+  if (panel) {
+    panel.hidden = false;
+    panel.open = readConsent() === null;
+    const current = globalLanguageForLocale(panel.dataset.language ?? "zh-TW");
+    panel.querySelector("[data-cookie-accept]")?.addEventListener("click", () => {
+      acceptPreferences(current);
+      panel.open = false;
+    });
+    panel.querySelector("[data-cookie-essential]")?.addEventListener("click", () => {
+      useEssentialCookies();
+      panel.open = false;
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    const link = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+      "[data-hoshi-language]",
+    );
+    if (!link) return;
+    rememberLanguage(globalLanguageForLocale(link.dataset.hoshiLanguage ?? ""));
+  });
+</script>

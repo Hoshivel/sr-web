@@ -82,6 +82,13 @@ const zhHant = {
   "footer.summary": "破碎星空之下，啟程未竟之旅",
   "footer.rights": "碎界 Shattered Realms",
 
+  "cookie.settings": "Cookie 設定",
+  "cookie.title": "記住你的顯示偏好",
+  "cookie.body":
+    "我們不使用分析或追蹤 Cookie。你可以讓 Hoshivel 旗下網站共用語言偏好；外觀只在支援的頁面套用。登入與安全所需的 Cookie 永遠啟用。",
+  "cookie.essential": "只使用必要 Cookie",
+  "cookie.remember": "記住偏好",
+
   "hero.badge": "正式上線",
 
   // 預覽 Teaser（#teaser）—— 只有眉標與播放器，不加說明文字
@@ -236,6 +243,13 @@ const zhCN: Record<UIKey, string> = {
   "footer.summary": "破碎星空之下，启程未竟之旅",
   "footer.rights": "碎界 Shattered Realms",
 
+  "cookie.settings": "Cookie 设置",
+  "cookie.title": "记住你的显示偏好",
+  "cookie.body":
+    "我们不使用分析或跟踪 Cookie。你可以让 Hoshivel 旗下网站共享语言偏好；外观只在支持的页面应用。登录与安全所需的 Cookie 始终启用。",
+  "cookie.essential": "仅使用必要 Cookie",
+  "cookie.remember": "记住偏好",
+
   "hero.badge": "正式上线",
 
   "teaser.eyebrow": "预览",
@@ -379,6 +393,13 @@ const en: Record<UIKey, string> = {
   "footer.langLabel": "Language",
   "footer.summary": "Beneath a shattered sky, the journey begins",
   "footer.rights": "Shattered Realms",
+
+  "cookie.settings": "Cookie settings",
+  "cookie.title": "Remember your display preferences",
+  "cookie.body":
+    "We do not use analytics or tracking cookies. You can share your language across Hoshivel sites; appearance applies only on pages that support it. Cookies required for sign-in and security are always enabled.",
+  "cookie.essential": "Essential only",
+  "cookie.remember": "Remember preferences",
 
   "hero.badge": "Now live",
 
@@ -532,6 +553,13 @@ const ja: Record<UIKey, string> = {
   "footer.langLabel": "言語",
   "footer.summary": "砕けた星空の下、未完の旅へ",
   "footer.rights": "砕界 Shattered Realms",
+
+  "cookie.settings": "Cookie 設定",
+  "cookie.title": "表示設定を保存",
+  "cookie.body":
+    "解析や追跡の Cookie は使用しません。Hoshivel の各サイトで言語を共有できます。外観は対応ページにのみ適用されます。ログインとセキュリティに必要な Cookie は常に有効です。",
+  "cookie.essential": "必須 Cookie のみ",
+  "cookie.remember": "設定を保存",
 
   "hero.badge": "正式サービス中",
 

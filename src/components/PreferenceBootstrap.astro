@@ -1,0 +1,52 @@
+---
+import {
+  LOCALES,
+  DEFAULT_LOCALE,
+  localizedPath,
+  type Locale,
+} from "@/i18n/utils";
+import { globalLanguageForLocale } from "@/lib/preferences";
+
+interface Props {
+  locale: Locale;
+  path: string;
+}
+
+const { locale, path } = Astro.props;
+const routes = Object.fromEntries(
+  LOCALES.map((candidate) => [
+    globalLanguageForLocale(candidate),
+    localizedPath(candidate, path),
+  ]),
+);
+const redirectFromDefault = locale === DEFAULT_LOCALE && path === "/";
+---
+
+<script is:inline define:vars={{ routes, redirectFromDefault }}>
+  // A static site can only honor a saved locale in the browser. Explicit
+  // locale URLs still win, so only the unprefixed home route redirects.
+  if (redirectFromDefault) {
+    var readCookie = function (name) {
+      var prefix = name + "=";
+      var parts = document.cookie.split(";");
+      for (var i = 0; i < parts.length; i += 1) {
+        var part = parts[i].trim();
+        if (!part.startsWith(prefix)) continue;
+        try {
+          return decodeURIComponent(part.slice(prefix.length));
+        } catch (_error) {
+          return null;
+        }
+      }
+      return null;
+    };
+    if (readCookie("hoshi_cookie_consent") === "preferences-v1") {
+      var saved = readCookie("hoshi_lang");
+      if (saved === "zh-Hant") saved = "zh-TW";
+      var target = routes[saved];
+      if (target && target !== location.pathname) {
+        location.replace(target + location.search + location.hash);
+      }
+    }
+  }
+</script>
