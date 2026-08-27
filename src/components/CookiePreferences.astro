@@ -13,7 +13,7 @@ const language = globalLanguageForLocale(locale);
 
 <details class="sr-cookie" data-cookie-panel data-language={language} hidden>
   <summary>{t("cookie.settings")}</summary>
-  <div class="sr-cookie__card">
+  <div class="sr-cookie__card" data-lenis-prevent>
     <h2>{t("cookie.title")}</h2>
     <p>{t("cookie.body")}</p>
     <div class="sr-cookie__actions">
@@ -29,17 +29,22 @@ const language = globalLanguageForLocale(locale);
 
 <style>
   .sr-cookie {
+    --cookie-inset: 1rem;
+    --cookie-toggle-height: 2.4rem;
     position: fixed;
-    right: 1rem;
-    bottom: 1rem;
+    right: var(--cookie-inset);
+    bottom: var(--cookie-inset);
     z-index: var(--sr-z-overlay);
-    width: min(30rem, calc(100% - 2rem));
+    width: min(30rem, calc(100% - 2 * var(--cookie-inset)));
+    pointer-events: none;
   }
   .sr-cookie > summary {
     width: fit-content;
     max-width: 100%;
     margin-left: auto;
+    min-height: var(--cookie-toggle-height);
     padding: 0.45rem 0.8rem;
+    line-height: 1.4;
     border: 1px solid var(--sr-border-strong);
     border-radius: var(--sr-radius);
     list-style: none;
@@ -48,16 +53,25 @@ const language = globalLanguageForLocale(locale);
     box-shadow: var(--sr-shadow-2);
     font-size: var(--sr-text-xs);
     cursor: pointer;
+    pointer-events: auto;
   }
   .sr-cookie > summary::-webkit-details-marker {
     display: none;
   }
   .sr-cookie[open] > summary {
-    margin-bottom: 0.5rem;
     color: var(--sr-accent-ice);
     border-color: var(--sr-accent);
   }
   .sr-cookie__card {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.5rem);
+    width: 100%;
+    max-height: calc(100vh - 2 * var(--cookie-inset) - var(--cookie-toggle-height) - 0.5rem);
+    max-height: calc(100dvh - 2 * var(--cookie-inset) - var(--cookie-toggle-height) - 0.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    pointer-events: auto;
     padding: 1.25rem;
     border: 1px solid color-mix(in srgb, var(--sr-accent) 62%, var(--sr-border));
     border-radius: var(--sr-radius-lg);
@@ -88,8 +102,7 @@ const language = globalLanguageForLocale(locale);
   }
   @media (max-width: 520px) {
     .sr-cookie {
-      right: 0.6rem;
-      bottom: 0.6rem;
+      --cookie-inset: 0.6rem;
       width: calc(100% - 1.2rem);
     }
     .sr-cookie__actions,
