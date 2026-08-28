@@ -251,13 +251,66 @@
   aspect-ratio: auto;
   height: min(72svh, 860px);
 }
-/* 全屏模式：原生 Fullscreen API 生效。 */
-.play-view:fullscreen {
+/*
+  全屏模式：版面由本站自己做，不依賴原生 Fullscreen API 有沒有生效。
+  API 成功時瀏覽器介面也會收掉，那是加分；失敗或不呈現時畫面仍然是滿的。
+
+  先前只寫 `.play-view:fullscreen`，於是「原生那一層沒被畫出來」等於整塊區域
+  從頁面上消失——iPad 的 Firefox 實際就是這樣（同一臺機器的 Chrome 沒事）。
+  100dvh 讓行動瀏覽器的浮動介面不會把底部切掉，100vh 是舊瀏覽器的退路。
+*/
+.play-launcher.size-fullscreen .play-view {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sr-z-overlay);
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
+  max-width: none;
   aspect-ratio: auto;
   border: 0;
   border-radius: 0;
+  background: #000;
+}
+.play-view:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}
+
+/* 退出鈕：在 .play-view 裡面（原生全螢幕只呈現這個元素，控制列在它外面）。 */
+.play-view__exit {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--sr-border);
+  border-radius: var(--sr-radius);
+  background: rgba(6, 7, 11, 0.72);
+  backdrop-filter: blur(6px);
+  color: var(--sr-text);
+  cursor: pointer;
+}
+.play-view__exit svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.play-view__exit:hover,
+.play-view__exit:focus-visible {
+  border-color: var(--sr-accent);
 }
 
 /* ---- 拖拽把手：調整視窗高度 ---- */
