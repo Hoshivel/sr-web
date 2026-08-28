@@ -51,9 +51,16 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
       <div class="hero__mark" data-reveal>
         <Mark size={64} glow title={t("site.name")} />
       </div>
-      <h1 class="hero__title sr-gradient-text" data-reveal>{t("site.name")}</h1>
-      {showLatin && <p class="hero__latin" data-reveal>{t("site.nameLatin")}</p>}
+      <!-- 標題是一個 h1，裡面兩行。拉丁名先前是 h1 外面的一個 <p>，於是
+           「碎界」與「Shattered Realms」對搜尋引擎是兩個分開的東西——
+           而它們是同一個作品的兩個名字，要被當成同一個就得在同一個標題裡。
+           外觀沒有變：兩行仍然各自排版，全大寫由 CSS 做。 -->
+      <h1 class="hero__title" data-reveal>
+        <span class="hero__title-name sr-gradient-text">{t("site.name")}</span>{" "}
+        {showLatin && <span class="hero__latin">{t("site.nameLatin")}</span>}
+      </h1>
       <p class="hero__tagline" data-reveal>{t("site.tagline")}</p>
+      <p class="hero__intro" data-reveal>{t("site.summary")}</p>
 
       <div class="hero__cta" data-reveal>
         <a class="sr-btn sr-btn--primary" href={playHref} data-magnetic>
@@ -181,7 +188,18 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     }
   }
 
+  /* h1 只負責堆疊兩行；字體與發光留在中文名那一行，否則拉丁副標會一起被
+     漸層填色與 drop-shadow 蓋掉。 */
+  /* flex 而不是 grid：兩個 span 之間那個空白字元要留著（`碎界 Shattered Realms`
+     才是一個字串，不是兩個），而 grid 會把它變成一個空的格線項多佔一列；
+     flex 不為純空白建立項目。 */
   .hero__title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .hero__title-name {
     font-family: var(--sr-font-display);
     font-weight: 800;
     font-size: var(--sr-text-display);
@@ -191,10 +209,22 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     filter: drop-shadow(0 2px 24px rgba(122, 162, 255, 0.28));
   }
   .hero__latin {
+    /* 文字本身是正常大小寫（見 i18n/ui.ts 的 site.nameLatin）；全大寫是外觀。
+       字體從 body 繼承（h1 已不再指定），但粗體要自己解掉——它先前是 <p>。 */
+    font-weight: 400;
     color: var(--sr-text-muted);
     letter-spacing: var(--sr-tracking-wider);
     font-size: var(--sr-text-sm);
     text-transform: uppercase;
+  }
+  /* 首屏引言：三個名字（碎界／Shattered Realms／Hoshivel）共現的那一段。
+     刻意收窄、壓低對比——它要被讀到，但不跟大標與標語搶。 */
+  .hero__intro {
+    margin-top: 0.9rem;
+    max-width: 40rem;
+    color: var(--sr-text-muted);
+    font-size: var(--sr-text-sm);
+    line-height: 1.8;
   }
   .hero__tagline {
     margin-top: 1.2rem;

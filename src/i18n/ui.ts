@@ -56,10 +56,16 @@ export const LOCALE_SHORT: Record<Locale, string> = {
 // zh-Hant 為鍵的權威來源；其餘語言以 Record<UIKey, string> 強制對齊。
 const zhHant = {
   "site.name": "碎界",
-  "site.nameLatin": "SHATTERED REALMS",
+  // 正常大小寫，不是全大寫字面值——外觀的全大寫由 CSS `text-transform` 做。
+  // 搜尋引擎讀的是文字本身，而「Shattered Realms」與「SHATTERED REALMS」
+  // 在人的眼裡是同一個名字，在字串比對裡不是。
+  "site.nameLatin": "Shattered Realms",
   "site.tagline": "破碎星空之下，啟程未竟之旅",
+  // 三個名字（碎界／Shattered Realms／Hoshivel）刻意寫在同一句裡：
+  // 它同時是 meta description 與首屏那一段可見的引言。
   "site.summary":
-    "《碎界》是一款可在瀏覽器遊玩的 2D 六角格回合制策略遊戲。構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
+    "《碎界》（Shattered Realms）是由 Hoshivel 開發的 2D 六角格回合制策略遊戲，可在瀏覽器直接遊玩。構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
+  "site.title": "碎界（Shattered Realms）｜Hoshivel",
 
   "nav.world": "碎裂",
   "nav.gameplay": "玩法",
@@ -218,10 +224,11 @@ export type UIKey = keyof typeof zhHant;
 
 const zhCN: Record<UIKey, string> = {
   "site.name": "碎界",
-  "site.nameLatin": "SHATTERED REALMS",
+  "site.nameLatin": "Shattered Realms",
   "site.tagline": "破碎星空之下，启程未竟之旅",
   "site.summary":
-    "《碎界》是一款可在浏览器游玩的 2D 六角格回合制策略游戏。构筑手牌、调度角色，在交错的旅途中拼回破碎的世界。",
+    "《碎界》（Shattered Realms）是由 Hoshivel 开发的 2D 六角格回合制策略游戏，可在浏览器直接游玩。构筑手牌、调度角色，在交错的旅途中拼回破碎的世界。",
+  "site.title": "碎界（Shattered Realms）｜Hoshivel",
 
   "nav.world": "碎裂",
   "nav.gameplay": "玩法",
@@ -369,10 +376,11 @@ const zhCN: Record<UIKey, string> = {
 
 const en: Record<UIKey, string> = {
   "site.name": "Shattered Realms",
-  "site.nameLatin": "SHATTERED REALMS",
+  "site.nameLatin": "Shattered Realms",
   "site.tagline": "Beneath a shattered sky, the journey begins",
   "site.summary":
-    "Shattered Realms is a browser-playable 2D turn-based strategy game on a hex grid. Build your hand, position your cast, and piece together a broken world through intersecting journeys.",
+    "Shattered Realms (碎界) is a browser-playable 2D turn-based strategy game on a hex grid, developed by Hoshivel. Build your hand, position your cast, and piece together a broken world through intersecting journeys.",
+  "site.title": "Shattered Realms | Hoshivel",
 
   "nav.world": "The Shattering",
   "nav.gameplay": "Gameplay",
@@ -527,10 +535,11 @@ const en: Record<UIKey, string> = {
 
 const ja: Record<UIKey, string> = {
   "site.name": "砕界",
-  "site.nameLatin": "SHATTERED REALMS",
+  "site.nameLatin": "Shattered Realms",
   "site.tagline": "砕けた星空の下、未完の旅へ",
   "site.summary":
-    "『砕界』はブラウザで遊べる 2D ヘックス制ターンベース・ストラテジー。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
+    "『砕界』（Shattered Realms）は Hoshivel が開発する、ブラウザで遊べる 2D ヘックス制ターンベース・ストラテジー。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
+  "site.title": "砕界（Shattered Realms）｜Hoshivel",
 
   // 事件（zh「碎裂」／en "The Shattering"）。ブランドの「砕界」とは別語なので、
   // 一文字違いで紛れないよう「砕裂」を当てる。

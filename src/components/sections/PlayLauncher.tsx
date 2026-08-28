@@ -24,6 +24,42 @@ const FRAME_CREDENTIAL_POLICY =
   "publickey-credentials-get 'src' https://id.hoshivel.com; " +
   "publickey-credentials-create 'src' https://id.hoshivel.com";
 
+// Native fullscreen, spelled two ways. WebKit (which is every browser on
+// iPadOS, not only Safari) still ships only the webkit-prefixed methods on some
+// versions, and the unprefixed-only call above used to fail silently there:
+// `el.requestFullscreen` was undefined, so nothing happened at all while the
+// component had already switched itself into the fullscreen layout.
+type FullscreenCapableElement = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void;
+};
+type FullscreenCapableDocument = Document & {
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void> | void;
+};
+
+function fullscreenElement(): Element | null {
+  const doc = document as FullscreenCapableDocument;
+  return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+}
+
+function supportsFullscreen(el: HTMLElement | null): boolean {
+  const target = el as FullscreenCapableElement | null;
+  return Boolean(target && (target.requestFullscreen || target.webkitRequestFullscreen));
+}
+
+function enterFullscreen(el: HTMLElement): Promise<void> {
+  const target = el as FullscreenCapableElement;
+  const request = target.requestFullscreen ?? target.webkitRequestFullscreen;
+  if (!request) return Promise.reject(new Error("fullscreen unsupported"));
+  return Promise.resolve(request.call(target)).then(() => undefined);
+}
+
+function leaveFullscreen(): void {
+  const doc = document as FullscreenCapableDocument;
+  const exit = doc.exitFullscreen ?? doc.webkitExitFullscreen;
+  if (exit) Promise.resolve(exit.call(doc)).catch(() => {});
+}
+
 function SizeIcon({ mode }: { mode: SizeMode }) {
   if (mode === "normal") {
     return (
@@ -116,22 +152,38 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
 
   const selected = regions?.find((region) => region.id === selId) ?? null;
 
+  // 全螢幕由**本元件自己的版面**負責（`.size-fullscreen` 讓 `.play-view` 蓋滿
+  // 視窗），原生 Fullscreen API 只是加分項——它成功就順便把瀏覽器的介面也收掉。
+  //
+  // 反過來寫（把版面交給 `:fullscreen`）的代價實測過：iPad 上的 Firefox 進了
+  // 原生全螢幕卻沒有把那一層畫出來，於是 `.play-view` 從版面裡消失、頁面上留
+  // 一塊空白，而唯一能退出的按鈕在 `.play-view` 外面——沒有 Esc 鍵的裝置就
+  // 回不來了。現在最差的情況只是「瀏覽器介面沒收掉」，畫面照樣是滿的。
   useEffect(() => {
     const el = viewRef.current;
     if (!el) return;
-    if (size === "fullscreen") {
-      if (el.requestFullscreen && document.fullscreenElement !== el) el.requestFullscreen().catch(() => {});
-    } else if (document.fullscreenElement === el) {
-      document.exitFullscreen?.().catch(() => {});
+    if (size !== "fullscreen") {
+      if (fullscreenElement() === el) leaveFullscreen();
+      return;
     }
+    if (fullscreenElement() === el) return;
+    enterFullscreen(el).catch(() => {
+      // 原生那一層要不到就算了：版面已經是滿版的，不必把模式退掉。
+    });
   }, [size]);
 
+  // 使用者用瀏覽器自己的方式離開原生全螢幕（Esc、系統手勢）時把模式同步回來。
+  // 兩個事件名都要收：WebKit 只送前綴的那一個，少了它狀態會停在 fullscreen。
   useEffect(() => {
     const onFullscreenChange = () => {
-      if (!document.fullscreenElement && size === "fullscreen") setSize("normal");
+      if (!fullscreenElement() && size === "fullscreen") setSize("normal");
     };
     document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", onFullscreenChange);
+    };
   }, [size]);
 
   // 只有明確進入後才把 URL 交給 iframe，避免節點卡片一出現就建立遊戲連線。
@@ -246,6 +298,21 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
           />
         ) : (
           <div className="play-frame play-frame--empty" aria-hidden="true" />
+        )}
+        {size === "fullscreen" && (
+          // 退出鈕必須在 .play-view **裡面**：原生全螢幕只呈現這個元素，
+          // 而控制列是它的兄弟節點。平板沒有 Esc 鍵，外面那一顆等於不存在。
+          <button
+            type="button"
+            className="play-view__exit"
+            onClick={() => chooseSize("normal")}
+            aria-label={t("play.size.normal")}
+            title={t("play.size.normal")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            </svg>
+          </button>
         )}
         {loadState === "ready" && !connected && selected && (
           <div className="play-view__ready" aria-hidden="true">

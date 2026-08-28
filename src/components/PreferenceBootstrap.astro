@@ -40,12 +40,25 @@ const redirectFromDefault = locale === DEFAULT_LOCALE && path === "/";
       }
       return null;
     };
+    // Never leave a page for itself. The comparison is "same page", not "same
+    // string": the host serves directory URLs with a trailing slash and encodes
+    // non-ASCII segments, so a target written either way would otherwise be read
+    // as somewhere else — the browser follows it, the host redirects back, and
+    // this script runs again. Only the home route redirects here, where both
+    // spellings agree; hoshivel.com runs the same component over inner pages,
+    // where they did not, and it looped until the tab was closed.
+    var samePage = function (a, b) {
+      return a.replace(/\/+$/, "") === b.replace(/\/+$/, "");
+    };
     if (readCookie("hoshi_cookie_consent") === "preferences-v1") {
       var saved = readCookie("hoshi_lang");
       if (saved === "zh-Hant") saved = "zh-TW";
       var target = routes[saved];
-      if (target && target !== location.pathname) {
-        location.replace(target + location.search + location.hash);
+      if (target) {
+        var next = new URL(target, location.href);
+        if (!samePage(next.pathname, location.pathname)) {
+          location.replace(next.pathname + location.search + location.hash);
+        }
       }
     }
   }
