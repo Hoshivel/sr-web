@@ -26,8 +26,10 @@ interface Props {
 const { locale = DEFAULT_LOCALE, title, description, navigationPath } = Astro.props;
 const t = useTranslations(locale);
 
-const pageTitle =
-  title ?? (locale === "en" ? t("site.name") : `${t("site.name")} Shattered Realms`);
+// 預設標題把三個名字放在同一行：中文名、拉丁名、開發者。搜尋結果與分頁標題
+// 是權重最高的那一塊，而「碎界」與「Shattered Realms」在字串上是兩個東西——
+// 要它們被當成同一個作品，就得有地方同時寫著。各語系的寫法在 `site.title`。
+const pageTitle = title ?? t("site.title");
 const pageDescription = description ?? `${t("site.tagline")} — ${t("site.summary")}`;
 
 const canonical = Astro.site
@@ -47,6 +49,44 @@ const alternates = LOCALES.map((l) => ({
 const xDefault = Astro.site
   ? new URL(localizedPath(DEFAULT_LOCALE, logicalPath), Astro.site).href
   : localizedPath(DEFAULT_LOCALE, logicalPath);
+
+const siteRoot = Astro.site?.href ?? "https://sr.hoshivel.com/";
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${siteRoot}#website`,
+      url: siteRoot,
+      name: "Shattered Realms",
+      alternateName: ["碎界", "砕界", "碎界 Shattered Realms"],
+      inLanguage: LOCALES.map((l) => HTML_LANG[l]),
+      publisher: { "@id": "https://hoshivel.com/#organization" },
+    },
+    {
+      "@type": "VideoGame",
+      "@id": `${siteRoot}#game`,
+      url: siteRoot,
+      name: "Shattered Realms",
+      alternateName: ["碎界", "砕界"],
+      inLanguage: LOCALES.map((l) => HTML_LANG[l]),
+      description: t("site.summary"),
+      gamePlatform: "Web browser",
+      applicationCategory: "GameApplication",
+      genre: ["Turn-based strategy", "Strategy"],
+      author: { "@id": "https://hoshivel.com/#organization" },
+      publisher: { "@id": "https://hoshivel.com/#organization" },
+      mainEntityOfPage: { "@id": `${siteRoot}#website` },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://hoshivel.com/#organization",
+      name: "Hoshivel",
+      alternateName: ["星帆"],
+      url: "https://hoshivel.com/",
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -86,6 +126,20 @@ const xDefault = Astro.site
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og.png" />
     <meta name="twitter:image:alt" content={`${t("site.name")} — ${t("site.tagline")}`} />
+
+    <!-- 結構化資料（首頁）。兩件事各由一個型別回答：
+         WebSite  —— 這個網域叫什麼、還叫什麼（Google 的 site name 讀 alternateName）
+         VideoGame —— 這個作品是什麼、誰做的（把「碎界」與「Shattered Realms」
+                      綁在同一個實體上，並指回 Hoshivel）
+         name 與 alternateName 四個語系刻意一致：同一個網域對外只能有一種說法，
+         語言差異交給 <title> 與 hreflang。 -->
+    {isHomePage && (
+      <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(structuredData)}
+      />
+    )}
   </head>
   <body>
     <Header locale={locale} path={chromePath} isHome={isHomePage} />
