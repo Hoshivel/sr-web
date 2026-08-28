@@ -60,7 +60,6 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
         {showLatin && <span class="hero__latin">{t("site.nameLatin")}</span>}
       </h1>
       <p class="hero__tagline" data-reveal>{t("site.tagline")}</p>
-      <p class="hero__intro" data-reveal>{t("site.summary")}</p>
 
       <div class="hero__cta" data-reveal>
         <a class="sr-btn sr-btn--primary" href={playHref} data-magnetic>
@@ -216,15 +215,6 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     letter-spacing: var(--sr-tracking-wider);
     font-size: var(--sr-text-sm);
     text-transform: uppercase;
-  }
-  /* 首屏引言：三個名字（碎界／Shattered Realms／Hoshivel）共現的那一段。
-     刻意收窄、壓低對比——它要被讀到，但不跟大標與標語搶。 */
-  .hero__intro {
-    margin-top: 0.9rem;
-    max-width: 40rem;
-    color: var(--sr-text-muted);
-    font-size: var(--sr-text-sm);
-    line-height: 1.8;
   }
   .hero__tagline {
     margin-top: 1.2rem;

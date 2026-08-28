@@ -26,6 +26,10 @@ const t = useTranslations(locale);
   <div class="sr-container play__stage" data-reveal>
     <PlayLauncher client:visible locale={locale} />
   </div>
+
+  <div class="sr-container">
+    <p class="play__intro">{t("site.summary")}</p>
+  </div>
 </section>
 
 <style>
@@ -56,5 +60,13 @@ const t = useTranslations(locale);
   }
   .play__stage {
     margin-top: var(--sr-space-12);
+  }
+  .play__intro {
+    max-width: 40rem;
+    margin: var(--sr-space-12) auto 0;
+    color: var(--sr-text-muted);
+    font-size: var(--sr-text-sm);
+    line-height: 1.8;
+    text-align: center;
   }
 </style>

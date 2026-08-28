@@ -62,7 +62,7 @@ const zhHant = {
   "site.nameLatin": "Shattered Realms",
   "site.tagline": "破碎星空之下，啟程未竟之旅",
   // 三個名字（碎界／Shattered Realms／Hoshivel）刻意寫在同一句裡：
-  // 它同時是 meta description 與首屏那一段可見的引言。
+  // The same introduction appears in metadata and below the playable area.
   "site.summary":
     "《碎界》（Shattered Realms）是由 Hoshivel 開發的 2D 六角格回合制策略遊戲，可在瀏覽器直接遊玩。構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
   "site.title": "碎界（Shattered Realms）｜Hoshivel",
