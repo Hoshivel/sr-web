@@ -13,6 +13,11 @@ import { ui as dictionaries } from "../src/i18n/ui.ts";
 // 「沿著碎界之樹，看見旅途交會」 keeps its wording. It is a piece of prose, not a
 // label, and 碎界之樹 is what scans there. It lives in chapters.titleA and is the
 // only key allowed to carry the variant.
+//
+// chapters.status.root 「世界之根」 is deliberately NOT policed here either — the
+// user ruled it a descriptive label rather than a name, so it stays. It is not in
+// BANNED, so nothing below touches it; this note exists so the next reader does
+// not "notice the gap" and close it.
 const NAMES = {
   "zh-Hant": "碎界樹",
   "zh-CN": "碎界树",
