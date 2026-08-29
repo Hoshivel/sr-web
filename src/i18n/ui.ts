@@ -62,7 +62,7 @@ const zhHant = {
   "site.nameLatin": "Shattered Realms",
   "site.tagline": "破碎星空之下，啟程未竟之旅",
   // 三個名字（碎界／Shattered Realms／Hoshivel）刻意寫在同一句裡：
-  // 它同時是 meta description 與首屏那一段可見的引言。
+  // The same introduction appears in metadata and below the playable area.
   "site.summary":
     "《碎界》（Shattered Realms）是由 Hoshivel 開發的 2D 六角格回合制策略遊戲，可在瀏覽器直接遊玩。構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
   "site.title": "碎界（Shattered Realms）｜Hoshivel",
@@ -91,7 +91,7 @@ const zhHant = {
   "cookie.settings": "Cookie 設定",
   "cookie.title": "記住你的顯示偏好",
   "cookie.body":
-    "我們不使用分析或追蹤 Cookie。你可以讓 Hoshivel 旗下網站共用語言偏好；外觀只在支援的頁面套用。登入與安全所需的 Cookie 永遠啟用。",
+    "偏好 Cookie 會在 Hoshivel 各網站間記住你的語言，並在支援的頁面套用外觀設定，不用於分析或追蹤。登入與安全所需的 Cookie 一律啟用。",
   "cookie.essential": "只使用必要 Cookie",
   "cookie.remember": "記住偏好",
 
@@ -177,7 +177,7 @@ const zhHant = {
   "chapters.titleB": "看見旅途交會",
   "chapters.lead":
     "每一片碎界都承載一段旅途。當道路交錯，失落的大地也逐漸拼回原貌。",
-  "chapters.hint": "拖曳撥動 · 點按展開",
+  "chapters.hint": "拖曳瀏覽 · 點選查看篇章",
   "chapters.status.root": "世界之根",
   "chapters.status.live": "已上線",
   "chapters.status.soon": "即將開放",
@@ -203,21 +203,21 @@ const zhHant = {
   "play.titleA": "備妥戰術，",
   "play.titleB": "踏入戰場",
   "play.serversTitle": "連線地區",
-  "play.recommended": "最佳連線",
+  "play.recommended": "建議地區",
   "play.enter": "進入戰場",
   "play.disconnect": "離開遊戲",
   "play.frameTitle": "碎界遊戲畫面",
   "play.unknownRegion": "其他地區",
-  "play.defaultRegion": "預設（自動分流）",
+  "play.defaultRegion": "自動選擇地區",
   "play.viewSize": "顯示模式",
   "play.size.normal": "標準",
   "play.size.theater": "寬螢幕",
   "play.size.fullscreen": "全螢幕",
   "play.newTab": "在新分頁遊玩",
-  "play.unavailable": "目前沒有可進入的遊戲地區",
-  "play.unavailableHint": "請稍後再試，或重新整理可用地區。",
+  "play.unavailable": "目前沒有可連線的遊戲伺服器",
+  "play.unavailableHint": "請稍後再試，或按下「重新連線」更新可用地區。",
   "play.retry": "重新連線",
-  "play.stale": "連線暫時不穩，已為你保留最近可用的地區。",
+  "play.stale": "暫時無法更新連線資訊，目前顯示最近一次可用的地區。",
 } satisfies Record<string, string>;
 
 export type UIKey = keyof typeof zhHant;
@@ -253,7 +253,7 @@ const zhCN: Record<UIKey, string> = {
   "cookie.settings": "Cookie 设置",
   "cookie.title": "记住你的显示偏好",
   "cookie.body":
-    "我们不使用分析或跟踪 Cookie。你可以让 Hoshivel 旗下网站共享语言偏好；外观只在支持的页面应用。登录与安全所需的 Cookie 始终启用。",
+    "偏好 Cookie 会在 Hoshivel 各网站间记住你的语言，并在支持的页面应用外观设置，不用于分析或跟踪。登录与安全所需的 Cookie 始终启用。",
   "cookie.essential": "仅使用必要 Cookie",
   "cookie.remember": "记住偏好",
 
@@ -332,7 +332,7 @@ const zhCN: Record<UIKey, string> = {
   "chapters.titleB": "看见旅途交会",
   "chapters.lead":
     "每一片碎界都承载一段旅途。当道路交错，失落的大地也逐渐拼回原貌。",
-  "chapters.hint": "拖曳拨动 · 点按展开",
+  "chapters.hint": "拖动浏览 · 点击查看篇章",
   "chapters.status.root": "世界之根",
   "chapters.status.live": "已上线",
   "chapters.status.soon": "即将开放",
@@ -357,21 +357,21 @@ const zhCN: Record<UIKey, string> = {
   "play.titleA": "备妥战术，",
   "play.titleB": "踏入战场",
   "play.serversTitle": "连接地区",
-  "play.recommended": "最佳连接",
+  "play.recommended": "推荐地区",
   "play.enter": "进入战场",
   "play.disconnect": "离开游戏",
   "play.frameTitle": "碎界游戏画面",
   "play.unknownRegion": "其他地区",
-  "play.defaultRegion": "默认（自动分流）",
+  "play.defaultRegion": "自动选择地区",
   "play.viewSize": "显示模式",
   "play.size.normal": "标准",
   "play.size.theater": "宽屏",
   "play.size.fullscreen": "全屏",
   "play.newTab": "在新标签页游玩",
-  "play.unavailable": "目前没有可进入的游戏地区",
-  "play.unavailableHint": "请稍后再试，或刷新可用地区。",
+  "play.unavailable": "目前没有可连接的游戏服务器",
+  "play.unavailableHint": "请稍后重试，或点击“重新连接”刷新可用地区。",
   "play.retry": "重新连接",
-  "play.stale": "连接暂时不稳定，已为你保留最近可用的地区。",
+  "play.stale": "暂时无法更新连接信息，目前显示最近一次可用的地区。",
 };
 
 const en: Record<UIKey, string> = {
@@ -405,7 +405,7 @@ const en: Record<UIKey, string> = {
   "cookie.settings": "Cookie settings",
   "cookie.title": "Remember your display preferences",
   "cookie.body":
-    "We do not use analytics or tracking cookies. You can share your language across Hoshivel sites; appearance applies only on pages that support it. Cookies required for sign-in and security are always enabled.",
+    "Preference cookies remember your language across Hoshivel sites and your appearance settings on supported pages. We do not use them for analytics or tracking. Cookies needed for sign-in and security are always enabled.",
   "cookie.essential": "Essential only",
   "cookie.remember": "Remember preferences",
 
@@ -490,7 +490,7 @@ const en: Record<UIKey, string> = {
   "chapters.titleB": "see where journeys cross",
   "chapters.lead":
     "Every realm-fragment holds a journey. As the roads cross, the lost world begins to take shape again.",
-  "chapters.hint": "Drag to stir · tap to unfold",
+  "chapters.hint": "Drag to explore · Select a chapter",
   "chapters.status.root": "World Root",
   "chapters.status.live": "Live",
   "chapters.status.soon": "Coming soon",
@@ -516,21 +516,21 @@ const en: Record<UIKey, string> = {
   "play.titleA": "Ready your tactics, ",
   "play.titleB": "step onto the battlefield",
   "play.serversTitle": "Connection regions",
-  "play.recommended": "Best connection",
+  "play.recommended": "Recommended",
   "play.enter": "Enter the battlefield",
   "play.disconnect": "Leave game",
   "play.frameTitle": "Shattered Realms game",
   "play.unknownRegion": "Other region",
-  "play.defaultRegion": "Default (auto-routed)",
+  "play.defaultRegion": "Automatic region selection",
   "play.viewSize": "Display mode",
   "play.size.normal": "Standard",
   "play.size.theater": "Wide",
   "play.size.fullscreen": "Fullscreen",
   "play.newTab": "Play in a new tab",
-  "play.unavailable": "No game region is available",
-  "play.unavailableHint": "Please try again shortly, or refresh the available regions.",
+  "play.unavailable": "No game servers are available right now",
+  "play.unavailableHint": "Try again later, or select “Reconnect” to refresh the available regions.",
   "play.retry": "Reconnect",
-  "play.stale": "The connection is unstable, so the most recently available regions are still shown.",
+  "play.stale": "Connection details could not be refreshed. Showing the most recently available regions.",
 };
 
 const ja: Record<UIKey, string> = {
@@ -566,7 +566,7 @@ const ja: Record<UIKey, string> = {
   "cookie.settings": "Cookie 設定",
   "cookie.title": "表示設定を保存",
   "cookie.body":
-    "解析や追跡の Cookie は使用しません。Hoshivel の各サイトで言語を共有できます。外観は対応ページにのみ適用されます。ログインとセキュリティに必要な Cookie は常に有効です。",
+    "設定 Cookie は、Hoshivel の各サイトで言語を記憶し、対応ページで外観の設定を反映するために使います。分析や追跡には使用しません。ログインとセキュリティに必要な Cookie は常に有効です。",
   "cookie.essential": "必須 Cookie のみ",
   "cookie.remember": "設定を保存",
 
@@ -647,7 +647,7 @@ const ja: Record<UIKey, string> = {
   "chapters.titleB": "旅路の交わる場所を見る",
   "chapters.lead":
     "砕界の欠片は、それぞれがひとつの旅路を宿している。道が交わるとき、失われた大地は少しずつ元の姿を取り戻す。",
-  "chapters.hint": "ドラッグで揺らす · タップで開く",
+  "chapters.hint": "ドラッグで移動 · 章を選択して詳細を見る",
   "chapters.status.root": "世界の根",
   "chapters.status.live": "公開中",
   "chapters.status.soon": "近日公開",
@@ -673,21 +673,21 @@ const ja: Record<UIKey, string> = {
   "play.titleA": "戦術を整え、",
   "play.titleB": "戦場へ踏み出す",
   "play.serversTitle": "接続地域",
-  "play.recommended": "最適な接続",
+  "play.recommended": "おすすめ",
   "play.enter": "戦場へ入る",
   "play.disconnect": "ゲームを離れる",
   "play.frameTitle": "砕界のゲーム画面",
   "play.unknownRegion": "その他の地域",
-  "play.defaultRegion": "デフォルト（自動振り分け）",
+  "play.defaultRegion": "地域を自動選択",
   "play.viewSize": "表示モード",
   "play.size.normal": "標準",
   "play.size.theater": "ワイド",
   "play.size.fullscreen": "全画面",
   "play.newTab": "新しいタブで遊ぶ",
-  "play.unavailable": "現在、入場できるゲーム地域がありません",
-  "play.unavailableHint": "しばらくしてから、または利用可能な地域を再取得してお試しください。",
+  "play.unavailable": "現在、接続できるゲームサーバーがありません",
+  "play.unavailableHint": "しばらく待ってから再度お試しください。「再接続」で利用可能な地域を更新できます。",
   "play.retry": "再接続",
-  "play.stale": "接続が一時的に不安定なため、直近で利用できた地域を表示しています。",
+  "play.stale": "接続情報を更新できませんでした。直近で利用できた地域を表示しています。",
 };
 
 export const ui: Record<Locale, Record<UIKey, string>> = {
