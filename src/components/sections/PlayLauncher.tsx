@@ -42,11 +42,13 @@ function fullscreenElement(): Element | null {
   return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
 }
 
-function supportsFullscreen(el: HTMLElement | null): boolean {
-  const target = el as FullscreenCapableElement | null;
-  return Boolean(target && (target.requestFullscreen || target.webkitRequestFullscreen));
-}
-
+// There is deliberately no separate "does this browser support fullscreen?"
+// predicate. The layout does not depend on the answer — `.size-fullscreen` fills
+// the viewport on its own and the native layer is a bonus (see the effect that
+// calls this) — so a capability check has nowhere useful to gate: refusing the
+// MODE when the API is missing would take fullscreen away from exactly the
+// browsers the layout fix was written for, and gating the CALL is what the
+// rejection below already does. The one caller catches it and carries on.
 function enterFullscreen(el: HTMLElement): Promise<void> {
   const target = el as FullscreenCapableElement;
   const request = target.requestFullscreen ?? target.webkitRequestFullscreen;
