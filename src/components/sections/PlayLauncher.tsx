@@ -91,12 +91,14 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [usingStale, setUsingStale] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [frameReady, setFrameReady] = useState(false);
   const [size, setSize] = useState<SizeMode>("normal");
   const [dragH, setDragH] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef(0);
+  const frameAttemptRef = useRef(0);
 
   const refresh = useCallback(async () => {
     const request = ++requestRef.current;
@@ -105,6 +107,8 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     setRecId(null);
     setSelId(null);
     setUsingStale(false);
+    frameAttemptRef.current += 1;
+    setFrameReady(false);
     setConnected(false);
     try {
       const data: PlayResponse = await fetchPlay();
@@ -129,6 +133,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     void refresh();
     return () => {
       requestRef.current += 1;
+      frameAttemptRef.current += 1;
     };
   }, [refresh]);
 
@@ -189,8 +194,11 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   // 只有明確進入後才把 URL 交給 iframe，避免節點卡片一出現就建立遊戲連線。
   const selectedAvailable = selected !== null && (selected.healthy || selected.degraded === true);
   const frameURL = connected && selectedAvailable && selected ? selected.url : undefined;
+  const frameLoading = Boolean(frameURL && !frameReady);
 
   const pick = (id: string) => {
+    frameAttemptRef.current += 1;
+    setFrameReady(false);
     setSelId(id);
     setConnected(false);
   };
@@ -206,6 +214,27 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   };
   const openNewTab = () => {
     if (selectedAvailable && selected) window.open(selected.url, "_blank", "noopener,noreferrer");
+  };
+  const connect = () => {
+    frameAttemptRef.current += 1;
+    setFrameReady(false);
+    setConnected(true);
+  };
+  const disconnect = () => {
+    frameAttemptRef.current += 1;
+    setFrameReady(false);
+    setConnected(false);
+  };
+  const onFrameLoad = () => {
+    const attempt = frameAttemptRef.current;
+    // `load` fires after the document and its eager resources are ready. Two
+    // paint frames let the cross-origin page draw once before we fade it in,
+    // so the browser's initial white canvas never leaks through the launcher.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (frameAttemptRef.current === attempt) setFrameReady(true);
+      });
+    });
   };
 
   const onHandleDown = (event: ReactPointerEvent) => {
@@ -286,18 +315,36 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         })}
       </div>
 
-      <div className={`play-view${connected ? " is-connected" : ""}`} ref={viewRef} style={viewStyle}>
+      <div
+        className={`play-view${connected ? " is-connected" : ""}${frameLoading ? " is-loading" : ""}`}
+        ref={viewRef}
+        style={viewStyle}
+        aria-busy={frameLoading}
+      >
         {frameURL ? (
           <iframe
-            className="play-frame"
+            className={`play-frame play-frame--game${frameReady ? " is-ready" : ""}`}
             title={selected ? `${t("play.frameTitle")} · ${regionLabel(selected)}` : t("play.frameTitle")}
             src={frameURL}
             allow={FRAME_CREDENTIAL_POLICY}
             allowFullScreen
             sandbox="allow-forms allow-scripts allow-same-origin"
+            aria-hidden={!frameReady}
+            tabIndex={frameReady ? 0 : -1}
+            onLoad={onFrameLoad}
           />
         ) : (
           <div className="play-frame play-frame--empty" aria-hidden="true" />
+        )}
+        {frameLoading && (
+          <div className="play-view__loading" role="status" aria-live="polite">
+            <svg viewBox="0 0 80 80" aria-hidden="true">
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
+              <circle cx="40" cy="40" r="5" />
+              <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
+            </svg>
+            <span>{t("play.loading")}</span>
+          </div>
         )}
         {size === "fullscreen" && (
           // 退出鈕必須在 .play-view **裡面**：原生全螢幕只呈現這個元素，
@@ -343,13 +390,13 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
             type="button"
             className="sr-btn sr-btn--primary play-enter"
             disabled={!selectedAvailable}
-            onClick={() => setConnected(true)}
+            onClick={connect}
           >
             {t("play.enter")}
           </button>
         )}
         {connected && (
-          <button type="button" className="sr-btn sr-btn--ghost" onClick={() => setConnected(false)}>
+          <button type="button" className="sr-btn sr-btn--ghost" onClick={disconnect}>
             {t("play.disconnect")}
           </button>
         )}

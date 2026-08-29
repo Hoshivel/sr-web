@@ -1,5 +1,5 @@
 /*
-  碎界樹 World Tree —— island 樣式（wt- 前綴、隨 island chunk 載入）。
+  碎界樹 —— island 樣式（wt- 前綴、隨 island chunk 載入）。
   節點以百分比定位於 .wt-stage、置中於各自 (left,top)；枝條走 SVG viewBox 自動縮放。
   --wt-accent（章節氛圍）與 --el（單節點元素色）以 CSS 過場平滑 morph（冰藍↔星紫）。
 */

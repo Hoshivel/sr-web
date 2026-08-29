@@ -64,12 +64,12 @@ const zhHant = {
   // 三個名字（碎界／Shattered Realms／Hoshivel）刻意寫在同一句裡：
   // The same introduction appears in metadata and below the playable area.
   "site.summary":
-    "《碎界》（Shattered Realms）是由 Hoshivel 開發的 2D 六角格回合制策略遊戲，可在瀏覽器直接遊玩。構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
+    "《碎界》（Shattered Realms）是由 Hoshivel 開發的 2D 六角格回合制策略遊戲。點擊即玩，構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
   "site.title": "碎界（Shattered Realms）｜Hoshivel",
 
   "nav.world": "碎裂",
   "nav.gameplay": "玩法",
-  "nav.chapters": "碎界之樹",
+  "nav.chapters": "碎界樹",
   "nav.characters": "角色",
   "nav.play": "開始遊戲",
 
@@ -171,7 +171,9 @@ const zhHant = {
     "她在尋找一個不必靠誰記得也活得下去的位置。聚落曾把她連著那塊地一起切走——所以她受僱同行，不說是同伴。",
   "char.aoiro.fantasy": "以毒素逼近臨界、用藤蔓封鎖退路，再以連射引爆攻勢。",
 
-  // 碎界之樹 Chapters（#chapters）
+  // 碎界樹 Chapters（#chapters）。正式名稱是「碎界樹」——它是碎界自己的東西，
+  // 不是泛稱的世界樹。唯一的例外是下面 chapters.titleA/B 那一句題詞
+  //「沿著碎界之樹，看見旅途交會」，使用者裁示保留原句。
   "chapters.eyebrow": "篇章",
   "chapters.titleA": "沿著碎界之樹，",
   "chapters.titleB": "看見旅途交會",
@@ -207,6 +209,7 @@ const zhHant = {
   "play.enter": "進入戰場",
   "play.disconnect": "離開遊戲",
   "play.frameTitle": "碎界遊戲畫面",
+  "play.loading": "正在載入遊戲…",
   "play.unknownRegion": "其他地區",
   "play.defaultRegion": "自動選擇地區",
   "play.viewSize": "顯示模式",
@@ -227,12 +230,12 @@ const zhCN: Record<UIKey, string> = {
   "site.nameLatin": "Shattered Realms",
   "site.tagline": "破碎星空之下，启程未竟之旅",
   "site.summary":
-    "《碎界》（Shattered Realms）是由 Hoshivel 开发的 2D 六角格回合制策略游戏，可在浏览器直接游玩。构筑手牌、调度角色，在交错的旅途中拼回破碎的世界。",
+    "《碎界》（Shattered Realms）是由 Hoshivel 开发的 2D 六角格回合制策略游戏。点击即玩，构筑手牌、调度角色，在交错的旅途中拼回破碎的世界。",
   "site.title": "碎界（Shattered Realms）｜Hoshivel",
 
   "nav.world": "碎裂",
   "nav.gameplay": "玩法",
-  "nav.chapters": "碎界之树",
+  "nav.chapters": "碎界树",
   "nav.characters": "角色",
   "nav.play": "开始游戏",
 
@@ -361,6 +364,7 @@ const zhCN: Record<UIKey, string> = {
   "play.enter": "进入战场",
   "play.disconnect": "离开游戏",
   "play.frameTitle": "碎界游戏画面",
+  "play.loading": "正在加载游戏…",
   "play.unknownRegion": "其他地区",
   "play.defaultRegion": "自动选择地区",
   "play.viewSize": "显示模式",
@@ -379,12 +383,12 @@ const en: Record<UIKey, string> = {
   "site.nameLatin": "Shattered Realms",
   "site.tagline": "Beneath a shattered sky, the journey begins",
   "site.summary":
-    "Shattered Realms (碎界) is a browser-playable 2D turn-based strategy game on a hex grid, developed by Hoshivel. Build your hand, position your cast, and piece together a broken world through intersecting journeys.",
+    "Shattered Realms (碎界) is a 2D turn-based strategy game on a hex grid, developed by Hoshivel. Click to play — build your hand, position your cast, and piece together a broken world through intersecting journeys.",
   "site.title": "Shattered Realms | Hoshivel",
 
   "nav.world": "The Shattering",
   "nav.gameplay": "Gameplay",
-  "nav.chapters": "World Tree",
+  "nav.chapters": "Shattered Realms Tree",
   "nav.characters": "Cast",
   "nav.play": "Play",
 
@@ -486,7 +490,7 @@ const en: Record<UIKey, string> = {
     "Pushes venom to its limit, seals escape routes with vines and detonates the pressure with rapid fire.",
 
   "chapters.eyebrow": "Chapters",
-  "chapters.titleA": "Follow the World Tree, ",
+  "chapters.titleA": "Follow the Shattered Realms Tree, ",
   "chapters.titleB": "see where journeys cross",
   "chapters.lead":
     "Every realm-fragment holds a journey. As the roads cross, the lost world begins to take shape again.",
@@ -520,6 +524,7 @@ const en: Record<UIKey, string> = {
   "play.enter": "Enter the battlefield",
   "play.disconnect": "Leave game",
   "play.frameTitle": "Shattered Realms game",
+  "play.loading": "Loading game…",
   "play.unknownRegion": "Other region",
   "play.defaultRegion": "Automatic region selection",
   "play.viewSize": "Display mode",
@@ -538,14 +543,14 @@ const ja: Record<UIKey, string> = {
   "site.nameLatin": "Shattered Realms",
   "site.tagline": "砕けた星空の下、未完の旅へ",
   "site.summary":
-    "『砕界』（Shattered Realms）は Hoshivel が開発する、ブラウザで遊べる 2D ヘックス制ターンベース・ストラテジー。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
+    "『砕界』（Shattered Realms）は Hoshivel が開発する 2D ヘックス制ターンベース・ストラテジー。クリックしてすぐ遊べます。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
   "site.title": "砕界（Shattered Realms）｜Hoshivel",
 
   // 事件（zh「碎裂」／en "The Shattering"）。ブランドの「砕界」とは別語なので、
   // 一文字違いで紛れないよう「砕裂」を当てる。
   "nav.world": "砕裂",
   "nav.gameplay": "遊び方",
-  "nav.chapters": "砕界の樹",
+  "nav.chapters": "砕界樹",
   "nav.characters": "キャラクター",
   "nav.play": "ゲームを始める",
 
@@ -677,6 +682,7 @@ const ja: Record<UIKey, string> = {
   "play.enter": "戦場へ入る",
   "play.disconnect": "ゲームを離れる",
   "play.frameTitle": "砕界のゲーム画面",
+  "play.loading": "ゲームを読み込んでいます…",
   "play.unknownRegion": "その他の地域",
   "play.defaultRegion": "地域を自動選択",
   "play.viewSize": "表示モード",

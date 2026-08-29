@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
 import { prefersReducedMotion } from "@/lib/motion";
-import "./WorldTree.css";
+import "./ShatteredTree.css";
 
 /*
-  碎界樹 World Tree —— 官網版（改編自遊戲 `ui/meta/Entry.tsx`）。
+  碎界樹 —— 官網版（改編自遊戲 `ui/meta/Entry.tsx`）。
+  正式名稱是「碎界樹」，它是碎界自己的東西，不是泛稱的那一棵樹。
 
   複用遊戲碎界樹的靈魂：節點乘一套 spring-damper 物理在星流中漂浮、可被抓取拋擲，
   彎曲擺動的枝條與盤根 tendril 隨之飄動，formation 耦合讓整棵樹如鬆散編隊一起晃。
@@ -128,7 +129,7 @@ function branchPath(x1: number, y1: number, x2: number, y2: number, bend: number
 const pctX = (x: number) => ((x + DW / 2) / DW) * 100;
 const pctY = (y: number) => ((y + DH / 2) / DH) * 100;
 
-export default function WorldTree({ locale, seed = 0x0ceed }: { locale: Locale; seed?: number }) {
+export default function ShatteredTree({ locale, seed = 0x0ceed }: { locale: Locale; seed?: number }) {
   const t = useTranslations(locale);
   const [sel, setSel] = useState<Chapter["id"] | null>(null);
   const [hover, setHover] = useState<Chapter["id"] | null>(null);

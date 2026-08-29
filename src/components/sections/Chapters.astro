@@ -4,7 +4,7 @@
   區塊殼：眉標 / 標題 / 導言 + 互動式碎界樹 island（改編自遊戲 Entry.tsx 物理）。
   島為 client:visible 延遲注水；SSR 出靜態樹（節點在錨點、枝條已畫）→ 無 CLS、可降級。
 */
-import WorldTree from "@/components/sections/WorldTree.tsx";
+import ShatteredTree from "@/components/sections/ShatteredTree.tsx";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -25,7 +25,7 @@ const t = useTranslations(locale);
   </div>
 
   <div class="sr-container chapters__stage" data-reveal>
-    <WorldTree client:visible locale={locale} />
+    <ShatteredTree client:visible locale={locale} />
     <div class="chapters__hint" role="img" aria-label={t("chapters.hint")}>
       <svg viewBox="0 0 32 24" aria-hidden="true">
         <path d="M5 12h22M9 8l-4 4 4 4M23 8l4 4-4 4" />
