@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
 import { fetchPlay, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
@@ -43,7 +44,7 @@ function fullscreenElement(): Element | null {
 }
 
 // There is deliberately no separate "does this browser support fullscreen?"
-// predicate. The layout does not depend on the answer — `.size-fullscreen` fills
+// predicate. The layout does not depend on the answer — `.is-fullscreen` fills
 // the viewport on its own and the native layer is a bonus (see the effect that
 // calls this) — so a capability check has nowhere useful to gate: refusing the
 // MODE when the API is missing would take fullscreen away from exactly the
@@ -54,6 +55,40 @@ function enterFullscreen(el: HTMLElement): Promise<void> {
   const request = target.requestFullscreen ?? target.webkitRequestFullscreen;
   if (!request) return Promise.reject(new Error("fullscreen unsupported"));
   return Promise.resolve(request.call(target)).then(() => undefined);
+}
+
+// renderView puts the embedded view where `position: fixed` still means "the
+// viewport".
+//
+// The full-bleed fallback is `position: fixed; inset: 0`, and in place that is
+// not enough: `.play__stage` — the wrapper the reveal-on-scroll animation acts
+// on — carries `transform` and `will-change: transform`, and either of those
+// makes an element the containing block for the fixed-position elements inside
+// it. So the overlay filled a box anchored to that wrapper instead of to the
+// window, and `.play { overflow: hidden }` clipped whatever hung outside the
+// section. Measured on this page: an otherwise identical `position: fixed;
+// inset: 0` div lands at (0, 0) appended to <body> and at (0, 1792) appended
+// inside `.play__stage`.
+//
+// It never showed up in Chrome because there the native Fullscreen API
+// succeeds and the browser promotes the element to the top layer, where no
+// ancestor's containing block applies. On iPadOS every browser is WebKit and
+// Firefox has no element fullscreen at all, so it is the only place that ever
+// ran the fallback — and there the overlay was off-screen entirely, which is
+// the "the whole block disappears" report.
+//
+// `will-change` is the half worth remembering: `[data-reveal].is-visible` sets
+// `transform: none`, but the `will-change` declaration stays, so the containing
+// block outlives the animation. Waiting for the reveal to finish would not have
+// helped.
+//
+// A portal is used rather than removing those properties from the wrapper: the
+// animation is not this component's to change, the next component to want a
+// full-bleed layer would hit the same wall, and "which of my ancestors is
+// transformed" is not a question a leaf component can keep answering correctly.
+function renderView(fullscreen: boolean, view: ReactNode): ReactNode {
+  if (!fullscreen || typeof document === "undefined") return view;
+  return createPortal(view, document.body);
 }
 
 function leaveFullscreen(): void {
@@ -159,13 +194,15 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
 
   const selected = regions?.find((region) => region.id === selId) ?? null;
 
-  // 全螢幕由**本元件自己的版面**負責（`.size-fullscreen` 讓 `.play-view` 蓋滿
-  // 視窗），原生 Fullscreen API 只是加分項——它成功就順便把瀏覽器的介面也收掉。
+  // 全螢幕由**本元件自己的版面**負責（`.play-view.is-fullscreen` 蓋滿視窗），
+  // 原生 Fullscreen API 只是加分項——它成功就順便把瀏覽器的介面也收掉。
   //
-  // 反過來寫（把版面交給 `:fullscreen`）的代價實測過：iPad 上的 Firefox 進了
-  // 原生全螢幕卻沒有把那一層畫出來，於是 `.play-view` 從版面裡消失、頁面上留
-  // 一塊空白，而唯一能退出的按鈕在 `.play-view` 外面——沒有 Esc 鍵的裝置就
-  // 回不來了。現在最差的情況只是「瀏覽器介面沒收掉」，畫面照樣是滿的。
+  // 反過來寫（把版面交給 `:fullscreen`）的代價實測過：iPad 上的 Firefox 進不了
+  // 原生全螢幕，於是 `.play-view` 從版面裡消失、頁面上留一塊空白，而唯一能退出
+  // 的按鈕在 `.play-view` 外面——沒有 Esc 鍵的裝置就回不來了。
+  //
+  // 但「自己做滿版」還差一步，而那一步是這個元件在原地做不到的：見下方
+  // renderView 的 portal。
   useEffect(() => {
     const el = viewRef.current;
     if (!el) return;
@@ -177,6 +214,18 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     enterFullscreen(el).catch(() => {
       // 原生那一層要不到就算了：版面已經是滿版的，不必把模式退掉。
     });
+  }, [size]);
+
+  // 滿版時鎖住背後的頁面。原生全螢幕會自己做這件事，而沒有原生那一層的瀏覽器
+  // 上，背景會在覆蓋層下面繼續捲——手指往上一滑，蓋在上面的遊戲不動、底下的
+  // 官網動了，讀起來像畫面壞掉。
+  useEffect(() => {
+    if (size !== "fullscreen") return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
   }, [size]);
 
   // 使用者用瀏覽器自己的方式離開原生全螢幕（Esc、系統手勢）時把模式同步回來。
@@ -317,62 +366,65 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         })}
       </div>
 
-      <div
-        className={`play-view${connected ? " is-connected" : ""}${frameLoading ? " is-loading" : ""}`}
-        ref={viewRef}
-        style={viewStyle}
-        aria-busy={frameLoading}
-      >
-        {frameURL ? (
-          <iframe
-            className={`play-frame play-frame--game${frameReady ? " is-ready" : ""}`}
-            title={selected ? `${t("play.frameTitle")} · ${regionLabel(selected)}` : t("play.frameTitle")}
-            src={frameURL}
-            allow={FRAME_CREDENTIAL_POLICY}
-            allowFullScreen
-            sandbox="allow-forms allow-scripts allow-same-origin"
-            aria-hidden={!frameReady}
-            tabIndex={frameReady ? 0 : -1}
-            onLoad={onFrameLoad}
-          />
-        ) : (
-          <div className="play-frame play-frame--empty" aria-hidden="true" />
-        )}
-        {frameLoading && (
-          <div className="play-view__loading" role="status" aria-live="polite">
-            <svg viewBox="0 0 80 80" aria-hidden="true">
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
-              <circle cx="40" cy="40" r="5" />
-              <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
-            </svg>
-            <span>{t("play.loading")}</span>
-          </div>
-        )}
-        {size === "fullscreen" && (
-          // 退出鈕必須在 .play-view **裡面**：原生全螢幕只呈現這個元素，
-          // 而控制列是它的兄弟節點。平板沒有 Esc 鍵，外面那一顆等於不存在。
-          <button
-            type="button"
-            className="play-view__exit"
-            onClick={() => chooseSize("normal")}
-            aria-label={t("play.size.normal")}
-            title={t("play.size.normal")}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
-            </svg>
-          </button>
-        )}
-        {loadState === "ready" && !connected && selected && (
-          <div className="play-view__ready" aria-hidden="true">
-            <svg viewBox="0 0 80 80">
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
-              <circle cx="40" cy="40" r="5" />
-              <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
-            </svg>
-          </div>
-        )}
-      </div>
+      {renderView(
+        size === "fullscreen",
+        <div
+          className={`play-view${size === "fullscreen" ? " is-fullscreen" : ""}${connected ? " is-connected" : ""}${frameLoading ? " is-loading" : ""}`}
+          ref={viewRef}
+          style={viewStyle}
+          aria-busy={frameLoading}
+        >
+          {frameURL ? (
+            <iframe
+              className={`play-frame play-frame--game${frameReady ? " is-ready" : ""}`}
+              title={selected ? `${t("play.frameTitle")} · ${regionLabel(selected)}` : t("play.frameTitle")}
+              src={frameURL}
+              allow={FRAME_CREDENTIAL_POLICY}
+              allowFullScreen
+              sandbox="allow-forms allow-scripts allow-same-origin"
+              aria-hidden={!frameReady}
+              tabIndex={frameReady ? 0 : -1}
+              onLoad={onFrameLoad}
+            />
+          ) : (
+            <div className="play-frame play-frame--empty" aria-hidden="true" />
+          )}
+          {frameLoading && (
+            <div className="play-view__loading" role="status" aria-live="polite">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
+                <circle cx="40" cy="40" r="5" />
+                <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
+              </svg>
+              <span>{t("play.loading")}</span>
+            </div>
+          )}
+          {size === "fullscreen" && (
+            // 退出鈕必須在 .play-view **裡面**：原生全螢幕只呈現這個元素，
+            // 而控制列是它的兄弟節點。平板沒有 Esc 鍵，外面那一顆等於不存在。
+            <button
+              type="button"
+              className="play-view__exit"
+              onClick={() => chooseSize("normal")}
+              aria-label={t("play.size.normal")}
+              title={t("play.size.normal")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+              </svg>
+            </button>
+          )}
+          {loadState === "ready" && !connected && selected && (
+            <div className="play-view__ready" aria-hidden="true">
+              <svg viewBox="0 0 80 80">
+                <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
+                <circle cx="40" cy="40" r="5" />
+                <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
+              </svg>
+            </div>
+          )}
+        </div>,
+      )}
 
       {size !== "fullscreen" && (
         <div
