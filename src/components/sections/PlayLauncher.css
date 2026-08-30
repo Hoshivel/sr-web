@@ -315,8 +315,14 @@
   先前只寫 `.play-view:fullscreen`，於是「原生那一層沒被畫出來」等於整塊區域
   從頁面上消失——iPad 的 Firefox 實際就是這樣（同一臺機器的 Chrome 沒事）。
   100dvh 讓行動瀏覽器的浮動介面不會把底部切掉，100vh 是舊瀏覽器的退路。
+
+  **選擇器掛在 `.play-view` 自己身上，不是 `.play-launcher.size-fullscreen`
+  底下**：滿版時這個元素會被 portal 搬到 `<body>` 底下，那裡沒有
+  `.play-launcher` 這個祖先。搬家的理由見 PlayLauncher.tsx 的 `renderView`
+  ——簡短版是 `position: fixed` 在被 `transform` 過的祖先裡不是相對視窗，
+  而 `.play__stage`（進場動畫那一層）正是這樣一個祖先。
 */
-.play-launcher.size-fullscreen .play-view {
+.play-view.is-fullscreen {
   position: fixed;
   inset: 0;
   z-index: var(--sr-z-overlay);
