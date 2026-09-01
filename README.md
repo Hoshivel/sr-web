@@ -58,8 +58,14 @@ RouteDecision 會嚴格驗證；route API 失敗時，只能在 `expiresAt + sta
 
 ## 部署
 
-`hoshi build` 產生 `dist/` 靜態檔，直接由 nginx／CDN 服務；不需 Node runtime、
-網站後端或 `/api` proxy。
+**Cloudflare Pages，從 `main` 部署。** 推上 `main` 之後由 Pages 自己建置並上線
+——本倉庫沒有部署指令，CI 也不部署。`wrangler.jsonc` 是給 Pages 的建置／部署
+步驟讀的，本機用不到它（所以 wrangler 不在 dependencies）。
+
+`hoshi build` 產生 `dist/` 靜態檔，不需 Node runtime、網站後端或 `/api` proxy。
+
+**這個站不落在任何節點上**，所以它不在 hoshi-deploy 的 inventory 裡，
+origin 憑證的 SAN 也沒有 `sr.hoshivel.com`——那是對的，不是漏掉。
 
 部署要求：
 
