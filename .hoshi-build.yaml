@@ -15,8 +15,13 @@ dev:
         run: npm run dev
         # 26610 是本站在埠計畫裡的區塊（26610-26619，遊戲範圍），不是 astro
         # 的預設 4321。純靜態站不進 hoshi-deploy 的 inventory `nodes`
-        # ——它由 Cloudflare Pages 服務，不落在任何節點上——但 dev server 仍然
+        # ——它由 Cloudflare 建置與服務，不落在任何節點上——但 dev server 仍然
         # 和其他倉庫搶同一臺開發機上的號碼，所以號碼取自同一份計畫。
+        #
+        # 這裡原本指名「Cloudflare Pages」。不落在節點上是對的，產品名沒有
+        # 查證過（wrangler.jsonc 是 assets.directory 的形狀，不是 Pages 的鍵），
+        # 所以拿掉。實際是 Pages 專案還是 Worker 見 workspace 的
+        # todo/sr-web-與-hoshivel-web-的部署路徑.md。
         #
         # **只列一個。** 先前寫 `[4321, 4322]` 是因為 4321 被占用時 astro 會
         # 自己滑到 4322，而那正是要消滅的行為：本站與 hoshivel-web 都停在
