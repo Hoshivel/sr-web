@@ -58,14 +58,16 @@ RouteDecision 會嚴格驗證；route API 失敗時，只能在 `expiresAt + sta
 
 ## 部署
 
-**Cloudflare Pages，從 `main` 部署。** 推上 `main` 之後由 Pages 自己建置並上線
-——本倉庫沒有部署指令，CI 也不部署。`wrangler.jsonc` 是給 Pages 的建置／部署
-步驟讀的，本機用不到它（所以 wrangler 不在 dependencies）。
+**Cloudflare Workers（僅靜態資產），生產分支 `main`。** 推上 `main` 由
+Cloudflare 建置：`npm run build` → `npx wrangler deploy`。建置設定在 Cloudflare
+主控臺，不在本倉庫；CI 不部署。
+
+- Workers 與 Pages 已整合為同一流程。本站只部署靜態資產，兩者無差異。
+- `wrangler.jsonc` 供 `npx wrangler deploy` 讀取，在 Cloudflare 的建置環境執行。
+  本機不需要 wrangler，因此不在 dependencies，也沒有 `deploy` script。
+- 本站不落在任何節點上：不進 hoshi-deploy inventory，origin 憑證不含 `sr.hoshivel.com`。
 
 `hoshi build` 產生 `dist/` 靜態檔，不需 Node runtime、網站後端或 `/api` proxy。
-
-**這個站不落在任何節點上**，所以它不在 hoshi-deploy 的 inventory 裡，
-origin 憑證的 SAN 也沒有 `sr.hoshivel.com`——那是對的，不是漏掉。
 
 部署要求：
 

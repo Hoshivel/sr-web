@@ -15,7 +15,7 @@ dev:
         run: npm run dev
         # 26610 是本站在埠計畫裡的區塊（26610-26619，遊戲範圍），不是 astro
         # 的預設 4321。純靜態站不進 hoshi-deploy 的 inventory `nodes`
-        # ——它由 Cloudflare Pages 服務，不落在任何節點上——但 dev server 仍然
+        # ——它由 Cloudflare Workers 服務，不落在任何節點上——但 dev server 仍然
         # 和其他倉庫搶同一臺開發機上的號碼，所以號碼取自同一份計畫。
         #
         # **只列一個。** 先前寫 `[4321, 4322]` 是因為 4321 被占用時 astro 會
