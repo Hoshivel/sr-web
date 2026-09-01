@@ -1,3 +1,6 @@
+// Cloudflare Pages 的建置／部署步驟讀這一份，**本機用不到**——所以 wrangler
+// 不在 package.json 的 dependencies 裡，也沒有 deploy script。
+// 上線的方式是推 `main`，Pages 自己建置。
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "sr-web",
