@@ -58,8 +58,19 @@ RouteDecision 會嚴格驗證；route API 失敗時，只能在 `expiresAt + sta
 
 ## 部署
 
-`hoshi build` 產生 `dist/` 靜態檔，直接由 nginx／CDN 服務；不需 Node runtime、
-網站後端或 `/api` proxy。
+**本站不落在任何 Hoshivel 節點上，由 Cloudflare 建置並服務。**
+`hoshi build`（＝`npm run build`）產生的 `dist/` 就是全部產物；不需 Node
+runtime、網站後端或 `/api` proxy。
+
+倉庫這一側**沒有任何一步會推送產物**：CI 只驗建置過不過，`wrangler`
+不在相依裡，`wrangler.jsonc` 的 `assets.directory: ./dist` 是給 Cloudflare
+那一側讀的。所以「這個 commit 上線了沒有」不由本倉庫回答，也不由
+`hoshi-deploy` 的節點清單回答——它在 Cloudflare 專案那裡。
+
+> **註**：`sr.hoshivel.com` 因此不在任何節點的 vhost 裡，也不在 origin 憑證的
+> SAN 集合裡；只有遊戲後端的 `play.sr.hoshivel.com` 在。這是刻意的，理由與
+> 誰負責見 workspace 的
+> `decisions/infrastructure/兩個公開前端由-Cloudflare-服務.md`。
 
 部署要求：
 
