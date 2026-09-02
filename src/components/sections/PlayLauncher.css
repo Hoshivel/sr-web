@@ -335,16 +335,14 @@
   border-radius: 0;
   background: #000;
 }
-.play-view:fullscreen {
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  aspect-ratio: auto;
-  border: 0;
-  border-radius: 0;
-}
+/*
+  這裡沒有 `.play-view:fullscreen`。原生全螢幕要的是 `<html>`（理由見
+  PlayLauncher.tsx 的 NATIVE_FULLSCREEN_TARGET），所以 `.play-view` 不會是
+  `:fullscreen` 的那個元素；上面那條規則在兩種情形下都已經把版面撐滿。
+*/
 
-/* 退出鈕：在 .play-view 裡面（原生全螢幕只呈現這個元素，控制列在它外面）。 */
+/* 退出鈕：在 .play-view 裡面。滿版時這一層蓋住整個視窗，而控制列留在啟動器那邊
+   ——蓋在下面就等於不存在，而平板沒有 Esc 鍵。 */
 .play-view__exit {
   position: absolute;
   top: max(0.75rem, env(safe-area-inset-top));

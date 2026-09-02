@@ -3,6 +3,12 @@ import { createPortal } from "react-dom";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
 import { fetchPlay, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
+import {
+  FULLSCREEN_CHANGE_EVENTS,
+  exitFullscreen,
+  fullscreenElement,
+  requestFullscreen,
+} from "@/lib/fullscreen";
 import "./PlayLauncher.css";
 
 /*
@@ -25,37 +31,22 @@ const FRAME_CREDENTIAL_POLICY =
   "publickey-credentials-get 'src' https://id.hoshivel.com; " +
   "publickey-credentials-create 'src' https://id.hoshivel.com";
 
-// Native fullscreen, spelled two ways. WebKit (which is every browser on
-// iPadOS, not only Safari) still ships only the webkit-prefixed methods on some
-// versions, and the unprefixed-only call above used to fail silently there:
-// `el.requestFullscreen` was undefined, so nothing happened at all while the
-// component had already switched itself into the fullscreen layout.
-type FullscreenCapableElement = HTMLElement & {
-  webkitRequestFullscreen?: () => Promise<void> | void;
-};
-type FullscreenCapableDocument = Document & {
-  webkitFullscreenElement?: Element | null;
-  webkitExitFullscreen?: () => Promise<void> | void;
-};
-
-function fullscreenElement(): Element | null {
-  const doc = document as FullscreenCapableDocument;
-  return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
-}
-
-// There is deliberately no separate "does this browser support fullscreen?"
-// predicate. The layout does not depend on the answer — `.is-fullscreen` fills
-// the viewport on its own and the native layer is a bonus (see the effect that
-// calls this) — so a capability check has nowhere useful to gate: refusing the
-// MODE when the API is missing would take fullscreen away from exactly the
-// browsers the layout fix was written for, and gating the CALL is what the
-// rejection below already does. The one caller catches it and carries on.
-function enterFullscreen(el: HTMLElement): Promise<void> {
-  const target = el as FullscreenCapableElement;
-  const request = target.requestFullscreen ?? target.webkitRequestFullscreen;
-  if (!request) return Promise.reject(new Error("fullscreen unsupported"));
-  return Promise.resolve(request.call(target)).then(() => undefined);
-}
+// The native layer is asked for on <html>, not on the view element, for two
+// reasons that both outlive whichever browser is in front of us:
+//
+//   - The view element does not survive the switch. Going fullscreen moves it
+//     into a portal (see renderView), and element → portal is a different fiber
+//     type, so React drops that DOM node and builds a new one. Fullscreen on a
+//     node that is about to leave the document is dropped with it.
+//   - <html> is the element most likely to be granted where element fullscreen
+//     is only partly implemented, and it is the same element the browser would
+//     have shown anyway: our own layout is what fills the viewport, so the
+//     native layer's whole job is hiding the browser's chrome around it.
+//
+// Nothing else changes with the target, because nothing depends on WHICH
+// element the browser considers fullscreen — `.is-fullscreen` carries the
+// layout either way.
+const NATIVE_FULLSCREEN_TARGET = () => document.documentElement;
 
 // renderView puts the embedded view where `position: fixed` still means "the
 // viewport".
@@ -89,12 +80,6 @@ function enterFullscreen(el: HTMLElement): Promise<void> {
 function renderView(fullscreen: boolean, view: ReactNode): ReactNode {
   if (!fullscreen || typeof document === "undefined") return view;
   return createPortal(view, document.body);
-}
-
-function leaveFullscreen(): void {
-  const doc = document as FullscreenCapableDocument;
-  const exit = doc.exitFullscreen ?? doc.webkitExitFullscreen;
-  if (exit) Promise.resolve(exit.call(doc)).catch(() => {});
 }
 
 function SizeIcon({ mode }: { mode: SizeMode }) {
@@ -203,17 +188,17 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   //
   // 但「自己做滿版」還差一步，而那一步是這個元件在原地做不到的：見下方
   // renderView 的 portal。
+  //
+  // 進入原生全螢幕的請求在 chooseSize 裡送出，不在這裡：那道請求必須待在手勢
+  // 的事件處理裡（見該處）。退出留在效果裡，因為離開全螢幕模式不只有按鈕一條
+  // 路——瀏覽器自己收掉時走的是下面的 fullscreenchange。
   useEffect(() => {
-    const el = viewRef.current;
-    if (!el) return;
-    if (size !== "fullscreen") {
-      if (fullscreenElement() === el) leaveFullscreen();
-      return;
+    if (size === "fullscreen") return;
+    // 只收自己要來的那一個。遊戲 iframe 也可能為自己要全螢幕（allowFullScreen），
+    // 那不歸這裡管。
+    if (fullscreenElement() === NATIVE_FULLSCREEN_TARGET()) {
+      void exitFullscreen().catch(() => {});
     }
-    if (fullscreenElement() === el) return;
-    enterFullscreen(el).catch(() => {
-      // 原生那一層要不到就算了：版面已經是滿版的，不必把模式退掉。
-    });
   }, [size]);
 
   // 滿版時鎖住背後的頁面。原生全螢幕會自己做這件事，而沒有原生那一層的瀏覽器
@@ -234,11 +219,13 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     const onFullscreenChange = () => {
       if (!fullscreenElement() && size === "fullscreen") setSize("normal");
     };
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+    for (const name of FULLSCREEN_CHANGE_EVENTS) {
+      document.addEventListener(name, onFullscreenChange);
+    }
     return () => {
-      document.removeEventListener("fullscreenchange", onFullscreenChange);
-      document.removeEventListener("webkitfullscreenchange", onFullscreenChange);
+      for (const name of FULLSCREEN_CHANGE_EVENTS) {
+        document.removeEventListener(name, onFullscreenChange);
+      }
     };
   }, [size]);
 
@@ -261,6 +248,21 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   };
   const chooseSize = (mode: SizeMode) => {
     setDragH(null);
+    // 原生那一層的請求送在這裡——**同步地**，在手勢自己的事件處理裡。
+    //
+    // 先前送在 `size` 的效果裡，而 React 的 passive effect 排在繪製之後的另一個
+    // task；WebKit 只在它還在處理那個手勢時才給全螢幕，於是請求永遠遲到。
+    // iPadOS 上每一個瀏覽器都是 WebKit，所以那三個瀏覽器的原生全螢幕其實都沒有
+    // 生效過——只是本站的版面自己蓋滿了視窗，看起來仍然像進了全螢幕。
+    // 這一項與 iPad Firefox 那次回報無關，見 SR#148 §13.A。
+    // 退出不在這裡：離開全螢幕不只有按鈕一條路，所以那一半歸上面的效果。
+    const target = NATIVE_FULLSCREEN_TARGET();
+    if (mode === "fullscreen" && fullscreenElement() !== target) {
+      requestFullscreen(target).done.catch(() => {
+        // 要不到就算了：版面已經是滿版的，不必把模式退掉，也不必說什麼——
+        // 差別只在瀏覽器自己的介面留在畫面上。
+      });
+    }
     setSize(mode);
   };
   const openNewTab = () => {
@@ -400,8 +402,9 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
             </div>
           )}
           {size === "fullscreen" && (
-            // 退出鈕必須在 .play-view **裡面**：原生全螢幕只呈現這個元素，
-            // 而控制列是它的兄弟節點。平板沒有 Esc 鍵，外面那一顆等於不存在。
+            // 退出鈕必須在 .play-view **裡面**：滿版時這一層蓋住整個視窗，而
+            // 控制列留在啟動器那邊、被蓋在下面。平板沒有 Esc 鍵，外面那一顆等
+            // 於不存在。
             <button
               type="button"
               className="play-view__exit"
