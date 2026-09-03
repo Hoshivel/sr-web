@@ -1,0 +1,450 @@
+---
+/*
+  /debug/fullscreen —— 全螢幕探針。
+
+  存在的理由只有一個：iPad 上接 remote DevTools 不現實，而
+  `requestFullscreen()` 失敗時**什麼都不會顯示**——沒有例外冒到畫面上，沒有
+  訊息，只有「按了沒反應」。這一頁把那次呼叫的實際結果印在頁面自己身上。
+
+  刻意不掛 Layout.astro：不要 header／footer、不要 reveal 動畫、不要 Pixi 與
+  GSAP、不要任何 `transform` 過的祖先。要問的是瀏覽器答不答應，不是本站的版面
+  能不能承受——那兩個問題混在一起過一次了（sr-web#51）。
+
+  這一頁不進 sitemap、不被任何地方連到，並且 noindex。
+*/
+
+/*
+  按鈕在樣板裡展開，不由腳本 createElement：Astro 的樣式是靠 `data-astro-cid-*`
+  屬性限定範圍的，而腳本生出來的節點沒有那個屬性，會整排掉出樣式之外——在平板
+  上那代表點擊區變小。
+
+  documentElement／body／一般元素／canvas 回答「這個瀏覽器是拒絕某一個元素，還是
+  拒絕全部」；帶 transform 的祖先把「瀏覽器不給」與 sr-web#51 的 containing block
+  分開；video 兩列是對照組——firefox-ios#33992 說 iPadOS 的 Firefox 影片可以全螢幕、
+  其他元素不行，所以那兩列成功而前面全敗，就是那個 issue 的形狀。
+*/
+const TARGETS = [
+  { name: "html", hint: "document.documentElement —— 產品用的就是這一個" },
+  { name: "body", hint: "document.body" },
+  { name: "div", hint: "一般容器，祖先乾淨" },
+  { name: "div+transform", hint: "祖先帶 transform，sr-web#51 的形狀" },
+  { name: "canvas", hint: "<canvas>" },
+  { name: "video", hint: "<video>，走標準 Fullscreen API" },
+  { name: "video-native", hint: "video.webkitEnterFullscreen()，iOS 專用，不是 Fullscreen API" },
+];
+---
+
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>全螢幕探針 — sr-web</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --fg: #e8ebf2;
+        --muted: #9aa3b2;
+        --bg: #06070b;
+        --panel: #11141c;
+        --line: #262c3a;
+        --ok: #6ee7a8;
+        --bad: #ff8b8b;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: max(1rem, env(safe-area-inset-top)) 1rem 3rem;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.6 ui-sans-serif, system-ui, "Noto Sans TC", sans-serif;
+      }
+      main { max-width: 46rem; margin: 0 auto; }
+      h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+      h2 { font-size: 1rem; margin: 2rem 0 0.5rem; }
+      p { margin: 0.35rem 0; color: var(--muted); }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .grid { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+      button {
+        font: inherit;
+        color: var(--fg);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.7rem 0.9rem;
+        text-align: left;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      button b { display: block; font-weight: 600; }
+      button small { color: var(--muted); }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+      .row button { flex: 0 0 auto; }
+      fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 0; padding: 0.6rem 0.9rem; }
+      legend { color: var(--muted); padding: 0 0.35rem; }
+      label { margin-right: 1rem; white-space: nowrap; }
+      pre {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.8rem;
+        margin: 0.5rem 0 0;
+        max-height: 26rem;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      /*
+        探針目標。進了全螢幕之後畫面上只剩被指定的那一棵子樹，所以每個目標都要
+        自己看得出來是誰——不然使用者只會看到一塊黑的。
+      */
+      .target {
+        display: grid;
+        place-content: center;
+        gap: 0.5rem;
+        min-height: 5.5rem;
+        padding: 1rem;
+        border: 1px dashed var(--line);
+        border-radius: 10px;
+        background: #0b0e15;
+        text-align: center;
+      }
+      .target b { font-size: 1.1rem; }
+      .target span { color: var(--muted); font-size: 0.85rem; }
+      /*
+        這一層刻意帶 transform：`position: fixed` 在被 transform 過的祖先底下
+        不是相對視窗，而是相對那個祖先。sr-web#51 的實際成因就是這個，探針要
+        分得出「瀏覽器不給全螢幕」與「給了，但被祖先困住」。
+      */
+      .transformed { transform: translateZ(0); will-change: transform; }
+      canvas.target, video.target { display: block; width: 100%; height: 8rem; background: #0b0e15; }
+      .verdict { font-size: 0.9rem; }
+      .verdict.ok { color: var(--ok); }
+      .verdict.bad { color: var(--bad); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>全螢幕探針</h1>
+      <p>
+        每個按鈕對一個目標送出一次 <code>requestFullscreen()</code>，把結果寫在下方。
+        成功的話會停留約 1.6 秒讓你看瀏覽器介面有沒有收掉，然後自動退出。
+      </p>
+      <p>
+        依序按過每一顆，再把整段記錄複製回報。同一臺機器上換瀏覽器各跑一次才有對照。
+      </p>
+
+      <fieldset>
+        <legend>呼叫哪一個拼法</legend>
+        <label><input type="radio" name="spelling" value="auto" checked /> 自動</label>
+        <label><input type="radio" name="spelling" value="standard" /> requestFullscreen</label>
+        <label><input type="radio" name="spelling" value="webkit" /> webkitRequestFullscreen</label>
+      </fieldset>
+
+      <h2>目標</h2>
+      <div class="grid">
+        {TARGETS.map((target) => (
+          <button type="button" data-target={target.name}>
+            <b>全螢幕：{target.name}</b>
+            <small>{target.hint}</small>
+          </button>
+        ))}
+      </div>
+
+      <h2>目標元素</h2>
+      <div class="grid">
+        <div class="target" id="t-div">
+          <b>一般 div</b>
+          <span>等同遊戲容器</span>
+          <span class="verdict" data-verdict></span>
+        </div>
+        <div class="transformed">
+          <div class="target" id="t-transformed">
+            <b>div（祖先帶 transform）</b>
+            <span>sr-web#51 的形狀</span>
+            <span class="verdict" data-verdict></span>
+          </div>
+        </div>
+        <canvas class="target" id="t-canvas" width="640" height="200"></canvas>
+        <video class="target" id="t-video" muted playsinline autoplay></video>
+      </div>
+
+      <h2>記錄</h2>
+      <div class="row">
+        <button type="button" id="copy">複製全部</button>
+        <button type="button" id="clear">清空</button>
+        <button type="button" id="force-exit">強制退出全螢幕</button>
+      </div>
+      <pre id="log" aria-live="polite"></pre>
+    </main>
+
+    <script>
+      import {
+        FULLSCREEN_CHANGE_EVENTS,
+        FULLSCREEN_ERROR_EVENTS,
+        afterTwoFrames,
+        exitFullscreen,
+        fullscreenElement,
+        requestFullscreen,
+        type FullscreenSpelling,
+      } from "@/lib/fullscreen";
+
+      // How long a successful request is held before it is released. Long
+      // enough to see whether the browser dropped its own chrome, short enough
+      // that a target with no way out of fullscreen (a bare <canvas> has no
+      // room for an exit button) cannot strand anyone.
+      const HOLD_MS = 1600;
+
+      // How long the request's promise is waited on before the probe reports
+      // what it has and moves on. A rejection is a result; silence is not, and
+      // silence happens: measured in an embedded Chromium here, a blocked
+      // `requestFullscreen()` returns a promise that never settles either way.
+      // Without this the probe would print "sent" and then nothing at all,
+      // which is the exact failure it was written to make visible.
+      const SETTLE_MS = 2000;
+
+      // Two frames, but not forever: `requestAnimationFrame` does not run while
+      // the page is not being rendered, and a probe must not be the reason
+      // nothing is reported.
+      const FRAME_WAIT_MS = 600;
+
+      const logEl = document.getElementById("log") as HTMLPreElement;
+      const lines: string[] = [];
+
+      function log(line: string): void {
+        const at = new Date().toISOString().slice(11, 23);
+        lines.push(`${at}  ${line}`);
+        logEl.textContent = lines.join("\n");
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function describe(node: Element | null): string {
+        if (!node) return "null";
+        const id = node.id ? `#${node.id}` : "";
+        return `${node.tagName.toLowerCase()}${id}`;
+      }
+
+      type PrefixedDocument = Document & { webkitFullscreenEnabled?: boolean };
+      type PrefixedVideo = HTMLVideoElement & {
+        webkitEnterFullscreen?: () => void;
+        webkitExitFullscreen?: () => void;
+        webkitSupportsFullscreen?: boolean;
+        webkitDisplayingFullscreen?: boolean;
+      };
+
+      function reportEnvironment(): void {
+        const doc = document as PrefixedDocument;
+        const root = document.documentElement as Element & { webkitRequestFullscreen?: unknown };
+        const vv = window.visualViewport;
+        const video = document.getElementById("t-video") as PrefixedVideo;
+        log("---- 環境 ----");
+        log(`UA=${navigator.userAgent}`);
+        log(`fullscreenEnabled=${doc.fullscreenEnabled} webkitFullscreenEnabled=${doc.webkitFullscreenEnabled}`);
+        log(`fullscreenElement=${describe(fullscreenElement())}`);
+        log(
+          `html.requestFullscreen=${typeof root.requestFullscreen} ` +
+            `html.webkitRequestFullscreen=${typeof root.webkitRequestFullscreen}`,
+        );
+        log(
+          `video.webkitEnterFullscreen=${typeof video.webkitEnterFullscreen} ` +
+            `video.webkitSupportsFullscreen=${video.webkitSupportsFullscreen}`,
+        );
+        log(`inner=${window.innerWidth}x${window.innerHeight} screen=${screen.width}x${screen.height} dpr=${devicePixelRatio}`);
+        log(
+          `visualViewport=${vv ? `${Math.round(vv.width)}x${Math.round(vv.height)} scale=${vv.scale}` : "null"} ` +
+            `orientation=${screen.orientation?.type ?? "unknown"}`,
+        );
+        log("---- 準備好了，按上面的目標 ----");
+      }
+
+      function spelling(): FullscreenSpelling {
+        const picked = document.querySelector<HTMLInputElement>('input[name="spelling"]:checked');
+        return (picked?.value as FullscreenSpelling) ?? "auto";
+      }
+
+      function verdict(target: Element, text: string, ok: boolean): void {
+        const slot = target.querySelector<HTMLElement>("[data-verdict]");
+        if (!slot) return;
+        slot.textContent = text;
+        slot.className = `verdict ${ok ? "ok" : "bad"}`;
+      }
+
+      function paintCanvas(text: string): void {
+        const canvas = document.getElementById("t-canvas") as HTMLCanvasElement;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.fillStyle = "#0b0e15";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#e8ebf2";
+        ctx.font = "28px ui-sans-serif, system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      }
+
+      // The <video> control. It matters because firefox-ios#33992 says video
+      // fullscreen works on iPadOS while other elements do not: if this row
+      // succeeds where the rest fail, the diagnosis is that issue and not
+      // something on our side. The frames come from a canvas rather than a file
+      // so the probe needs no network and no asset.
+      function startVideoSource(): void {
+        const video = document.getElementById("t-video") as PrefixedVideo;
+        const source = document.createElement("canvas");
+        source.width = 320;
+        source.height = 100;
+        const ctx = source.getContext("2d");
+        if (!ctx || typeof source.captureStream !== "function") {
+          log("video: 這個瀏覽器沒有 canvas.captureStream，對照組沒有畫面（仍會送出請求）");
+          return;
+        }
+        let tick = 0;
+        setInterval(() => {
+          tick += 1;
+          ctx.fillStyle = tick % 2 ? "#12233a" : "#0b0e15";
+          ctx.fillRect(0, 0, source.width, source.height);
+          ctx.fillStyle = "#e8ebf2";
+          ctx.font = "20px ui-sans-serif, system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("video 對照組", source.width / 2, source.height / 2);
+        }, 500);
+        try {
+          video.srcObject = source.captureStream(2);
+          void video.play().catch((error: unknown) => log(`video.play() 失敗：${String(error)}`));
+        } catch (error) {
+          log(`video 來源建立失敗：${String(error)}`);
+        }
+      }
+
+      function delay(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      /** Report how the request ended, treating "it never ended" as an answer. */
+      async function outcome(done: Promise<void>): Promise<string> {
+        let state = `${SETTLE_MS}ms 內沒有結果，Promise 仍 pending`;
+        const watched = done.then(
+          () => {
+            state = "resolve";
+          },
+          (error: unknown) => {
+            state =
+              error instanceof Error
+                ? `reject —— ${error.name}: ${error.message}`
+                : `reject —— ${String(error)}`;
+          },
+        );
+        await Promise.race([watched, delay(SETTLE_MS)]);
+        return state;
+      }
+
+      async function settle(name: string, target: Element, done: Promise<void>): Promise<void> {
+        log(`${name}: requestFullscreen ${await outcome(done)}`);
+        await Promise.race([afterTwoFrames(), delay(FRAME_WAIT_MS)]);
+        const now = fullscreenElement();
+        const ok = now === target;
+        const vv = window.visualViewport;
+        log(
+          `${name}: fullscreenElement=${describe(now)} ` +
+            `inner=${window.innerWidth}x${window.innerHeight} ` +
+            `visualViewport=${vv ? `${Math.round(vv.width)}x${Math.round(vv.height)}` : "null"}`,
+        );
+        log(`${name}: ${ok ? "成功" : "沒有進入全螢幕"}`);
+        if (target instanceof HTMLElement) verdict(target, ok ? "全螢幕成功" : "沒有進入全螢幕", ok);
+        if (target.id === "t-canvas") paintCanvas(ok ? "canvas 全螢幕成功" : "canvas 沒有進入");
+        if (!now) return;
+        await delay(HOLD_MS);
+        await exitFullscreen().catch((error: unknown) => log(`exitFullscreen 失敗：${String(error)}`));
+        log(`${name}: 已自動退出`);
+      }
+
+      // The request goes out synchronously, first thing in the handler. Anything
+      // awaited in front of it — even a resolved promise — moves it out of the
+      // gesture WebKit is willing to grant it from, and then the probe would be
+      // measuring its own mistake instead of the browser.
+      function probe(name: string, target: Element): void {
+        log(`---- ${name} ----`);
+        log(`${name}: 呼叫 requestFullscreen（拼法：${spelling()}）isConnected=${target.isConnected}`);
+        const { spelling: used, done } = requestFullscreen(target, spelling());
+        log(`${name}: 實際送出的是 ${used}`);
+        void settle(name, target, done);
+      }
+
+      // The iOS-only video path, which is not the Fullscreen API at all. Worth a
+      // button of its own: "video can, elements cannot" is exactly the shape
+      // firefox-ios#33992 describes.
+      function probeVideoNative(): void {
+        const video = document.getElementById("t-video") as PrefixedVideo;
+        log("---- video.webkitEnterFullscreen ----");
+        if (typeof video.webkitEnterFullscreen !== "function") {
+          log("video: 這個瀏覽器沒有 webkitEnterFullscreen");
+          return;
+        }
+        try {
+          video.webkitEnterFullscreen();
+          log("video: webkitEnterFullscreen 已呼叫（不回 Promise）");
+        } catch (error) {
+          log(`video: webkitEnterFullscreen 丟出 ${String(error)}`);
+          return;
+        }
+        window.setTimeout(() => {
+          log(`video: webkitDisplayingFullscreen=${video.webkitDisplayingFullscreen}`);
+          video.webkitExitFullscreen?.();
+        }, HOLD_MS);
+      }
+
+      const finders: Record<string, () => Element> = {
+        html: () => document.documentElement,
+        body: () => document.body,
+        div: () => document.getElementById("t-div")!,
+        "div+transform": () => document.getElementById("t-transformed")!,
+        canvas: () => document.getElementById("t-canvas")!,
+        video: () => document.getElementById("t-video")!,
+      };
+
+      for (const button of document.querySelectorAll<HTMLButtonElement>("button[data-target]")) {
+        const name = button.dataset.target ?? "";
+        if (name === "video-native") {
+          button.addEventListener("click", probeVideoNative);
+          continue;
+        }
+        const find = finders[name];
+        if (!find) continue;
+        button.addEventListener("click", () => probe(name, find()));
+      }
+
+      for (const name of FULLSCREEN_CHANGE_EVENTS) {
+        document.addEventListener(name, () => log(`事件 ${name}: fullscreenElement=${describe(fullscreenElement())}`));
+      }
+      for (const name of FULLSCREEN_ERROR_EVENTS) {
+        document.addEventListener(name, () => log(`事件 ${name}`));
+      }
+      window.visualViewport?.addEventListener("resize", () => {
+        const vv = window.visualViewport!;
+        log(`visualViewport resize → ${Math.round(vv.width)}x${Math.round(vv.height)}`);
+      });
+
+      document.getElementById("copy")!.addEventListener("click", () => {
+        void navigator.clipboard
+          ?.writeText(lines.join("\n"))
+          .then(() => log("已複製到剪貼簿"))
+          .catch(() => log("複製失敗，請手動選取"));
+      });
+      document.getElementById("clear")!.addEventListener("click", () => {
+        lines.length = 0;
+        logEl.textContent = "";
+        reportEnvironment();
+      });
+      document.getElementById("force-exit")!.addEventListener("click", () => {
+        void exitFullscreen().catch(() => {});
+      });
+
+      paintCanvas("canvas 目標");
+      startVideoSource();
+      reportEnvironment();
+    </script>
+  </body>
+</html>
