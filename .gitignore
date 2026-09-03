@@ -2,6 +2,9 @@
 dist/
 # generated types & cache
 .astro/
+# `npx wrangler dev` 的本機狀態。本機不安裝 wrangler（見 wrangler.jsonc 開頭），
+# 但要親眼確認未匹配路徑真的拿得到 404 頁時，只有它跑得起 Workers 的資產路由。
+.wrangler/
 # deps
 node_modules/
 # logs

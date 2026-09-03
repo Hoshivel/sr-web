@@ -84,6 +84,12 @@ const zhHant = {
   "a11y.primaryNav": "主要導覽",
   "a11y.footerNav": "頁尾導覽",
 
+  // 404 —— 一份 `dist/404.html` 服務所有未匹配的路徑，語系不可能在建置時決定
+  // （`/ja/typo` 與 `/en/typo` 拿到的是同一份位元組）。頁面因此以預設語系為主、
+  // 附一行英文，四語都備齊是為了改文案時對得起來，不是為了在頁面上輪播。
+  "notFound.title": "頁面碎散於虛空",
+  "notFound.body": "你尋找的頁面可能已經移動，或從未存在。",
+
   "footer.langLabel": "語言",
   "footer.summary": "破碎星空之下，啟程未竟之旅",
   "footer.rights": "碎界 Shattered Realms",
@@ -249,6 +255,9 @@ const zhCN: Record<UIKey, string> = {
   "a11y.primaryNav": "主要导览",
   "a11y.footerNav": "页尾导览",
 
+  "notFound.title": "页面碎散于虚空",
+  "notFound.body": "你寻找的页面可能已经移动，或从未存在。",
+
   "footer.langLabel": "语言",
   "footer.summary": "破碎星空之下，启程未竟之旅",
   "footer.rights": "碎界 Shattered Realms",
@@ -401,6 +410,9 @@ const en: Record<UIKey, string> = {
   "a11y.menu": "Menu",
   "a11y.primaryNav": "Primary navigation",
   "a11y.footerNav": "Footer navigation",
+
+  "notFound.title": "This page shattered into the void",
+  "notFound.body": "The page you are looking for may have moved, or may never have existed.",
 
   "footer.langLabel": "Language",
   "footer.summary": "Beneath a shattered sky, the journey begins",
@@ -563,6 +575,9 @@ const ja: Record<UIKey, string> = {
   "a11y.menu": "メニュー",
   "a11y.primaryNav": "メインナビゲーション",
   "a11y.footerNav": "フッターナビゲーション",
+
+  "notFound.title": "ページは虚空へ砕け散った",
+  "notFound.body": "お探しのページは移動したか、はじめから存在しないようです。",
 
   "footer.langLabel": "言語",
   "footer.summary": "砕けた星空の下、未完の旅へ",
