@@ -66,6 +66,19 @@ Cloudflare 建置：`npm run build` → `npx wrangler deploy`。建置設定在 
 - `wrangler.jsonc` 供 `npx wrangler deploy` 讀取，在 Cloudflare 的建置環境執行。
   本機不需要 wrangler，因此不在 dependencies，也沒有 `deploy` script。
 - 本站不落在任何節點上：不進 hoshi-deploy inventory，origin 憑證不含 `sr.hoshivel.com`。
+- 未匹配的路徑由 `assets.not_found_handling` 交給 `dist/404.html`。這個鍵的預設值
+  `"none"` 回的是**零位元組**的 404——`src/pages/404.astro` 存在、`astro build`
+  也產得出 `dist/404.html`，兩者都不代表它被服務。要親眼確認就在本機跑一次
+  Workers 的資產路由（一次性，不加進 dependencies）：
+
+  ```sh
+  npx astro build
+  npx wrangler dev --port 26619
+  curl -sS -i http://127.0.0.1:26619/zzz-not-here
+  ```
+
+  要看到 `404` 後面**接著一份 HTML**。空白的 body 會被瀏覽器畫成白頁、分頁標題
+  退回原始 URL，看起來像整個站掛了，而不是路徑打錯。
 
 `hoshi build` 產生 `dist/` 靜態檔，不需 Node runtime、網站後端或 `/api` proxy。
 

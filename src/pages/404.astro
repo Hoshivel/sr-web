@@ -1,13 +1,22 @@
 ---
 /*
-  404 —— 品牌化「碎散於虛空」頁。靜態站單一 404（以預設語言 zh-Hant 為主、附英文副標）。
+  404 —— 品牌化「碎散於虛空」頁。
+
+  這一份 `dist/404.html` 服務**所有**未匹配的路徑（`wrangler.jsonc` 的
+  `not_found_handling: "404-page"`），所以語系不可能在建置時決定：`/ja/typo`
+  與 `/en/typo` 拿到的是同一份位元組。頁面因此固定以預設語系 zh-Hant 為主、
+  附一行英文，讓讀不懂中文的人也知道發生了什麼事——而不是依路徑在客戶端換字，
+  那只會換掉正文、換不掉 Header/Footer，留下一頁半翻譯。
+
+  文案取自 `src/i18n/ui.ts`（四語齊備），與站上其餘頁面同一個來源。
 */
 import Layout from "@/layouts/Layout.astro";
 import Mark from "@/components/brand/Mark.astro";
 import { useTranslations, DEFAULT_LOCALE } from "@/i18n/utils";
 
 const t = useTranslations(DEFAULT_LOCALE);
-const description = "你尋找的頁面可能已經移動，或從未存在。";
+const tEn = useTranslations("en");
+const description = t("notFound.body");
 ---
 
 <Layout
@@ -20,8 +29,9 @@ const description = "你尋找的頁面可能已經移動，或從未存在。";
     <div class="sr-container nf__inner">
       <div class="nf__mark" aria-hidden="true"><Mark size={72} glow /></div>
       <p class="nf__code">404</p>
-      <h1 class="nf__title sr-gradient-text">頁面碎散於虛空</h1>
+      <h1 class="nf__title sr-gradient-text">{t("notFound.title")}</h1>
       <p class="nf__sub">{description}</p>
+      <p class="nf__sub nf__sub--en" lang="en">{tEn("notFound.body")}</p>
       <a class="sr-btn sr-btn--primary nf__home" href="/" data-magnetic>{t("a11y.home")}</a>
     </div>
   </main>
@@ -69,6 +79,10 @@ const description = "你尋找的頁面可能已經移動，或從未存在。";
     color: var(--sr-text-muted);
     letter-spacing: 0.04em;
     font-size: var(--sr-text-sm);
+  }
+  .nf__sub--en {
+    color: var(--sr-text-dim);
+    max-width: 46ch;
   }
   .nf__home {
     margin-top: var(--sr-space-6);
