@@ -86,7 +86,7 @@ test("the 404 page draws its copy from the shared dictionary", () => {
   // Hardcoded strings here drift away from src/i18n/ui.ts on the next copy pass,
   // and this page is the one nobody opens on purpose.
   for (const key of ["notFound.title", "notFound.body"]) {
-    assert.match(page, new RegExp(`"${key.replace(".", "\.")}"`), `404.astro must use ${key}`);
+    assert.ok(page.includes(`"${key}"`), `404.astro must use ${key}`);
   }
 });
 
