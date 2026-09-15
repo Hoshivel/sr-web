@@ -1,13 +1,16 @@
 /*
-  碎界 sr-web —— 捲動電影框架（單例）。
+  Shattered Realms sr-web -- the scroll cinema framework (a singleton).
 
-  一頁只需一個 Lenis 平滑捲動控制器 + 一次 ScrollTrigger 註冊（與 Lenis 同步）；
-  各區塊各自建立自己的 ScrollTrigger timeline，共用此處回傳的 gsap / ScrollTrigger。
+  One page needs only a single Lenis smooth-scroll controller and one
+  ScrollTrigger registration synced with it; each section builds its own
+  ScrollTrigger timeline on the shared gsap / ScrollTrigger returned from here.
 
-  降級：reduced-motion → 回傳 null（不啟用 Lenis / 不做 pin/scrub 電影）；
-  呼叫端據此略過電影、改以 `[data-reveal]` 靜態呈現。
+  Degradation: under reduced motion this returns null (no Lenis, no pin/scrub
+  cinema), and callers use that to skip the cinema and fall back to the static
+  `[data-reveal]` presentation.
 
-  Lenis / GSAP 皆由 `motion.ts` 動態 import → 各自 chunk，僅在此 boot 時抓取。
+  Both Lenis and GSAP are dynamically imported by `motion.ts` into their own
+  chunks, fetched only during this boot.
 */
 
 import { prefersReducedMotion, initSmoothScroll, registerScrollTrigger } from "@/lib/motion";
@@ -21,8 +24,10 @@ export interface ScrollCinema extends ScrollTriggerBundle {
 let booted: Promise<ScrollCinema | null> | null = null;
 
 /**
- * 頁內錨點平滑捲動：攔截 `a[href^="#"]` 點擊，改用 Lenis 平滑捲到目標。
- * 找不到目標（如尚未長出的區塊）→ 不攔截，退回原生行為。
+ * Smooth scrolling for in-page anchors: intercept clicks on `a[href^="#"]` and
+ * let Lenis glide to the target instead.
+ * When the target does not exist (a section that has not been built yet), the
+ * click is not intercepted and native behavior applies.
  */
 function wireAnchorScroll(lenis: Lenis): void {
   document.addEventListener("click", (e) => {
@@ -41,9 +46,10 @@ function wireAnchorScroll(lenis: Lenis): void {
 }
 
 /**
- * 啟動（或取得已啟動的）捲動電影環境。多次呼叫回傳同一個 promise，
- * 確保 Lenis 只建一次、ScrollTrigger 只註冊/同步一次、錨點只接一次。
- * @returns reduced-motion 時為 null。
+ * Boot (or retrieve the already-booted) scroll cinema environment. Repeated calls
+ * return the same promise, so Lenis is constructed once, ScrollTrigger registered
+ * and synced once, and the anchor handler attached once.
+ * @returns null under reduced motion.
  */
 export function bootScrollCinema(): Promise<ScrollCinema | null> {
   if (booted) return booted;

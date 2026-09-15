@@ -1,8 +1,10 @@
 ---
 /*
-  碎界 品牌標記 ◈ —— SVG 向量版（可縮放、漸層、可選發光）。
-  幾何沿用 favicon.svg：外框菱形（描邊）＋內填菱形（漸層）。
-  title 有值 → role="img" + aria-label；無值 → aria-hidden（純裝飾，語意交給旁邊文字）。
+  Shattered Realms brand mark ◈ -- the SVG version (scalable, gradient, optional glow).
+  The geometry follows favicon.svg: an outer stroked diamond plus an inner filled
+  diamond with a gradient.
+  With a title it renders role="img" + aria-label; without one it is aria-hidden,
+  i.e. purely decorative, leaving the meaning to the adjacent text.
 */
 interface Props {
   size?: number;
@@ -12,7 +14,7 @@ interface Props {
 }
 const { size = 32, glow = false, title, class: className } = Astro.props;
 
-// 每個實例獨立漸層 id，避免同頁多個 Mark 撞 id
+// A separate gradient id per instance, so several Marks on one page cannot collide
 const gid = `sr-mark-grad-${Math.random().toString(36).slice(2, 8)}`;
 const a11y = title
   ? { role: "img" as const, "aria-label": title }

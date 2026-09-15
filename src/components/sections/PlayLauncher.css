@@ -1,7 +1,8 @@
 /*
-  Play 啟動器樣式（play- 前綴、隨 island chunk 載入）。
-  版面由上而下：橫向可滑動節點卡片（.play-nodes-bar）→ 嵌入視窗（.play-view）→
-  可拖拽把手（.play-resize）→ 控制列（.play-controls：進入 / 尺寸模式 / 新分頁）。
+  Play launcher styles (play- prefix, loaded with the island chunk).
+  Top to bottom: the horizontally scrollable node cards (.play-nodes-bar), the
+  embed viewport (.play-view), the drag handle (.play-resize), and the control bar
+  (.play-controls: enter / size mode / new tab).
 */
 
 .play-launcher {
@@ -10,7 +11,7 @@
   gap: 0.85rem;
 }
 
-/* ---- 節點：橫向可滑動卡片 ---- */
+/* ---- Nodes: horizontally scrollable cards ---- */
 .play-nodes-bar {
   display: flex;
   gap: 0.7rem;
@@ -175,7 +176,7 @@
   box-shadow: var(--sr-glow-accent);
 }
 
-/* ---- 嵌入視窗（iframe） ---- */
+/* ---- Embed viewport (iframe) ---- */
 .play-view {
   position: relative;
   width: 100%;
@@ -292,10 +293,13 @@
 }
 
 /*
-  劇場模式：**滿幅**沉浸舞台——跳出 `.sr-container` 的 max-width，向兩側撐到視窗邊緣
-  （YouTube 劇場模式慣例），再以內距留一圈安全邊避免圓角貼邊。
-  `--play-bleed-w` 由 island 以 `documentElement.clientWidth` 設定（已扣掉捲軸寬）；
-  JS 尚未執行 / 失效時退回 `100vw`（body 的 overflow-x:hidden 吸收捲軸誤差）。
+  Theater mode: a **full-bleed** immersive stage -- it breaks out of
+  `.sr-container`'s max-width and reaches to both viewport edges (the YouTube
+  theater-mode convention), then uses padding to keep a safe margin so the rounded
+  corners do not touch the edge.
+  `--play-bleed-w` is set by the island from `documentElement.clientWidth` (which
+  already excludes the scrollbar); before JS runs, or if it fails, this falls back
+  to `100vw` (body's overflow-x: hidden absorbs the scrollbar discrepancy).
 */
 .play-launcher.size-theater {
   width: var(--play-bleed-w, 100vw);
@@ -303,24 +307,30 @@
   margin-inline: calc(50% - var(--play-bleed-w, 100vw) / 2);
   padding-inline: clamp(0.9rem, 3vw, 3rem);
 }
-/* 舞台高度留給節點列與控制列，讓整個啟動器一屏內看得完（不必捲動找按鈕）。 */
+/* The stage height leaves room for the node row and the control bar, so the whole launcher fits on one screen and nobody has to scroll to find a button. */
 .play-launcher.size-theater .play-view {
   aspect-ratio: auto;
   height: min(72svh, 860px);
 }
 /*
-  全屏模式：版面由本站自己做，不依賴原生 Fullscreen API 有沒有生效。
-  API 成功時瀏覽器介面也會收掉，那是加分；失敗或不呈現時畫面仍然是滿的。
+  Fullscreen mode: the layout is this site's own and does not depend on whether
+  the native Fullscreen API took effect.
+  When the API succeeds the browser chrome is hidden too, which is a bonus; when
+  it fails or is not honored, the view still fills the screen.
 
-  先前只寫 `.play-view:fullscreen`，於是「原生那一層沒被畫出來」等於整塊區域
-  從頁面上消失——iPad 的 Firefox 實際就是這樣（同一臺機器的 Chrome 沒事）。
-  100dvh 讓行動瀏覽器的浮動介面不會把底部切掉，100vh 是舊瀏覽器的退路。
+  This used to be written only as `.play-view:fullscreen`, which made "the native
+  layer was never painted" equivalent to the whole area vanishing from the page --
+  exactly what Firefox on iPad did (Chrome on the same machine was fine).
+  100dvh keeps a mobile browser's floating chrome from cutting off the bottom, and
+  100vh is the fallback for older browsers.
 
-  **選擇器掛在 `.play-view` 自己身上，不是 `.play-launcher.size-fullscreen`
-  底下**：滿版時這個元素會被 portal 搬到 `<body>` 底下，那裡沒有
-  `.play-launcher` 這個祖先。搬家的理由見 PlayLauncher.tsx 的 `renderView`
-  ——簡短版是 `position: fixed` 在被 `transform` 過的祖先裡不是相對視窗，
-  而 `.play__stage`（進場動畫那一層）正是這樣一個祖先。
+  **The selector hangs off `.play-view` itself rather than under
+  `.play-launcher.size-fullscreen`**: while covering the viewport this element is
+  moved by a portal under `<body>`, where no `.play-launcher` ancestor exists. The
+  reason for the move is in `renderView` in PlayLauncher.tsx -- the short version
+  is that `position: fixed` inside a `transform`ed ancestor is not relative to the
+  viewport, and `.play__stage` (the entrance animation layer) is exactly such an
+  ancestor.
 */
 .play-view.is-fullscreen {
   position: fixed;
@@ -336,13 +346,15 @@
   background: #000;
 }
 /*
-  這裡沒有 `.play-view:fullscreen`。原生全螢幕要的是 `<html>`（理由見
-  PlayLauncher.tsx 的 NATIVE_FULLSCREEN_TARGET），所以 `.play-view` 不會是
-  `:fullscreen` 的那個元素；上面那條規則在兩種情形下都已經把版面撐滿。
+  There is deliberately no `.play-view:fullscreen` here. Native fullscreen is
+  requested on `<html>` (see NATIVE_FULLSCREEN_TARGET in PlayLauncher.tsx), so
+  `.play-view` is never the `:fullscreen` element; the rule above already fills
+  the layout in both cases.
 */
 
-/* 退出鈕：在 .play-view 裡面。滿版時這一層蓋住整個視窗，而控制列留在啟動器那邊
-   ——蓋在下面就等於不存在，而平板沒有 Esc 鍵。 */
+/* Exit button: inside .play-view. While covering the viewport this layer sits
+   over the whole window with the control bar left back at the launcher --
+   buried underneath, it might as well not exist, and a tablet has no Esc key. */
 .play-view__exit {
   position: absolute;
   top: max(0.75rem, env(safe-area-inset-top));
@@ -374,7 +386,7 @@
   border-color: var(--sr-accent);
 }
 
-/* ---- 拖拽把手：調整視窗高度 ---- */
+/* ---- Drag handle: resizes the viewport height ---- */
 .play-resize {
   display: flex;
   align-items: center;
@@ -395,7 +407,7 @@
   background: var(--sr-accent);
   width: 62px;
 }
-/* 拖拽時遮住 iframe 指標，避免它吞掉 pointermove */
+/* Shield the iframe from pointer events while dragging, so it cannot swallow pointermove */
 .play-launcher.is-dragging {
   user-select: none;
 }
@@ -403,7 +415,7 @@
   pointer-events: none;
 }
 
-/* ---- 控制列 ---- */
+/* ---- Control bar ---- */
 .play-controls {
   display: flex;
   align-items: center;
@@ -423,7 +435,7 @@
   filter: grayscale(0.3);
 }
 
-/* 尺寸模式分段按鈕 */
+/* Segmented buttons for the size mode */
 .play-sizes {
   display: inline-flex;
   border: 1px solid var(--sr-border);

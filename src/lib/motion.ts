@@ -1,18 +1,20 @@
 /*
-  碎界 sr-web —— 動效工具（框架無關）。
+  Shattered Realms sr-web -- motion helpers (framework-agnostic).
 
-  設計原則：
-  - 一切以 prefers-reduced-motion 為基線；偵測到就降級 / 略過。
-  - Lenis / GSAP 以「動態 import」載入 → 各自成 chunk，不進首屏 bundle
-    （只有真正呼叫對應函式時才抓取）。
-  - 純工具、無隱式副作用；由頁面 / React island 明確呼叫。
+  Design principles:
+  - prefers-reduced-motion is the baseline throughout; when set, degrade or skip.
+  - Lenis and GSAP are loaded by dynamic import, so each becomes its own chunk and
+    stays out of the first-paint bundle (fetched only when the matching function
+    is actually called).
+  - Pure helpers with no implicit side effects; pages and React islands call them
+    explicitly.
 */
 
 import type Lenis from "lenis";
 
 const RM_QUERY = "(prefers-reduced-motion: reduce)";
 
-/** 目前是否偏好減少動態（SSR 安全：伺服器端一律 false）。 */
+/** Whether reduced motion is currently preferred (SSR-safe: always false on the server). */
 export function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -22,19 +24,22 @@ export function prefersReducedMotion(): boolean {
 }
 
 export interface ScrollRevealOptions {
-  /** 進入視窗的可見比例門檻（0–1）。 */
+  /** Visible-ratio threshold for entering the viewport (0-1). */
   threshold?: number;
-  /** IntersectionObserver 的 rootMargin（可提前 / 延後觸發）。 */
+  /** IntersectionObserver rootMargin (fires earlier or later). */
   rootMargin?: string;
-  /** 目標選擇器（預設 `[data-reveal]`）。 */
+  /** Target selector (defaults to `[data-reveal]`). */
   selector?: string;
 }
 
 /**
- * reveal-on-scroll：元素進入視窗時加上 `.is-visible`（實際過場交給 CSS）。
- * - 同一父層底下的元素依序寫入 `--sr-reveal-i`，達成 stagger 進場。
- * - reduced-motion 或不支援 IntersectionObserver → 立即全部呈現、不建立 observer。
- * @returns cleanup 函式（中止觀察）。
+ * reveal-on-scroll: add `.is-visible` as an element enters the viewport (CSS owns
+ * the actual transition).
+ * - Elements under the same parent get an increasing `--sr-reveal-i`, which
+ *   staggers their entrance.
+ * - Reduced motion, or no IntersectionObserver support, shows everything
+ *   immediately and creates no observer.
+ * @returns cleanup function (stops observing).
  */
 export function initScrollReveal(options: ScrollRevealOptions = {}): () => void {
   if (typeof document === "undefined") return () => {};
@@ -43,7 +48,7 @@ export function initScrollReveal(options: ScrollRevealOptions = {}): () => void 
   const els = Array.from(document.querySelectorAll<HTMLElement>(selector));
   if (els.length === 0) return () => {};
 
-  // stagger：為同一 parent 底下的第 n 個元素寫入序號
+  // Stagger: record the ordinal of the nth element under the same parent
   const counters = new WeakMap<Element, number>();
   for (const el of els) {
     if (el.style.getPropertyValue("--sr-reveal-i")) continue;
@@ -77,23 +82,24 @@ export function initScrollReveal(options: ScrollRevealOptions = {}): () => void 
 }
 
 export interface MagneticOptions {
-  /** 目標選擇器（預設 `[data-magnetic]`）。 */
+  /** Target selector (defaults to `[data-magnetic]`). */
   selector?: string;
-  /** 位移強度（游標偏移量的比例，0–1）。 */
+  /** Displacement strength (a fraction of the cursor offset, 0-1). */
   strength?: number;
-  /** 觸發半徑外的最大位移夾限（px）。 */
+  /** Clamp on the maximum displacement outside the trigger radius (px). */
   max?: number;
 }
 
 /**
- * 磁吸按鈕：游標在元素上時，元素朝游標方向微幅位移（ease-back 交給 CSS transition）。
- * - reduced-motion 或非精細指標（觸控）→ 不啟用。
- * - 位移以 inline transform 表現；離開時清除。
- * @returns cleanup 函式。
+ * Magnetic buttons: while the cursor is over the element, it shifts slightly
+ * toward the cursor (the ease-back is left to a CSS transition).
+ * - Not enabled under reduced motion or a coarse pointer (touch).
+ * - The displacement is an inline transform, cleared on leave.
+ * @returns cleanup function.
  */
 export function initMagnetic(options: MagneticOptions = {}): () => void {
   if (typeof document === "undefined" || prefersReducedMotion()) return () => {};
-  // 觸控裝置沒有懸停語意，跳過（同時省效能）
+  // Touch devices have no hover semantics, so skip (and save the work)
   if (window.matchMedia && !window.matchMedia("(pointer: fine)").matches) {
     return () => {};
   }
@@ -132,17 +138,18 @@ export function initMagnetic(options: MagneticOptions = {}): () => void {
 }
 
 export interface SmoothScrollHandle {
-  /** 底層 Lenis 實例（reduced-motion 時為 null，維持原生捲動）。 */
+  /** The underlying Lenis instance (null under reduced motion, leaving native scrolling). */
   lenis: Lenis | null;
-  /** 停止 rAF 迴圈並銷毀 Lenis。 */
+  /** Stop the rAF loop and destroy Lenis. */
   destroy(): void;
 }
 
 /**
- * Lenis 平滑捲動：旗艦網站「順滑感」的來源。
- * - reduced-motion → 不啟用（回傳空 handle，保留原生捲動）。
- * - 動態 import → Lenis 獨立成 chunk。
- * 供 Phase 3 捲動電影啟用。
+ * Lenis smooth scrolling: where the flagship site's sense of glide comes from.
+ * - Under reduced motion it is not enabled (returns an empty handle, keeping
+ *   native scrolling).
+ * - Dynamic import keeps Lenis in its own chunk.
+ * Enabled by the Phase 3 scroll cinema.
  */
 export async function initSmoothScroll(): Promise<SmoothScrollHandle> {
   if (typeof window === "undefined" || prefersReducedMotion()) {
@@ -172,9 +179,10 @@ export interface ScrollTriggerBundle {
 }
 
 /**
- * 註冊 GSAP + ScrollTrigger，並（若提供）與 Lenis 同步時間軸。
- * - 動態 import → GSAP 獨立成 chunk。
- * - 供 Phase 3 pinned / scrub 捲動電影建立 timeline。
+ * Register GSAP and ScrollTrigger, syncing the timeline with Lenis when one is
+ * supplied.
+ * - Dynamic import keeps GSAP in its own chunk.
+ * - Used by the Phase 3 pinned and scrub scroll cinema to build timelines.
  */
 export async function registerScrollTrigger(
   lenis?: Lenis | null,

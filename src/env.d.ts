@@ -1,13 +1,14 @@
 /// <reference types="astro/client" />
 
 /*
-  建置期注入的公開環境變數（`PUBLIC_` 前綴才會進到 client bundle）。
-  值與說明見倉庫根的 `.env.example`。
+  Public environment variables injected at build time (only a `PUBLIC_` prefix
+  reaches the client bundle).
+  Values and explanations live in `.env.example` at the repository root.
 */
 interface ImportMetaEnv {
   /**
-   * hoshi-svc 公開資料平面的來源網域（如 `https://svc.hoshivel.com`）。
-   * 未設定時採 `src/lib/play.ts` 的預設值。
+   * Origin of hoshi-svc's public data plane (e.g. `https://svc.hoshivel.com`).
+   * When unset, the default in `src/lib/play.ts` applies.
    */
   readonly PUBLIC_HOSHI_SVC_BASE?: string;
 }

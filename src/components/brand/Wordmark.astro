@@ -1,11 +1,11 @@
 ---
 /*
-  碎界 字標鎖定組（Mark + 名稱）。
-  variant：
-    - mark    —— 只有 ◈ 標記（Mark 帶 aria-label）
-    - compact —— ◈ + 名稱（header 用）
-    - full    —— ◈ + 名稱 + 拉丁副標（footer / OG 用）
-  名稱與拉丁字來自字典，隨 locale 切換。
+  Shattered Realms wordmark lockup (Mark plus the name).
+  variant:
+    - mark    -- the ◈ mark alone (Mark carries the aria-label)
+    - compact -- ◈ plus the name (used by the header)
+    - full    -- ◈ plus the name and the Latin subtitle (used by the footer and OG image)
+  The name and the Latin text come from the dictionary and follow the locale.
 */
 import Mark from "./Mark.astro";
 import { useTranslations, type Locale } from "@/i18n/utils";

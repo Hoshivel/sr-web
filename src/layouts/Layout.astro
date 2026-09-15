@@ -19,16 +19,18 @@ interface Props {
   locale?: Locale;
   title?: string;
   description?: string;
-  /** 404 可把語言切換器導回首頁，同時維持 section 連結指向真正的首頁。 */
+  /** 404 can point the language switcher back at the home page while section links still target the real home page. */
   navigationPath?: string;
 }
 
 const { locale = DEFAULT_LOCALE, title, description, navigationPath } = Astro.props;
 const t = useTranslations(locale);
 
-// 預設標題把三個名字放在同一行：中文名、拉丁名、開發者。搜尋結果與分頁標題
-// 是權重最高的那一塊，而「碎界」與「Shattered Realms」在字串上是兩個東西——
-// 要它們被當成同一個作品，就得有地方同時寫著。各語系的寫法在 `site.title`。
+// The default title puts all three names on one line: the Chinese name, the
+// Latin name and the developer. Search results and the tab title carry the most
+// weight, and 「碎界」 and "Shattered Realms" are two different strings -- for
+// them to be read as one work, somewhere has to spell both at once. Each locale's
+// wording lives in `site.title`.
 const pageTitle = title ?? t("site.title");
 const pageDescription = description ?? `${t("site.tagline")} — ${t("site.summary")}`;
 
@@ -36,7 +38,7 @@ const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : Astro.url.pathname;
 
-// hreflang：把同一頁的各語言版本互相標示（含 x-default → 預設語言）。
+// hreflang: cross-link every language version of the same page (x-default points at the default locale).
 const logicalPath = stripLocalePrefix(Astro.url.pathname);
 const chromePath = navigationPath ?? logicalPath;
 const isHomePage = logicalPath === "/";
@@ -94,7 +96,7 @@ const structuredData = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- 盡早標記 JS 可用：reveal 內容只在有 JS 時預先隱藏，避免無 JS 環境被永久藏住 -->
+    <!-- Mark JS availability as early as possible: reveal content is only pre-hidden when JS is present, so a JS-less environment never hides it forever -->
     <script is:inline>
       document.documentElement.classList.add("sr-js");
     </script>
@@ -106,7 +108,7 @@ const structuredData = {
     <meta name="description" content={pageDescription} />
     <meta name="theme-color" content="#06070b" />
 
-    <!-- i18n 交替連結 -->
+    <!-- i18n alternate links -->
     {alternates.map((alt) => (
       <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
     ))}
@@ -127,12 +129,14 @@ const structuredData = {
     <meta name="twitter:image" content="/og.png" />
     <meta name="twitter:image:alt" content={`${t("site.name")} — ${t("site.tagline")}`} />
 
-    <!-- 結構化資料（首頁）。兩件事各由一個型別回答：
-         WebSite  —— 這個網域叫什麼、還叫什麼（Google 的 site name 讀 alternateName）
-         VideoGame —— 這個作品是什麼、誰做的（把「碎界」與「Shattered Realms」
-                      綁在同一個實體上，並指回 Hoshivel）
-         name 與 alternateName 四個語系刻意一致：同一個網域對外只能有一種說法，
-         語言差異交給 <title> 與 hreflang。 -->
+    <!-- Structured data (home page). One type answers each of two questions:
+         WebSite   -- what this domain is called, and what else it is called
+                      (Google reads alternateName for the site name)
+         VideoGame -- what this work is and who made it (binding 「碎界」 and
+                      "Shattered Realms" to one entity, and pointing back at Hoshivel)
+         name and alternateName are deliberately identical across all four
+         locales: one domain can only present one answer, and the language
+         differences are left to <title> and hreflang. -->
     {isHomePage && (
       <script
         type="application/ld+json"
@@ -148,8 +152,10 @@ const structuredData = {
     <CookiePreferences locale={locale} />
 
     <script>
-      // 輕量互動啟動：reveal-on-scroll（IntersectionObserver）＋磁吸按鈕。
-      // 皆為純 vanilla、reduced-motion 友善；不牽動 Lenis/GSAP/Pixi（那些於各自 island / Phase 3 boot）。
+      // Boot the lightweight interactions: reveal-on-scroll
+      // (IntersectionObserver) plus the magnetic buttons.
+      // Both are plain vanilla and reduced-motion aware, and neither pulls in
+      // Lenis, GSAP or Pixi (those boot in their own islands or in Phase 3).
       import { initScrollReveal, initMagnetic } from "@/lib/motion";
       initScrollReveal();
       initMagnetic();

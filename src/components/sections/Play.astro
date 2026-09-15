@@ -1,8 +1,10 @@
 ---
 /*
-  開始遊戲 Play（#play）——遊戲入口與內嵌遊玩區。
-  header/footer 的「開始遊戲」與 hero Play CTA 皆錨至此。
-  啟動器互動邏輯在 `PlayLauncher` island（client:visible）。
+  Play (#play) -- the game entry point and the embedded play area.
+  The "play" links in the header and footer and the hero's Play CTA all anchor
+  here.
+  The launcher's interaction logic lives in the `PlayLauncher` island
+  (client:visible).
 */
 import PlayLauncher from "@/components/sections/PlayLauncher.tsx";
 import { useTranslations, type Locale } from "@/i18n/utils";

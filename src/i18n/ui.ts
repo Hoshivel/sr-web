@@ -1,11 +1,14 @@
 /*
-  碎界 sr-web —— 介面文案字典（四語）。
+  Shattered Realms sr-web -- the UI copy dictionary (four languages).
 
-  來源：遊戲 `frontend/src/i18n/translations.ts` 與 `story/themes/<id>/theme.json`
-  （官方章節英文名以 theme.json 為準：Snowstorm's Passage / Age of Starmarks）。
-  zh-Hant 為主語言；zh-CN / en / ja 逐鍵齊備（型別強制完整，缺鍵編譯不過）。
-  遊戲那一側的字典沒有這層型別（`Dict = Record<string, string>`），所以那裡的
-  齊備要另外驗；這裡只要漏一鍵就編不過。
+  Sources: the game's `frontend/src/i18n/translations.ts` and
+  `story/themes/<id>/theme.json` (theme.json is authoritative for the official
+  English chapter names: Snowstorm's Passage / Age of Starmarks).
+  zh-Hant is the primary language; zh-CN / en / ja carry every key (the type
+  enforces completeness, so a missing key fails to compile).
+  The game's own dictionary has no such type (`Dict = Record<string, string>`), so
+  completeness has to be verified separately over there; here a single missing key
+  will not compile.
 */
 
 export const LOCALES = ["zh-Hant", "zh-CN", "en", "ja"] as const;
@@ -13,7 +16,7 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "zh-Hant";
 
-/** URL 路徑前綴（預設語言掛根，其餘掛子路徑）。 */
+/** URL path prefix (the default locale lives at the root, the rest under a subpath). */
 export const LOCALE_PATH: Record<Locale, string> = {
   "zh-Hant": "",
   "zh-CN": "zh-cn",
@@ -21,7 +24,7 @@ export const LOCALE_PATH: Record<Locale, string> = {
   ja: "ja",
 };
 
-/** `<html lang>` 屬性值。 */
+/** The `<html lang>` attribute value. */
 export const HTML_LANG: Record<Locale, string> = {
   "zh-Hant": "zh-Hant",
   "zh-CN": "zh-CN",
@@ -29,7 +32,7 @@ export const HTML_LANG: Record<Locale, string> = {
   ja: "ja",
 };
 
-/** `og:locale` 值。 */
+/** The `og:locale` value. */
 export const OG_LOCALE: Record<Locale, string> = {
   "zh-Hant": "zh_Hant",
   "zh-CN": "zh_CN",
@@ -37,7 +40,7 @@ export const OG_LOCALE: Record<Locale, string> = {
   ja: "ja_JP",
 };
 
-/** 語言切換器顯示名（各以自身語言書寫）。 */
+/** Display name in the language switcher (each written in its own language). */
 export const LOCALE_LABEL: Record<Locale, string> = {
   "zh-Hant": "正體中文",
   "zh-CN": "简体中文",
@@ -45,7 +48,7 @@ export const LOCALE_LABEL: Record<Locale, string> = {
   ja: "日本語",
 };
 
-/** 精簡標籤（header 語言切換器用；完整名放 title/aria-label）。 */
+/** Short label (for the header language switcher; the full name goes in title/aria-label). */
 export const LOCALE_SHORT: Record<Locale, string> = {
   "zh-Hant": "繁",
   "zh-CN": "简",
@@ -53,15 +56,16 @@ export const LOCALE_SHORT: Record<Locale, string> = {
   ja: "日",
 };
 
-// zh-Hant 為鍵的權威來源；其餘語言以 Record<UIKey, string> 強制對齊。
+// zh-Hant is the authoritative source of keys; the other languages are forced into alignment by Record<UIKey, string>.
 const zhHant = {
   "site.name": "碎界",
-  // 正常大小寫，不是全大寫字面值——外觀的全大寫由 CSS `text-transform` 做。
-  // 搜尋引擎讀的是文字本身，而「Shattered Realms」與「SHATTERED REALMS」
-  // 在人的眼裡是同一個名字，在字串比對裡不是。
+  // Normal case, not an all-caps literal -- the all-caps look is done in CSS with
+  // `text-transform`.
+  // A search engine reads the text itself, and while "Shattered Realms" and
+  // "SHATTERED REALMS" are one name to a person, they are not to a string comparison.
   "site.nameLatin": "Shattered Realms",
   "site.tagline": "破碎星空之下，啟程未竟之旅",
-  // 三個名字（碎界／Shattered Realms／Hoshivel）刻意寫在同一句裡：
+  // All three names (碎界 / Shattered Realms / Hoshivel) are deliberately put in one sentence:
   // The same introduction appears in metadata and below the playable area.
   "site.summary":
     "《碎界》（Shattered Realms）是由 Hoshivel 開發的 2D 六角格回合制策略遊戲。點擊即玩，構築手牌、調度角色，在交錯的旅途中拼回破碎的世界。",
@@ -80,13 +84,15 @@ const zhHant = {
   "a11y.langMenu": "切換語言",
   "a11y.home": "回首頁",
   "a11y.menu": "選單",
-  // 同頁有多個 navigation 地標：可及名稱必須互相區別，否則螢幕閱讀器分不出來。
+  // The page holds several navigation landmarks: their accessible names must differ, or a screen reader cannot tell them apart.
   "a11y.primaryNav": "主要導覽",
   "a11y.footerNav": "頁尾導覽",
 
-  // 404 —— 一份 `dist/404.html` 服務所有未匹配的路徑，語系不可能在建置時決定
-  // （`/ja/typo` 與 `/en/typo` 拿到的是同一份位元組）。頁面因此以預設語系為主、
-  // 附一行英文，四語都備齊是為了改文案時對得起來，不是為了在頁面上輪播。
+  // 404 -- one `dist/404.html` serves every unmatched path, so the locale cannot
+  // be decided at build time (`/ja/typo` and `/en/typo` receive the same bytes).
+  // The page therefore leads in the default locale with one English line; all four
+  // languages are kept complete so the copy stays in step when edited, not so the
+  // page can cycle through them.
   "notFound.title": "頁面碎散於虛空",
   "notFound.body": "你尋找的頁面可能已經移動，或從未存在。",
 
@@ -103,7 +109,7 @@ const zhHant = {
 
   "hero.badge": "正式上線",
 
-  // 預覽 Teaser（#teaser）—— 只有眉標與播放器，不加說明文字
+  // Teaser (#teaser) -- only an eyebrow and the player, with no explanatory text
   "teaser.eyebrow": "預覽",
   "teaser.videoLabel": "碎界預覽片段",
   "teaser.prev": "上一段",
@@ -117,17 +123,17 @@ const zhHant = {
   "teaser.fullscreen": "全螢幕",
   "teaser.exitFullscreen": "離開全螢幕",
 
-  // 碎裂 The Shattering（#world）
+  // The Shattering (#world)
   "world.eyebrow": "世界觀",
   "world.titleA": "碎裂不是天罰，",
   "world.titleB": "是天地最後一次自救。",
   "world.lead": "當星痕斷裂，大地失去固定的形狀，世界碎成漂浮於虛空的殘片。",
-  // 本作的核心命題：沒有主角，也就沒有中心。整站敘事都由這句話往下長。
+  // The work's central claim: with no protagonist there is no center. The whole site's narrative grows out of this sentence.
   "world.claim": "沒有誰站在世界的中心。",
   "world.ensemble":
     "每個人都懷著自己的理由前行；當道路交錯，失落的大地與碎裂的真相也逐漸顯形。",
 
-  // 核心玩法 Gameplay（#gameplay）—— 只留標題與四張卡的焦點，不做解釋
+  // Gameplay (#gameplay) -- only the heading and the focus of the four cards, with no explanation
   "gameplay.eyebrow": "核心玩法",
   "gameplay.titleA": "手牌、走位與技能，",
   "gameplay.titleB": "每一回合都能改寫戰場",
@@ -140,8 +146,8 @@ const zhHant = {
   "gameplay.srpg.name": "回合戰術",
   "gameplay.srpg.claim": "讀懂地形、射程與行動順序",
 
-  // 角色 Characters（#characters）
-  // 資訊順序刻意是「先是誰，再能打什麼」：role → seeking 為主，fantasy 降為次級。
+  // Characters (#characters)
+  // The information order is deliberately "who they are first, what they can do second": role and seeking lead, while fantasy is stepped down to secondary.
   "char.eyebrow": "角色",
   "char.titleA": "交錯的旅途，",
   "char.titleB": "各自走向不同的答案",
@@ -177,9 +183,10 @@ const zhHant = {
     "她在尋找一個不必靠誰記得也活得下去的位置。聚落曾把她連著那塊地一起切走——所以她受僱同行，不說是同伴。",
   "char.aoiro.fantasy": "以毒素逼近臨界、用藤蔓封鎖退路，再以連射引爆攻勢。",
 
-  // 碎界樹 Chapters（#chapters）。正式名稱是「碎界樹」——它是碎界自己的東西，
-  // 不是泛稱的世界樹。唯一的例外是下面 chapters.titleA/B 那一句題詞
-  //「沿著碎界之樹，看見旅途交會」，使用者裁示保留原句。
+  // Chapters (#chapters), the Shattered Realms Tree. Its proper name is 「碎界樹」
+  // -- it belongs to 碎界 itself and is not a generic world tree. The one
+  // exception is the epigraph in chapters.titleA/B below,
+  // 「沿著碎界之樹，看見旅途交會」, which the user ruled should keep its wording.
   "chapters.eyebrow": "篇章",
   "chapters.titleA": "沿著碎界之樹，",
   "chapters.titleB": "看見旅途交會",
@@ -206,7 +213,7 @@ const zhHant = {
   "theme.starseal.story":
     "星痕曾把河流、山脈、森林與命運刻在天空。當它碎裂，觀星者踏上重塑世界法則的旅程。",
 
-  // 開始遊戲 Play（#play）
+  // Play (#play)
   "play.eyebrow": "開始遊戲",
   "play.titleA": "備妥戰術，",
   "play.titleB": "踏入戰場",
@@ -558,8 +565,9 @@ const ja: Record<UIKey, string> = {
     "『砕界』（Shattered Realms）は Hoshivel が開発する 2D ヘックス制ターンベース・ストラテジー。クリックしてすぐ遊べます。手札を組み、仲間を配し、交わる旅路の果てに砕けた世界を繋ぎ直す。",
   "site.title": "砕界（Shattered Realms）｜Hoshivel",
 
-  // 事件（zh「碎裂」／en "The Shattering"）。ブランドの「砕界」とは別語なので、
-  // 一文字違いで紛れないよう「砕裂」を当てる。
+  // The event (zh 「碎裂」 / en "The Shattering"). It is a different word from the
+  // brand name 「砕界」, so 「砕裂」 is used here to keep the one-character
+  // difference from blurring the two.
   "nav.world": "砕裂",
   "nav.gameplay": "遊び方",
   "nav.chapters": "砕界樹",

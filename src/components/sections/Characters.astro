@@ -1,18 +1,22 @@
 ---
 /*
-  角色與群像 Characters（#characters）—— 四段人物介紹。
+  Characters (#characters) -- four character introductions.
 
-  刻意「不是圖鑑」：本作沒有誰站在世界的中心，所以這一區不做四張並排的角色卡
-  （那是抽卡遊戲的陳列櫃），改成左右交錯的群像列——每個人各佔一段，讀起來像
-  人物介紹而不是可選單位一覽。
+  Deliberately **not** a roster screen: nobody stands at the center of this world,
+  so this section avoids four character cards side by side (that is a gacha game's
+  display case) in favor of an alternating left-right sequence -- one passage each,
+  reading as an introduction rather than a list of selectable units.
 
-  資訊順序也照這個原則排：**先是誰，再能打什麼**。
-  role（在哪一段故事裡遇見他）→ name → epithet → seeking（他在找什麼，主文）
-  → combat（戰鬥定位，次級資訊，以細線隔開並降階）。
+  The information order follows the same principle: **who they are first, what
+  they can do second**.
+  role (which part of the story you meet them in) -> name -> epithet -> seeking
+  (what they are looking for, the main text) -> combat (their combat role, as
+  secondary information, separated by a thin rule and stepped down).
 
-  立繪已接（`public/art/portraits/`）；未接者維持程序化佔位（元素徽記＋種子化星座），
-  日後新增角色留 `art: null` 即可走佔位分支。
-  進場靠 `[data-reveal]` stagger（Layout 已 boot）。
+  Portraits are wired up (`public/art/portraits/`); anyone without one keeps the
+  procedural placeholder (an element sigil plus a seeded constellation), so a
+  character added later can simply leave `art: null` to take the placeholder branch.
+  Entrance uses `[data-reveal]` stagger (Layout already boots it).
 */
 import { useTranslations, type Locale } from "@/i18n/utils";
 
@@ -22,7 +26,7 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// 種子化星座：每位角色一組決定性星點（呼應 Starfield 品牌），立繪背後的紋理。
+// Seeded constellation: a deterministic set of stars per character (echoing the Starfield brand), as the texture behind the portrait.
 function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -33,7 +37,7 @@ function mulberry32(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-// portrait viewBox 100×130（10:13 直幅）；生成 star 點與一條連線星座。
+// Portrait viewBox 100x130 (a 10:13 portrait format); generates the star points and one connecting constellation.
 function constellation(seed: number) {
   const rnd = mulberry32(seed);
   const stars = Array.from({ length: 14 }, () => ({
@@ -41,15 +45,18 @@ function constellation(seed: number) {
     y: +(10 + rnd() * 110).toFixed(1),
     r: +(0.5 + rnd() * 1.4).toFixed(2),
   }));
-  // 取前 5 點連成一條星座路徑
+  // Take the first 5 points and join them into one constellation path
   const path = stars.slice(0, 5).map((s, i) => `${i ? "L" : "M"}${s.x} ${s.y}`).join(" ");
   return { stars, path };
 }
 
-// 四位角色：id → 元素徽記字符 + 元素強調色（inline --el）+ 立繪（art）。文案由 i18n
-// 提供。art 為 null＝立繪待接（程序化佔位）；有值＝疊上正式立繪換裝槽。以 `as const`
-// 保 id 為字面量（供 i18n 鍵推導）；渲染時以區域變數 `art` 判斷，避免佔位分支被
-// 收斂為 never（日後新增角色可留 art: null 走佔位）。
+// The four characters: id -> element sigil glyph + element accent color (inline
+// --el) + portrait (art). The copy comes from i18n.
+// art null means the portrait is not wired up yet (procedural placeholder); a
+// value overlays the real portrait slot. `as const` keeps the ids literal (so the
+// i18n keys can be derived from them); rendering tests a local `art` variable so
+// the placeholder branch is not narrowed to never (a character added later can
+// leave art: null and take the placeholder).
 const figures = [
   { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01, art: "/art/portraits/hakuto.webp" as string | null },
   { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0, art: "/art/portraits/shadow.webp" as string | null },
@@ -99,14 +106,14 @@ const figures = [
           </div>
 
           <div class="figure__body">
-            {/* 先告訴訪客在哪一段故事裡會遇見這個人 */}
+            {/* Tell the visitor first which part of the story they meet this person in */}
             <p class="figure__role">{t(`char.${f.id}.role`)}</p>
             <h3 class="figure__name sr-gradient-text">{t(`char.${f.id}.name`)}</h3>
             <p class="figure__epithet">{t(`char.${f.id}.epithet`)}</p>
-            {/* 主文：他在找什麼——這才是「他是誰」 */}
+            {/* Main text: what they are looking for -- this is what "who they are" means */}
             <p class="figure__seeking">{t(`char.${f.id}.seeking`)}</p>
 
-            {/* 次級資訊：他能打什麼 */}
+            {/* Secondary information: what they can do in combat */}
             <div class="figure__combat">
               <p class="figure__combat-label">
                 <span class="figure__combat-tag">{t("char.combat")}</span>
@@ -154,7 +161,7 @@ const figures = [
     color: var(--sr-text-muted);
   }
 
-  /* 群像：一人一段，彼此以細線分隔——不是並排的陳列櫃 */
+  /* The ensemble: one passage each, separated by thin rules -- not a display case in a row */
   .characters__list {
     list-style: none;
     margin-top: var(--sr-space-16);
@@ -173,8 +180,10 @@ const figures = [
     padding-top: var(--sr-space-16);
     border-top: 1px solid var(--sr-border);
   }
-  /* 左右交錯：讀起來像人物介紹的跨頁，而不是一列格子。
-     欄寬也要跟著翻面——否則立繪會落進寬欄，變成比正文還大的一張巨圖。 */
+  /* Alternating sides: it reads like the spread of a character introduction
+     rather than a row of cells.
+     The column widths have to flip with it -- otherwise the portrait lands in the
+     wide column and becomes an image larger than the text itself. */
   .figure:nth-child(even) {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   }
@@ -187,7 +196,7 @@ const figures = [
     grid-row: 1;
   }
 
-  /* 立繪：無卡框、底部融進虛空——刻意不做成一張「卡」 */
+  /* Portrait: no card frame, its bottom dissolving into the void -- deliberately not a "card" */
   .figure__portrait {
     position: relative;
     aspect-ratio: 3 / 4;
@@ -258,7 +267,7 @@ const figures = [
     color: var(--sr-text-dim);
   }
 
-  /* ---- 文字：先是誰，再能打什麼 ---- */
+  /* ---- Text: who they are first, what they can do second ---- */
   .figure__body {
     max-width: 56ch;
   }
@@ -281,7 +290,7 @@ const figures = [
     font-size: var(--sr-text-sm);
     color: var(--sr-text-dim);
   }
-  /* 主文：他在找什麼 */
+  /* Main text: what they are looking for */
   .figure__seeking {
     margin-top: var(--sr-space-6);
     font-size: var(--sr-text-lg);
@@ -290,7 +299,7 @@ const figures = [
     max-width: 44ch;
   }
 
-  /* 次級：戰鬥定位。細線隔開、字級與明度都降一階 */
+  /* Secondary: the combat role. Separated by a thin rule, with the type size and brightness both stepped down */
   .figure__combat {
     margin-top: var(--sr-space-8);
     padding-top: var(--sr-space-4);
@@ -324,7 +333,7 @@ const figures = [
       margin-top: var(--sr-space-12);
       gap: var(--sr-space-12);
     }
-    /* 單欄時取消交錯，立繪一律在上（nth-child 的權重比 .figure 高，要一併壓掉） */
+    /* In one column the alternation is dropped and the portrait always goes on top (the nth-child rule outweighs .figure, so it has to be overridden too) */
     .figure,
     .figure:nth-child(even) {
       grid-template-columns: minmax(0, 1fr);
@@ -338,8 +347,9 @@ const figures = [
       grid-column: 1;
       grid-row: auto;
     }
-    /* 立繪的子元素全是 absolute，內容尺寸為 0：置中必須給定寬，
-       不能用 margin-inline:auto——那會取消 grid 的 stretch，讓它塌成 0 寬。 */
+    /* Every child of the portrait is absolute, so its content size is 0:
+       centering requires an explicit width and cannot use margin-inline: auto --
+       that would cancel the grid's stretch and collapse it to zero width. */
     .figure__portrait {
       width: min(20rem, 100%);
       justify-self: center;

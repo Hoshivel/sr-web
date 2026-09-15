@@ -2,28 +2,32 @@
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 
-// 碎界 sr-web —— 靜態優先的旗艦官網。
-// output 預設為 'static'：把效能預算留給動效（Pixi / GSAP island 才注水），
-// 也讓官網能以**純靜態**方式部署（無 Node 執行期、無反向代理）。
-// 部署目標：sr.hoshivel.com；遊戲節點：play.sr.hoshivel.com；
-// 服務路由走 hoshi-svc 獨立網域（見 src/lib/play.ts 的 PUBLIC_HOSHI_SVC_BASE）。
+// Shattered Realms sr-web -- the static-first flagship site.
+// output defaults to 'static': it keeps the performance budget for motion (only
+// the Pixi and GSAP islands hydrate) and lets the site deploy **purely
+// statically**, with no Node runtime and no reverse proxy.
+// Deploy target: sr.hoshivel.com; game nodes: play.sr.hoshivel.com;
+// service routing goes through hoshi-svc's own domain (see
+// PUBLIC_HOSHI_SVC_BASE in src/lib/play.ts).
 export default defineConfig({
   site: "https://sr.hoshivel.com",
   integrations: [react()],
-  // 本站在埠計畫裡的區塊是 26610-26619（遊戲範圍）。純靜態站不進
-  // hoshi-deploy 的 inventory `nodes`，但 dev server 照樣和其他倉庫搶同一臺
-  // 開發機上的號碼，所以號碼取自同一份計畫而不是 astro 的預設 4321。
+  // This site's block in the port plan is 26610-26619 (the game range). A purely
+  // static site never enters hoshi-deploy's inventory `nodes`, but the dev server
+  // still competes for numbers with other repos on the same development machine,
+  // so the number comes from that same plan rather than astro's default 4321.
   //
-  // strictPort：撞到就失敗，不要滑到下一個空號。本站與 hoshivel-web 先前
-  // 都停在 4321，症狀正是第二個被靜靜地搬到 4322——而 `hoshi dev` 宣告的是
-  // 4321，於是它直接拒絕啟動。
+  // strictPort: fail on a collision instead of sliding to the next free number.
+  // This site and hoshivel-web both used to sit on 4321, and the symptom was
+  // exactly that the second one was silently moved to 4322 -- while `hoshi dev`
+  // declared 4321, so it refused to start.
   server: { port: 26610 },
   build: {
-    // 內聯小型樣式，減少首屏請求；動效相關的大型 island 由 Vite 自動分包。
+    // Inline small stylesheets to cut first-paint requests; Vite splits the large motion islands into their own chunks automatically.
     inlineStylesheets: "auto",
   },
   vite: {
-    // strictPort：撞到就失敗，不要滑到下一個空號（理由同上）。
+    // strictPort: fail on a collision instead of sliding to the next free number (same reason as above).
     server: {
       strictPort: true,
       // Production CORS intentionally allows only the production site. Keep local
@@ -37,7 +41,7 @@ export default defineConfig({
       },
     },
     build: {
-      // Pixi / GSAP 走各自的 chunk，靠 client:visible 延遲載入。
+      // Pixi and GSAP go into their own chunks, loaded lazily via client:visible.
       cssCodeSplit: true,
     },
   },

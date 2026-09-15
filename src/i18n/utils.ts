@@ -1,12 +1,15 @@
 /*
-  碎界 sr-web —— i18n helper。
-  路由策略：預設語言（zh-Hant）掛根 `/`，其餘掛 `/zh-cn`、`/en`、`/ja`。
-  以顯式 locale prop 傳遞，SSR 乾淨、無需 client context。
+  Shattered Realms sr-web -- i18n helpers.
+  Routing strategy: the default locale (zh-Hant) sits at the root `/`; the others
+  at `/zh-cn`, `/en`, `/ja`.
+  The locale is passed down as an explicit prop, which keeps SSR clean and needs
+  no client-side context.
 */
 
-// 帶副檔名（`allowImportingTsExtensions`，見 astro/tsconfigs/base.json）：
-// `test/routing.test.mjs` 用 Node 的型別剝除直接載入這支檔案，而那條路徑
-// 不做無副檔名解析。少了它，釘住路由形狀的那幾條測試根本跑不起來。
+// Keep the file extension (`allowImportingTsExtensions`, see
+// astro/tsconfigs/base.json): `test/routing.test.mjs` loads this file directly
+// through Node's type stripping, and that path does no extensionless
+// resolution. Without it, the tests that pin the route shape cannot even start.
 import {
   ui,
   LOCALES,
@@ -28,7 +31,7 @@ export {
   type UIKey,
 } from "./ui.ts";
 
-/** 由 URL pathname 推導目前 locale（找不到前綴 → 預設語言）。 */
+/** Derive the current locale from a URL pathname (no prefix means the default locale). */
 export function getLocaleFromPath(pathname: string): Locale {
   const seg = pathname.split("/").filter(Boolean)[0]?.toLowerCase();
   for (const locale of LOCALES) {
@@ -38,25 +41,29 @@ export function getLocaleFromPath(pathname: string): Locale {
   return DEFAULT_LOCALE;
 }
 
-/** 取得某語言的翻譯函式：`t("nav.play")`；缺鍵回退預設語言。 */
+/** Build a translation function for a locale: `t("nav.play")`; a missing key falls back to the default locale. */
 export function useTranslations(locale: Locale): (key: UIKey) => string {
   return (key) => ui[locale][key] ?? ui[DEFAULT_LOCALE][key];
 }
 
 /**
- * 把邏輯路徑正規化成**主機真正提供的形狀**。
+ * Normalize a logical path into **the shape the host actually serves**.
  *
- * 產物是 `<路徑>/index.html`，所以頁面的網址帶尾斜線——`canonical` 一直是這樣
- * （它取自 `Astro.url.pathname`），而 `stripLocalePrefix()` 用
- * `split("/").filter(Boolean)` 重組，尾斜線一律掉。本站今天只有各語系首頁，
- * 兩種寫法在 `/` 上剛好相等，所以看不出差別——**姊妹站 hoshivel-web 加了內頁
- * 之後就無限轉圈了**：偏好轉址把同一頁判成另一頁，主機 307 轉回來，
- * 腳本再跑一次。正規化收在這一層，內頁進來的那天就不必再發現一次。
+ * The build emits `<path>/index.html`, so a page URL carries a trailing slash --
+ * `canonical` always had one (it comes from `Astro.url.pathname`), while
+ * `stripLocalePrefix()` rebuilds the path with `split("/").filter(Boolean)`,
+ * which always drops it. This site currently has only the per-locale home pages,
+ * where the two spellings happen to coincide on `/`, so the difference is
+ * invisible here -- **but the sibling site hoshivel-web ended up in a redirect
+ * loop once it gained subpages**: the preference redirect read one page as
+ * another, the host 307'd back, and the script ran again. Normalizing at this
+ * layer means the day subpages arrive, nobody has to discover it a second time.
  *
- * 有副檔名的是檔案（`/rss.xml`），不加；查詢字串與錨點留在尾斜線之後。
+ * Anything with a file extension is a file (`/rss.xml`) and gets no slash; query
+ * strings and fragments stay after the trailing slash.
  *
- * @example pagePath("/about")            → "/about/"
- * @example pagePath("/works#sr")         → "/works/#sr"
+ * @example pagePath("/about")            -> "/about/"
+ * @example pagePath("/works#sr")         -> "/works/#sr"
  */
 export function pagePath(path = "/"): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
@@ -69,10 +76,10 @@ export function pagePath(path = "/"): string {
 }
 
 /**
- * 產生某語言下的頁面路徑（已是主機提供的形狀，見 `pagePath`）。
- * @example localizedPath("zh-CN", "/")      → "/zh-cn/"
- * @example localizedPath("en", "/about")     → "/en/about/"
- * @example localizedPath("zh-Hant", "/")     → "/"
+ * Build a page path for a locale (already in the shape the host serves, see `pagePath`).
+ * @example localizedPath("zh-CN", "/")      -> "/zh-cn/"
+ * @example localizedPath("en", "/about")     -> "/en/about/"
+ * @example localizedPath("zh-Hant", "/")     -> "/"
  */
 export function localizedPath(locale: Locale, path = "/"): string {
   const prefix = LOCALE_PATH[locale];
@@ -81,10 +88,11 @@ export function localizedPath(locale: Locale, path = "/"): string {
 }
 
 /**
- * 去掉 pathname 上的 locale 前綴，得到「邏輯路徑」。
- * 供 Layout 產生 hreflang 交替連結（把同一頁的各語言版本串起來）。
- * @example stripLocalePrefix("/en/about") → "/about"
- * @example stripLocalePrefix("/zh-cn/")    → "/"
+ * Strip the locale prefix from a pathname, leaving the logical path.
+ * Layout uses it to emit hreflang alternates (linking every language version of
+ * the same page).
+ * @example stripLocalePrefix("/en/about") -> "/about"
+ * @example stripLocalePrefix("/zh-cn/")    -> "/"
  */
 export function stripLocalePrefix(pathname: string): string {
   const parts = pathname.split("/").filter(Boolean);

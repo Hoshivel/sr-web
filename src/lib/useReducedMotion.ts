@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 const RM_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**
- * React hook：訂閱 `prefers-reduced-motion`，偏好變動時觸發 re-render。
- * 初值固定 false 以對齊 SSR，避免注水（hydration）不一致；
- * 掛載後於 effect 內讀取真實值並持續監聽。
- * 供 Phase 2+ 的 Pixi / Starfield island 決定是否降級。
+ * React hook: subscribe to `prefers-reduced-motion` and re-render when the
+ * preference changes.
+ * The initial value is fixed at false to match SSR and avoid a hydration
+ * mismatch; the real value is read inside an effect after mount, which then keeps
+ * listening.
+ * Used by the Phase 2+ Pixi and Starfield islands to decide whether to degrade.
  */
 export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
