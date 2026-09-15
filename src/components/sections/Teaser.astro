@@ -1,13 +1,17 @@
 ---
 /*
-  預覽 Teaser（#teaser）—— Hero 之後的第一個區塊。
-  只有眉標與播放器，沒有標題或說明文字：先讓訪客看它動起來，話留給後面的區塊。
+  Teaser (#teaser) -- the first section after the hero.
+  Only an eyebrow and the player, with no heading or explanatory text: let a
+  visitor see it move first and leave the words to the sections that follow.
 
-  自製播放控制器（不用瀏覽器原生 controls）：
-  上一段 / 播放暫停 / 下一段 ＋ 可拖曳進度條 ＋ 時間 ＋ 靜音 ＋ 全螢幕。
-  片尾**不重複循環，自動接下一段**（循環回第一段），像一份播放清單。
-  預設靜音（瀏覽器只允許靜音自動播放），使用者可自行取消靜音。
-  無 JS：第一段照樣顯示並自動播放，控制列不作用（漸進增強）。
+  A hand-built set of playback controls (not the browser's native controls):
+  previous / play-pause / next, a draggable progress bar, the time, mute, and
+  fullscreen.
+  At the end of a clip it **does not loop but advances to the next one** (wrapping
+  back to the first), like a playlist.
+  Muted by default (browsers only allow muted autoplay); the user can unmute.
+  Without JS the first clip still displays and autoplays and the control bar is
+  inert -- progressive enhancement.
 */
 import { PREVIEWS } from "@/config/media";
 import { useTranslations, type Locale } from "@/i18n/utils";
@@ -17,8 +21,10 @@ interface Props {
 }
 const { locale } = Astro.props;
 const t = useTranslations(locale);
-// 片段來源一律由 src/config/media.ts 決定（外部存儲，不隨網站部署）。
-// 沒有可播的片段就整區不輸出——首頁已據 HAS_PREVIEWS 判斷，這裡再守一次。
+// The clip source is always decided by src/config/media.ts (external storage,
+// not deployed with the site).
+// With no playable clip the whole section is omitted -- the home page already
+// checks HAS_PREVIEWS, and this guards it a second time.
 ---
 
 {PREVIEWS.length > 0 && (
@@ -52,12 +58,12 @@ const t = useTranslations(locale);
           </video>
         ))}
 
-        {/* 暫停時浮現的中央播放標記；真正可聚焦的控制項在控制列上 */}
+        {/* The centered play mark that appears while paused; the actually focusable controls live on the control bar */}
         <span class="teaser__center" data-teaser-center aria-hidden="true">
           <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z" /></svg>
         </span>
 
-        {/* 上一段 / 下一段：貼在畫面左右兩側，切片段的動作與播放控制分開 */}
+        {/* Previous / next: pinned to the left and right edges, keeping clip switching separate from playback control */}
         {PREVIEWS.length > 1 && (
           <>
             <button
@@ -80,7 +86,7 @@ const t = useTranslations(locale);
         )}
 
         <div class="teaser__controls" data-teaser-controls>
-          {/* 兩組文案都掛在 data-* 上，腳本切狀態時直接取用，不必在 JS 裡再寫死三語 */}
+          {/* Both label variants hang off data-* attributes so the script can read them when toggling state, instead of hardcoding three languages in JS */}
           <button
             class="teaser__btn teaser__btn--play"
             type="button"
@@ -119,7 +125,7 @@ const t = useTranslations(locale);
             <svg class="i-sound is-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9zm11.5 3a4 4 0 00-2-3.5v7a4 4 0 002-3.5zm-2-7.8v2a6 6 0 010 11.6v2a8 8 0 000-15.6z" /></svg>
           </button>
 
-          {/* 音量：靜音時滑桿歸零；由零往上拉即自動取消靜音 */}
+          {/* Volume: the slider sits at zero while muted, and dragging up from zero unmutes automatically */}
           <input
             class="teaser__volume"
             type="range"
@@ -187,7 +193,7 @@ const t = useTranslations(locale);
     box-shadow: var(--sr-shadow-3);
     cursor: pointer;
   }
-  /* 全螢幕時取消圓角與比例鎖，交給螢幕 */
+  /* In fullscreen, drop the rounded corners and the aspect lock and let the screen decide */
   .teaser__frame:fullscreen {
     aspect-ratio: auto;
     width: 100%;
@@ -207,7 +213,7 @@ const t = useTranslations(locale);
     display: none;
   }
 
-  /* 暫停時的中央標記 */
+  /* The centered mark shown while paused */
   .teaser__center {
     position: absolute;
     top: 50%;
@@ -236,7 +242,7 @@ const t = useTranslations(locale);
     opacity: 1;
   }
 
-  /* ---- 左右側的上一段 / 下一段 ---- */
+  /* ---- The previous / next controls on the left and right ---- */
   .teaser__side {
     position: absolute;
     top: 50%;
@@ -274,7 +280,7 @@ const t = useTranslations(locale);
     right: clamp(0.6rem, 2vw, 1.2rem);
   }
 
-  /* ---- 控制列 ---- */
+  /* ---- Control bar ---- */
   .teaser__controls {
     position: absolute;
     inset: auto 0 0 0;
@@ -314,7 +320,7 @@ const t = useTranslations(locale);
     background: rgba(255, 255, 255, 0.12);
   }
 
-  /* 進度條：以 --progress(0–100) 畫出已播段 */
+  /* Progress bar: draws the played portion from --progress (0-100) */
   .teaser__seek {
     flex: 1 1 auto;
     min-width: 0;
@@ -362,7 +368,7 @@ const t = useTranslations(locale);
     box-shadow: 0 0 8px rgba(143, 169, 255, 0.6);
   }
 
-  /* 音量：與進度條共用滑桿外觀，但短、不搶版面 */
+  /* Volume: shares the progress bar's slider look, but short so it does not crowd the layout */
   .teaser__volume {
     flex: none;
     width: 74px;
@@ -407,7 +413,7 @@ const t = useTranslations(locale);
     white-space: nowrap;
   }
 
-  /* ---- 片段切換點 ---- */
+  /* ---- Clip switch dots ---- */
   .teaser__dots {
     display: flex;
     justify-content: center;
@@ -429,7 +435,7 @@ const t = useTranslations(locale);
   }
 
   @media (max-width: 640px) {
-    /* 窄螢幕先讓位給進度條：音量收起，靜音鈕仍在 */
+    /* On a narrow screen the progress bar wins: volume collapses, the mute button stays */
     .teaser__volume {
       display: none;
     }
@@ -463,9 +469,11 @@ const t = useTranslations(locale);
 
 <script>
   /*
-    自製播放器：一份播放清單，一次只播一段。
-    片尾不循環，自動接下一段（末段回到第一段）；切走的暫停並倒回 0，
-    非當前段以 preload="none" 起手，首次切到才拉取（這些檔案很大）。
+    The hand-built player: one playlist, one clip playing at a time.
+    A clip does not loop at its end but advances to the next (the last wraps to
+    the first); the clip being left is paused and rewound to 0, and every
+    non-current clip starts at preload="none" and is only fetched the first time
+    it is switched to (these files are large).
   */
   function initTeaser() {
     const player = document.querySelector<HTMLElement>("[data-teaser-player]");
@@ -486,7 +494,7 @@ const t = useTranslations(locale);
       return;
 
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    // 文案一律自 data-* 取；腳本不重寫一份三語字串
+    // Labels always come from data-*; the script keeps no second copy of the three-language strings
     const labels = {
       play: toggle.dataset.play ?? "",
       pause: toggle.dataset.pause ?? "",
@@ -514,7 +522,7 @@ const t = useTranslations(locale);
       timeEl.textContent = `${fmt(v.currentTime)} / ${fmt(d)}`;
     };
 
-    // 靜音與音量套到全部片段，並同步圖示、aria 與滑桿位置
+    // Apply mute and volume to every clip, and sync the icon, aria state and slider position
     const applySound = (muted: boolean, level: number) => {
       const lvl = Math.min(1, Math.max(0, level));
       videos.forEach((v) => {
@@ -550,7 +558,7 @@ const t = useTranslations(locale);
       const v = videos[i];
       v.hidden = false;
       if (v.preload === "none") v.preload = "auto";
-      // 音量與靜音沿用：切片段不該把使用者調好的聲音重設
+      // Carry volume and mute across: switching clips must not reset the sound the user set
       v.muted = prev.muted;
       v.volume = prev.volume;
       current = i;
@@ -561,7 +569,7 @@ const t = useTranslations(locale);
       paintPlayState();
     };
 
-    // ---- 播放 / 暫停 ----
+    // ---- Play / pause ----
     const togglePlay = () => {
       const v = active();
       if (v.paused) void v.play().catch(() => {});
@@ -573,12 +581,12 @@ const t = useTranslations(locale);
       togglePlay();
     });
 
-    // ---- 上一段 / 下一段 / 圓點 ----
+    // ---- Previous / next / dots ----
     q<HTMLButtonElement>("[data-teaser-prev]")?.addEventListener("click", () => show(current - 1));
     q<HTMLButtonElement>("[data-teaser-next]")?.addEventListener("click", () => show(current + 1));
     dots.forEach((d, i) => d.addEventListener("click", () => show(i)));
 
-    // ---- 進度條 ----
+    // ---- Progress bar ----
     seek.addEventListener("pointerdown", () => (scrubbing = true));
     seek.addEventListener("pointerup", () => (scrubbing = false));
     seek.addEventListener("input", () => {
@@ -588,11 +596,11 @@ const t = useTranslations(locale);
       seek.style.setProperty("--progress", String(Number(seek.value) / 10));
     });
 
-    // ---- 靜音 / 音量 ----
-    // 靜音鈕與音量滑桿是同一個狀態的兩個面：靜音＝滑桿歸零，從零往上拉＝自動取消靜音。
+    // ---- Mute / volume ----
+    // The mute button and the volume slider are two faces of one state: muted means the slider is at zero, and dragging up from zero unmutes.
     muteBtn.addEventListener("click", () => {
       const muted = !active().muted;
-      // 從靜音解除時，若音量停在 0 就給一個聽得見的預設值
+      // When unmuting, if the volume is still at 0 give it an audible default
       const level = muted ? active().volume : active().volume || 1;
       applySound(muted, level);
     });
@@ -602,7 +610,7 @@ const t = useTranslations(locale);
       applySound(level === 0, level);
     });
 
-    // ---- 全螢幕 ----
+    // ---- Fullscreen ----
     fsBtn.addEventListener("click", () => {
       if (document.fullscreenElement) void document.exitFullscreen();
       else void frame.requestFullscreen?.().catch(() => {});
@@ -614,17 +622,17 @@ const t = useTranslations(locale);
       fsBtn.setAttribute("aria-label", on ? labels.exitFs : labels.fs);
     });
 
-    // ---- 每段的事件 ----
+    // ---- Per-clip events ----
     videos.forEach((v, i) => {
       v.addEventListener("timeupdate", () => i === current && paint());
       v.addEventListener("loadedmetadata", () => i === current && paint());
       v.addEventListener("play", () => i === current && paintPlayState());
       v.addEventListener("pause", () => i === current && paintPlayState());
-      // 片尾不循環：自動接下一段
+      // No looping at the end: advance to the next clip
       v.addEventListener("ended", () => i === current && show(current + 1));
     });
 
-    // ---- 鍵盤：焦點在播放器內時，空白鍵播放暫停、左右鍵微調進度 ----
+    // ---- Keyboard: while focus is inside the player, space toggles playback and the arrow keys nudge the progress ----
     player.addEventListener("keydown", (e) => {
       const onControl = (e.target as HTMLElement).closest("button, input");
       if (e.key === " " && !onControl) {
@@ -640,8 +648,8 @@ const t = useTranslations(locale);
     });
 
     if (reduced) videos.forEach((v) => v.pause());
-    // 起手：靜音（瀏覽器只允許靜音自動播放），滑桿歸零但底層音量留 1，
-    // 按下取消靜音就直接聽得見。
+    // Initial state: muted (browsers only allow muted autoplay), with the slider
+    // at zero but the underlying volume left at 1, so unmuting is audible at once.
     applySound(true, 1);
     paint();
     paintPlayState();

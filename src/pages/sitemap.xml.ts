@@ -1,13 +1,15 @@
 /*
-  /sitemap.xml —— 手捲 sitemap（零依賴），列出各語系首頁並互標 hreflang。
-  只收可索引的內容頁。靜態站預渲染為靜態檔；robots.txt 指向此處。
+  /sitemap.xml -- hand-rolled sitemap (zero dependencies) listing each locale's
+  home page with hreflang alternates between them.
+  Only indexable content pages are included. The static site prerenders this to a
+  file; robots.txt points here.
 */
 import type { APIRoute } from "astro";
 import { LOCALES, localizedPath, HTML_LANG, DEFAULT_LOCALE } from "@/i18n/utils";
 
 export const prerender = true;
 
-// 邏輯頁（與語系無關）；日後新增子頁在此追加即可。
+// Logical pages (locale-independent); add a new subpage here.
 const LOGICAL_PAGES = ["/"];
 
 export const GET: APIRoute = ({ site }) => {

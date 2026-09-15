@@ -1,8 +1,11 @@
 ---
 /*
-  主題曲 Chapters（#chapters）—— 碎界樹。
-  區塊殼：眉標 / 標題 / 導言 + 互動式碎界樹 island（改編自遊戲 Entry.tsx 物理）。
-  島為 client:visible 延遲注水；SSR 出靜態樹（節點在錨點、枝條已畫）→ 無 CLS、可降級。
+  Chapters (#chapters) -- the Shattered Realms Tree.
+  The section shell: eyebrow / heading / lead plus the interactive tree island
+  (adapted from the game's Entry.tsx physics).
+  The island hydrates lazily with client:visible; SSR emits a static tree (nodes
+  at their anchors, branches already drawn), so there is no CLS and it degrades
+  cleanly.
 */
 import ShatteredTree from "@/components/sections/ShatteredTree.tsx";
 import { useTranslations, type Locale } from "@/i18n/utils";

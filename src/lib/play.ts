@@ -1,19 +1,21 @@
 /*
-  碎界 sr-web —— hoshi-svc 通用路由 API 的前端消費端。
+  Shattered Realms sr-web -- the frontend consumer of hoshi-svc's generic routing API.
 
-  官網是純靜態站；Play island 直接跨源查詢 hoshi-svc，將通用 RouteDecision 轉為
-  畫面需要的 PlayResponse。前端不再提供靜態／內建節點後備：沒有通過驗證的路由結果
-  就不載入遊戲。唯一允許的降級是 hoshi-svc 先前成功回傳、且仍在
-  expiresAt + staleIfError 容錯期限內的決策。
+  The site is purely static; the Play island queries hoshi-svc cross-origin and
+  turns the generic RouteDecision into the PlayResponse the UI needs. The frontend
+  offers no static or built-in node fallback: without a routing result that passes
+  validation, the game is not loaded. The only permitted degradation is a decision
+  hoshi-svc returned successfully before, still within its
+  expiresAt + staleIfError grace window.
 */
 
 export interface PlayRegion {
   id: string;
   region: string;
   country: string;
-  /** 從 web endpoint URL 安全派生的顯示主機名。 */
+  /** Display hostname, safely derived from the web endpoint URL. */
   host: string;
-  /** iframe／新分頁使用的原始 web endpoint；不得附加查詢參數。 */
+  /** The raw web endpoint used by the iframe or a new tab; query parameters must not be appended. */
   url: string;
   healthy: boolean;
   degraded: boolean;
@@ -26,7 +28,7 @@ export interface PlayResponse {
   recommendedId: string;
   generatedAt: string;
   expiresAt: string;
-  /** true 代表網路查詢失敗後使用仍在 staleIfError 期限內的最近成功決策。 */
+  /** true means the network query failed and the most recent successful decision, still within staleIfError, is being used. */
   stale: boolean;
 }
 
@@ -77,21 +79,25 @@ const DEFAULT_HOSHI_SVC_BASE = import.meta.env?.DEV ? "/__hoshi_svc" : "https://
 export const HOSHI_SVC_BASE = (import.meta.env?.PUBLIC_HOSHI_SVC_BASE ?? DEFAULT_HOSHI_SVC_BASE).replace(/\/+$/, "");
 export const ROUTE_ENDPOINT = `${HOSHI_SVC_BASE}/v1/services/sr-game/route?endpoint=web`;
 
-/** localhost / 127.0.0.1 / ::1 —— 只有這三個算本機。 */
+/** localhost / 127.0.0.1 / ::1 -- only these three count as local. */
 function isLoopbackHost(hostname: string): boolean {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]" || hostname === "::1";
 }
 
 /*
-  節點 URL 是否放行 `http:`。
+  Whether a node URL may use `http:`.
 
-  **判準是這份建置指向哪一個 hoshi-svc，不是它跑在哪裡。** 只有當
-  `PUBLIC_HOSHI_SVC_BASE` 自己就是 loopback 時才放行——那種建置只可能是
-  某個人的開發機，而它拿到的節點也只可能是那臺機器上的 SR。正式建置指的是
-  `https://svc.hoshivel.com`，於是這個常數是 false，`http:` 的節點照樣被拒絕。
+  **The test is which hoshi-svc this build points at, not where it runs.** It is
+  allowed only when `PUBLIC_HOSHI_SVC_BASE` is itself a loopback address -- such a
+  build can only be somebody's development machine, and the nodes it receives can
+  only be the SR on that same machine. A production build points at
+  `https://svc.hoshivel.com`, so this constant is false and an `http:` node is
+  still rejected.
 
-  綁在**建置期的來源位址**而不是 `location.hostname` 是刻意的：後者在正式站
-  被人用 hosts 檔或代理指成 localhost 時會跟著翻成 true，而那正是要擋的情況。
+  Binding this to **the build-time origin** rather than `location.hostname` is
+  deliberate: the latter flips to true whenever someone points the production site
+  at localhost through a hosts file or a proxy, which is exactly the case this is
+  here to block.
 */
 const ALLOW_LOOPBACK_NODES = (() => {
   try {
@@ -127,8 +133,9 @@ function validWebURL(value: unknown): value is string {
   if (typeof value !== "string" || value.length === 0) return false;
   try {
     const url = new URL(value);
-    // https 一律可以；http 只在本機建置（見 ALLOW_LOOPBACK_NODES）且節點本身
-    // 也是 loopback 時放行——放寬的是 protocol，不是「連去哪裡」。
+    // https is always fine; http is allowed only for a local build (see
+    // ALLOW_LOOPBACK_NODES) whose node is itself loopback -- what is relaxed is
+    // the protocol, not where the connection may go.
     const schemeOK =
       url.protocol === "https:" ||
       (ALLOW_LOOPBACK_NODES && url.protocol === "http:" && isLoopbackHost(url.hostname));
@@ -161,7 +168,7 @@ function isRouteNode(value: unknown): value is RouteNode {
   );
 }
 
-/** 嚴格驗證通用路由回應；未知欄位可共存，但所有既定欄位與語意都必須有效。 */
+/** Validate a generic routing response strictly; unknown fields may coexist, but every defined field and its semantics must be valid. */
 export function isRouteDecision(value: unknown): value is RouteDecision {
   if (!isRecord(value) || value.service !== "sr-game") return false;
   if (!isRouteNode(value.recommended) || !Array.isArray(value.candidates) || value.candidates.length === 0) {
@@ -216,7 +223,7 @@ function generateRoutingKey(): string {
     globalThis.crypto.getRandomValues(bytes);
     return `anon_${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
   }
-  // 舊瀏覽器的最後退化；不含使用者資料，仍只作穩定分配而非身分或認證。
+  // Last-resort degradation for old browsers; it carries no user data and still only provides stable assignment, never identity or authentication.
   return `anon_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
 }
 
@@ -227,7 +234,7 @@ function routingKey(): string {
       const existing = storage.getItem(ROUTING_KEY_STORAGE);
       if (existing && ROUTING_KEY_RE.test(existing)) return existing;
     } catch {
-      // localStorage 被瀏覽器封鎖時，這次頁面仍可用一個匿名 key 查詢。
+      // When the browser blocks localStorage, this page can still query with an anonymous key.
     }
   }
 
@@ -236,7 +243,7 @@ function routingKey(): string {
     try {
       storage.setItem(ROUTING_KEY_STORAGE, generated);
     } catch {
-      // 無持久化能力時只影響跨頁黏著，不影響這次路由查詢。
+      // Without persistence only cross-page stickiness is lost; this routing query is unaffected.
     }
   }
   return generated;
@@ -283,7 +290,7 @@ function cacheDecision(decision: RouteDecision): void {
   try {
     storage.setItem(ROUTE_CACHE_STORAGE, JSON.stringify(envelope));
   } catch {
-    // 容量不足或隱私模式只會失去 stale fallback，不得讓成功的線上結果失效。
+    // A full quota or private mode only costs the stale fallback; it must never invalidate a successful online result.
   }
 }
 
@@ -312,9 +319,11 @@ export function pickEntryId(response: PlayResponse): string | null {
 }
 
 /**
- * 讀取 sr-game 的 web route。TTL 內直接重用成功快取；線上請求失敗時，只在服務端
- * 指定的 staleIfError 期限內使用最近成功結果。逾期、503 或畸形回應且無可用快取時
- * 一律拋出 PlayUnavailableError，絕不自行捏造可用節點。
+ * Read sr-game's web route. Within the TTL a successful cache entry is reused
+ * directly; when the online request fails, the most recent successful result is
+ * used only within the staleIfError window the server specified. Once expired, or
+ * on a 503 or a malformed response with no usable cache, this always throws
+ * PlayUnavailableError and never invents an available node.
  */
 export async function fetchPlay(timeoutMs = 4000): Promise<PlayResponse> {
   const cached = readCachedDecision();

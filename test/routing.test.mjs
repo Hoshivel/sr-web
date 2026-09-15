@@ -1,14 +1,17 @@
 /*
-  路由字串的形狀 —— 與姊妹站 hoshivel-web 同一份不變式。
+  The shape of route strings -- the same invariant as the sibling site hoshivel-web.
 
-  那邊 2026-08-28 出過一次無限轉址：主機提供的是 `/news/x/`（產物是
-  `<路徑>/index.html`），而邏輯路徑不帶尾斜線，偏好轉址拿後者去比
-  `location.pathname`，判成「另一頁」就轉，主機 307 轉回來，腳本再跑一次。
+  That site hit a redirect loop on 2026-08-28: the host serves `/news/x/` (the
+  build emits `<path>/index.html`) while logical paths carry no trailing slash, so
+  the preference redirect compared the latter against `location.pathname`, read it
+  as "another page" and redirected; the host 307'd back and the script ran again.
 
-  本站今天只有各語系首頁，`/` 兩種寫法剛好相等，所以看不出差別——這幾條
-  釘的是**加了內頁之後也還成立**：
+  This site currently has only the per-locale home pages, where the two spellings
+  of `/` happen to coincide, so the difference is invisible -- what these cases
+  pin is that it **still holds once subpages arrive**:
 
-      對任一語系的任何一頁，由它自己的 pathname 推回來的目標＝它自己。
+      For any page in any locale, the target derived from its own pathname is
+      that same page.
 */
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -21,7 +24,7 @@ import {
   stripLocalePrefix,
 } from "../src/i18n/utils.ts";
 
-// 第一項是今天真的有的；其餘是內頁進來之後的形狀。
+// The first entry is what exists today; the rest are the shapes subpages will take.
 const SERVED = ["/", "/about/", "/world/factions/"];
 
 test("偏好轉址的目標永遠不是讀者已經在的那一頁", () => {

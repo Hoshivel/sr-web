@@ -1,11 +1,15 @@
 ---
 /*
-  首頁內容（單一權威來源；三個 locale 路由共用，靠 locale prop 切換文案）。
-  Hero 分層——bg（程序化虛空，注入 canvas island）／scrim／content。
+  Home page content (the single authoritative source; shared by all locale routes,
+  with the copy switched by the locale prop).
+  The hero is layered: bg (the procedural void, hydrating a canvas island),
+  scrim, content.
 
-  區塊順序即敘事線：
-  Hero → 實機片段 → 世界為何碎裂（沒有誰站在中心）→ 核心玩法（衝突如何被決定）
-  → 碎界樹（旅途在碎片間交錯）→ 角色與群像（各自走向不同的答案）→ 實際遊玩。
+  The section order is the narrative line:
+  hero -> gameplay footage -> why the world shattered (nobody stands at the
+  center) -> core gameplay (how a conflict is decided) -> the Shattered Realms
+  Tree (journeys crossing between fragments) -> characters (each walking toward a
+  different answer) -> actually playing.
 */
 import Mark from "@/components/brand/Mark.astro";
 import VoidField from "@/components/hero/VoidField.tsx";
@@ -24,12 +28,15 @@ interface Props {
 }
 const { locale } = Astro.props;
 const t = useTranslations(locale);
-// en 的大標題本身即拉丁字，不再重複拉丁副標
+// The en headline is already Latin, so the Latin subtitle is not repeated
 const showLatin = locale !== "en";
 
-// CTA 目標：Play → Phase 6 啟動器；Learn → 世界（碎裂）區塊。
-// 捲動指示指向 Hero 的下一個區塊：有預覽就是 #teaser，沒有就直接到 #world
-// （影片來源未設定時整個預覽區塊不輸出，錨點也不能留在那裡指空）。
+// CTA targets: Play goes to the Phase 6 launcher; Learn goes to the world
+// (shattering) section.
+// The scroll indicator points at whatever follows the hero: #teaser when a
+// preview exists, otherwise straight to #world (with no video origin configured
+// the whole preview section is not emitted, so the anchor must not be left
+// pointing at nothing).
 const playHref = "#play";
 const learnHref = "#world";
 const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
@@ -37,24 +44,26 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
 
 <main id="main">
   <section class="hero" id="top">
-    <!-- 背景層：程序化虛空。Pixi VoidField（WebGL）在下，Starfield（星座）疊於其上 -->
+    <!-- Background layer: the procedural void. Pixi VoidField (WebGL) below, Starfield (constellations) above it -->
     <div class="hero__bg" aria-hidden="true">
       <VoidField client:visible />
       <Starfield client:visible interactive density={1} />
     </div>
-    <!-- 底部漸隱，讓 Hero 融入後續區塊 -->
+    <!-- Fade out at the bottom so the hero blends into the sections below -->
     <div class="hero__scrim" aria-hidden="true"></div>
-    <!-- 中央徑向壓暗：保證字標 / 標語在虛空之上仍清晰可讀 -->
+    <!-- Central radial dimming: keeps the wordmark and tagline legible over the void -->
     <div class="hero__veil" aria-hidden="true"></div>
 
     <div class="sr-container hero__content">
       <div class="hero__mark" data-reveal>
         <Mark size={64} glow title={t("site.name")} />
       </div>
-      <!-- 標題是一個 h1，裡面兩行。拉丁名先前是 h1 外面的一個 <p>，於是
-           「碎界」與「Shattered Realms」對搜尋引擎是兩個分開的東西——
-           而它們是同一個作品的兩個名字，要被當成同一個就得在同一個標題裡。
-           外觀沒有變：兩行仍然各自排版，全大寫由 CSS 做。 -->
+      <!-- The title is one h1 holding two lines. The Latin name used to be a
+           <p> outside the h1, which made 「碎界」 and "Shattered Realms" two
+           separate things to a search engine -- but they are two names for one
+           work, and to be read as one they have to sit inside the same heading.
+           Nothing changed visually: the two lines still lay out separately and
+           the all-caps is done in CSS. -->
       <h1 class="hero__title" data-reveal>
         <span class="hero__title-name sr-gradient-text">{t("site.name")}</span>{" "}
         {showLatin && <span class="hero__latin">{t("site.nameLatin")}</span>}
@@ -76,23 +85,24 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     </a>
   </section>
 
-  <!-- 預覽：先讓訪客看它動起來，再談世界為何碎裂。
-       影片來源由 src/config/media.ts 決定（外部存儲）；未設定時整區不輸出。 -->
+  <!-- Preview: let a visitor see it move before explaining why the world
+       shattered. The video origin is decided by src/config/media.ts (external
+       storage); with none configured the whole section is not emitted. -->
   {HAS_PREVIEWS && <Teaser locale={locale} />}
 
-  <!-- 碎裂 The Shattering（世界觀捲動電影）：世界為何碎裂，以及沒有誰站在中心 -->
+  <!-- The Shattering (the worldbuilding scroll cinema): why the world shattered, and how nobody stands at the center -->
   <Shattering locale={locale} />
 
-  <!-- 核心玩法：四柱各自回答「它決定什麼」 -->
+  <!-- Core gameplay: four pillars, each answering what it decides -->
   <Gameplay locale={locale} />
 
-  <!-- 碎界樹：旅途在碎片間延伸、彼此交錯 -->
+  <!-- The Shattered Realms Tree: journeys reaching between fragments and crossing one another -->
   <Chapters locale={locale} />
 
-  <!-- 角色與群像：交錯的旅途，各自走向不同的答案 -->
+  <!-- Characters: crossing journeys, each walking toward a different answer -->
   <Characters locale={locale} />
 
-  <!-- 開始遊戲 Play（連線區域與嵌入式遊戲入口） -->
+  <!-- Play (the region list and the embedded game entry point) -->
   <Play locale={locale} />
 </main>
 
@@ -106,7 +116,7 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     overflow: hidden;
   }
 
-  /* 程序化虛空底：徑向輝光（canvas island 疊於其上） */
+  /* Procedural void base: a radial glow (the canvas island layers above it) */
   .hero__bg {
     position: absolute;
     inset: 0;
@@ -124,7 +134,7 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
       ),
       var(--sr-void);
   }
-  /* 注入的 canvas 鋪滿背景層、指標穿透 */
+  /* The hydrated canvas fills the background layer and passes pointer events through */
   .hero__bg :global(canvas) {
     position: absolute;
     inset: 0;
@@ -132,7 +142,7 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     height: 100%;
     pointer-events: none;
   }
-  /* Pixi 虛空的宿主容器：填滿背景層（Pixi resizeTo 依此取尺寸） */
+  /* Host container for the Pixi void: fills the background layer (Pixi resizeTo takes its size from this) */
   .hero__bg :global(.sr-voidfield) {
     position: absolute;
     inset: 0;
@@ -187,11 +197,13 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     }
   }
 
-  /* h1 只負責堆疊兩行；字體與發光留在中文名那一行，否則拉丁副標會一起被
-     漸層填色與 drop-shadow 蓋掉。 */
-  /* flex 而不是 grid：兩個 span 之間那個空白字元要留著（`碎界 Shattered Realms`
-     才是一個字串，不是兩個），而 grid 會把它變成一個空的格線項多佔一列；
-     flex 不為純空白建立項目。 */
+  /* The h1 only stacks the two lines; the typeface and glow stay on the Chinese
+     name's line, or the Latin subtitle would be swallowed by the same gradient
+     fill and drop-shadow. */
+  /* flex rather than grid: the whitespace character between the two spans has to
+     survive (`碎界 Shattered Realms` is one string, not two), and grid would turn
+     it into an empty grid item taking up an extra row; flex creates no item for
+     pure whitespace. */
   .hero__title {
     display: flex;
     flex-direction: column;
@@ -208,8 +220,10 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     filter: drop-shadow(0 2px 24px rgba(122, 162, 255, 0.28));
   }
   .hero__latin {
-    /* 文字本身是正常大小寫（見 i18n/ui.ts 的 site.nameLatin）；全大寫是外觀。
-       字體從 body 繼承（h1 已不再指定），但粗體要自己解掉——它先前是 <p>。 */
+    /* The text itself is in normal case (see site.nameLatin in i18n/ui.ts); the
+       all-caps is purely visual.
+       The typeface is inherited from body (the h1 no longer specifies one), but
+       the bold has to be undone explicitly -- this used to be a <p>. */
     font-weight: 400;
     color: var(--sr-text-muted);
     letter-spacing: var(--sr-tracking-wider);
@@ -235,7 +249,7 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     font-size: var(--sr-text-base);
   }
 
-  /* 捲動指示：底部脈動小點，邀請往下 */
+  /* Scroll indicator: a pulsing dot at the bottom, inviting the reader down */
   .hero__scroll {
     position: absolute;
     bottom: 2rem;

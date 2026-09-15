@@ -12,10 +12,12 @@ import {
 import "./PlayLauncher.css";
 
 /*
-  Play 啟動器（island）—— 官網版分流器。
-  以 hoshi-svc 的通用 sr-game route API 取得已探活、已收斂的 web endpoints。只有按下
-  「進入戰場」後才建立 iframe，且 iframe／新分頁一律使用服務回傳的原始 URL，不附加
-  前端自造的 query。沒有有效線上或 stale 路由時顯示不可用，不猜測遊戲節點。
+  Play launcher (island) -- the site's routing front end.
+  It fetches probed, settled web endpoints through hoshi-svc's generic sr-game
+  route API. The iframe is only created once the enter button is pressed, and both
+  the iframe and a new tab always use the raw URL the service returned, with no
+  frontend-invented query appended. With no valid online or stale route it shows
+  unavailable rather than guessing a game node.
 */
 
 type SizeMode = "normal" | "theater" | "fullscreen";
@@ -159,7 +161,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     };
   }, [refresh]);
 
-  // 劇場模式滿幅：以 documentElement.clientWidth（已扣掉捲軸寬）校正 100vw。
+  // Theater mode full bleed: correct 100vw with documentElement.clientWidth (which already excludes the scrollbar).
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -179,31 +181,38 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
 
   const selected = regions?.find((region) => region.id === selId) ?? null;
 
-  // 全螢幕由**本元件自己的版面**負責（`.play-view.is-fullscreen` 蓋滿視窗），
-  // 原生 Fullscreen API 只是加分項——它成功就順便把瀏覽器的介面也收掉。
+  // Fullscreen is **this component's own layout** (`.play-view.is-fullscreen`
+  // covers the viewport); the native Fullscreen API is a bonus on top -- when it
+  // succeeds it also hides the browser's own chrome.
   //
-  // 反過來寫（把版面交給 `:fullscreen`）的代價實測過：iPad 上的 Firefox 進不了
-  // 原生全螢幕，於是 `.play-view` 從版面裡消失、頁面上留一塊空白，而唯一能退出
-  // 的按鈕在 `.play-view` 外面——沒有 Esc 鍵的裝置就回不來了。
+  // The cost of doing it the other way round (letting `:fullscreen` own the
+  // layout) was measured: Firefox on iPad cannot enter native fullscreen, so
+  // `.play-view` vanished from the layout leaving a blank area, while the only
+  // button that could exit sat outside `.play-view` -- on a device with no Esc
+  // key there was no way back.
   //
-  // 但「自己做滿版」還差一步，而那一步是這個元件在原地做不到的：見下方
-  // renderView 的 portal。
+  // But "cover the viewport ourselves" needs one more step, and this component
+  // cannot take it in place: see the portal in renderView below.
   //
-  // 進入原生全螢幕的請求在 chooseSize 裡送出，不在這裡：那道請求必須待在手勢
-  // 的事件處理裡（見該處）。退出留在效果裡，因為離開全螢幕模式不只有按鈕一條
-  // 路——瀏覽器自己收掉時走的是下面的 fullscreenchange。
+  // The request to enter native fullscreen is sent in chooseSize, not here: that
+  // request has to stay inside the gesture's own event handler (see there).
+  // Exiting stays in an effect, because leaving fullscreen is not only the
+  // button -- when the browser dismisses it itself, it arrives as the
+  // fullscreenchange below.
   useEffect(() => {
     if (size === "fullscreen") return;
-    // 只收自己要來的那一個。遊戲 iframe 也可能為自己要全螢幕（allowFullScreen），
-    // 那不歸這裡管。
+    // Only handle the one this component asked for. The game iframe may also
+    // request fullscreen for itself (allowFullScreen), which is none of this
+    // component's business.
     if (fullscreenElement() === NATIVE_FULLSCREEN_TARGET()) {
       void exitFullscreen().catch(() => {});
     }
   }, [size]);
 
-  // 滿版時鎖住背後的頁面。原生全螢幕會自己做這件事，而沒有原生那一層的瀏覽器
-  // 上，背景會在覆蓋層下面繼續捲——手指往上一滑，蓋在上面的遊戲不動、底下的
-  // 官網動了，讀起來像畫面壞掉。
+  // Lock the page behind while covering the viewport. Native fullscreen does this
+  // itself, but in a browser without that layer the background keeps scrolling
+  // under the overlay -- a finger swipe leaves the game on top still while the
+  // site beneath moves, which reads like a broken screen.
   useEffect(() => {
     if (size !== "fullscreen") return;
     const previous = document.body.style.overflow;
@@ -213,8 +222,10 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     };
   }, [size]);
 
-  // 使用者用瀏覽器自己的方式離開原生全螢幕（Esc、系統手勢）時把模式同步回來。
-  // 兩個事件名都要收：WebKit 只送前綴的那一個，少了它狀態會停在 fullscreen。
+  // When the user leaves native fullscreen the browser's own way (Esc, a system
+  // gesture), sync the mode back.
+  // Both event names must be handled: WebKit only sends the prefixed one, and
+  // without it the state would stay stuck on fullscreen.
   useEffect(() => {
     const onFullscreenChange = () => {
       if (!fullscreenElement() && size === "fullscreen") setSize("normal");
@@ -229,7 +240,7 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
     };
   }, [size]);
 
-  // 只有明確進入後才把 URL 交給 iframe，避免節點卡片一出現就建立遊戲連線。
+  // Hand the URL to the iframe only after an explicit enter, so a game connection is not opened the moment the node cards appear.
   const selectedAvailable = selected !== null && (selected.healthy || selected.degraded === true);
   const frameURL = connected && selectedAvailable && selected ? selected.url : undefined;
   const frameLoading = Boolean(frameURL && !frameReady);
@@ -248,19 +259,24 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   };
   const chooseSize = (mode: SizeMode) => {
     setDragH(null);
-    // 原生那一層的請求送在這裡——**同步地**，在手勢自己的事件處理裡。
+    // The native request is sent here -- **synchronously**, inside the gesture's
+    // own event handler.
     //
-    // 先前送在 `size` 的效果裡，而 React 的 passive effect 排在繪製之後的另一個
-    // task；WebKit 只在它還在處理那個手勢時才給全螢幕，於是請求永遠遲到。
-    // iPadOS 上每一個瀏覽器都是 WebKit，所以那三個瀏覽器的原生全螢幕其實都沒有
-    // 生效過——只是本站的版面自己蓋滿了視窗，看起來仍然像進了全螢幕。
-    // 這一項與 iPad Firefox 那次回報無關，見 SR#148 §13.A。
-    // 退出不在這裡：離開全螢幕不只有按鈕一條路，所以那一半歸上面的效果。
+    // It used to be sent from the `size` effect, but React schedules a passive
+    // effect in a separate task after paint, and WebKit only grants fullscreen
+    // while it is still handling that gesture, so the request was always too
+    // late. Every browser on iPadOS is WebKit, so native fullscreen had in fact
+    // never taken effect in any of those three -- the site's own layout simply
+    // covered the viewport, which still looked like fullscreen.
+    // This is unrelated to the iPad Firefox report; see SR#148 section 13.A.
+    // Exiting is not here: leaving fullscreen is not only the button, so that
+    // half belongs to the effect above.
     const target = NATIVE_FULLSCREEN_TARGET();
     if (mode === "fullscreen" && fullscreenElement() !== target) {
       requestFullscreen(target).done.catch(() => {
-        // 要不到就算了：版面已經是滿版的，不必把模式退掉，也不必說什麼——
-        // 差別只在瀏覽器自己的介面留在畫面上。
+        // If it is refused, let it go: the layout already covers the viewport,
+        // so there is no need to undo the mode or say anything -- the only
+        // difference is that the browser's own chrome stays on screen.
       });
     }
     setSize(mode);
@@ -402,9 +418,10 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
             </div>
           )}
           {size === "fullscreen" && (
-            // 退出鈕必須在 .play-view **裡面**：滿版時這一層蓋住整個視窗，而
-            // 控制列留在啟動器那邊、被蓋在下面。平板沒有 Esc 鍵，外面那一顆等
-            // 於不存在。
+            // The exit button must live **inside** .play-view: when covering
+            // the viewport this layer sits over everything while the control
+            // bar stays back with the launcher, underneath it. A tablet has no
+            // Esc key, so a button outside might as well not exist.
             <button
               type="button"
               className="play-view__exit"

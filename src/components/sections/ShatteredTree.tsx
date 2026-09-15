@@ -5,29 +5,40 @@ import { prefersReducedMotion } from "@/lib/motion";
 import "./ShatteredTree.css";
 
 /*
-  碎界樹 —— 官網版（改編自遊戲 `ui/meta/Entry.tsx`）。
-  正式名稱是「碎界樹」，它是碎界自己的東西，不是泛稱的那一棵樹。
+  The Shattered Realms Tree -- the site version (adapted from the game's
+  `ui/meta/Entry.tsx`).
+  Its proper name is the Shattered Realms Tree: it belongs to Shattered Realms
+  itself and is not a generic world tree.
 
-  複用遊戲碎界樹的靈魂：節點乘一套 spring-damper 物理在星流中漂浮、可被抓取拋擲，
-  彎曲擺動的枝條與盤根 tendril 隨之飄動，formation 耦合讓整棵樹如鬆散編隊一起晃。
+  It reuses the soul of the game's tree: nodes drift through the star current on a
+  spring-damper simulation and can be grabbed and thrown, with curved swaying
+  branches and root tendrils drifting along, and a formation coupling that makes
+  the whole tree sway together like a loose flight.
 
-  改進為官網展示：
-  - 去後端/store/account 依賴 → 自足 island，章節資料靜態、文案吃 sr-web i18n。
-  - **seed 決定性佈局**（非遊戲的每訪重擲）→ SSR 與 client 一致、無 hydration 不符。
-  - **響應式**：物理跑在 600×480 設計座標（viewBox）；節點以百分比定位、枝條走 viewBox
-    單位由 SVG 自動縮放；拖曳輸入以 stage 實寬換算回設計單位。
-  - **章節氛圍 morph**：hover/選取節點 → 全區 `--wt-accent` 冰藍↔星紫平滑過場。
-  - reduced-motion：靜態樹、不啟用物理/拖曳（點按仍可展開章節卡）。
+  Adapted for the site:
+  - Backend, store and account dependencies removed, making it a self-contained
+    island with static chapter data and copy from sr-web's i18n.
+  - **Seed-deterministic layout** (rather than the game's re-roll on every visit),
+    so SSR and client agree and there is no hydration mismatch.
+  - **Responsive**: the physics runs in a 600x480 design space (the viewBox);
+    nodes are positioned in percentages while branches use viewBox units that the
+    SVG scales automatically, and drag input is converted back into design units
+    using the stage's real width.
+  - **Chapter mood morph**: hovering or selecting a node transitions the whole
+    section's `--wt-accent` smoothly between ice blue and star violet.
+  - reduced-motion: a static tree with no physics or dragging (a tap still opens
+    the chapter card).
 */
 
-// 設計座標空間（viewBox 中心為原點）
+// The design coordinate space (the viewBox center is the origin)
 const DW = 600;
 const DH = 480;
 const BOUND_X = 250; // 節點偏移可及範圍（留邊給節點與標籤）
 const BOUND_Y = 190;
 
-// 節點物理（軟彈簧，1/s² 與 1/s）：欠阻尼 → 連續彈性而非抖動。
-// LINK_K 耦合各節點偏移，使樹如鬆散編隊一起飄。
+// Node physics (a soft spring, in 1/s^2 and 1/s): underdamped, giving continuous
+// elasticity rather than jitter.
+// LINK_K couples the nodes' offsets so the tree drifts together like a loose flight.
 const SPRING_K = 4.5;
 const SPRING_C = 2.2;
 const LINK_K = 1.1;
@@ -39,7 +50,7 @@ interface Chapter {
   accent: string;
   status: Status;
 }
-// 三節點：碎界◈（起源/根）→ 風雪過境❄（第一章/已上線）→ 星痕紀元✶（第二章/即將）。
+// Three nodes: 碎界 ◈ (the origin and root) -> 風雪過境 ❄ (chapter one, live) -> 星痕紀元 ✶ (chapter two, coming).
 const CHAPTERS: readonly Chapter[] = [
   { id: "shattered", glyph: "◈", accent: "#8fa9ff", status: "root" },
   { id: "snowpass", glyph: "❄", accent: "#7fd0ff", status: "live" },
@@ -66,7 +77,7 @@ interface Tendril {
   bend: number;
 }
 
-// 決定性 PRNG（mulberry32）→ 全站佈局可冷接手、SSR/client 一致。
+// A deterministic PRNG (mulberry32), so the layout can be picked up cold and SSR and client agree.
 function makeRng(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -79,8 +90,9 @@ function makeRng(seed: number) {
 }
 const clampTo = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-// layoutTree 生長碎界樹：錨點沿一條蜿蜒主幹上行（seed 決定性），相鄰節點以彎曲枝條相連，
-// 較後的節點再回織到較早者，每節點抽出兩條盤根 tendril。
+// layoutTree grows the tree: anchors climb a winding trunk (seed-deterministic),
+// adjacent nodes are joined by curved branches, later nodes weave back to earlier
+// ones, and each node puts out two root tendrils.
 function layoutTree(n: number, seed: number) {
   const rng = makeRng(seed);
   const rnd = (lo: number, hi: number) => lo + rng() * (hi - lo);
@@ -112,7 +124,7 @@ function layoutTree(n: number, seed: number) {
   return { anchors, branches, tendrils };
 }
 
-// 一條彎曲枝條：控制點沿線段法向外凸（bend）並隨時間緩擺（sway）。
+// One curved branch: the control point bows out along the segment's normal (bend) and eases back and forth over time (sway).
 function branchPath(x1: number, y1: number, x2: number, y2: number, bend: number, sway: number) {
   const mx = (x1 + x2) / 2;
   const my = (y1 + y2) / 2;
@@ -125,7 +137,7 @@ function branchPath(x1: number, y1: number, x2: number, y2: number, bend: number
   return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${(mx + nx * c).toFixed(1)} ${(my + ny * c).toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
 }
 
-// viewBox 座標 → stage 百分比（節點以 left/top% 定位，隨 stage 縮放自然對齊枝條）。
+// viewBox coordinates to stage percentages (nodes are positioned with left/top%, so they stay aligned with the branches as the stage scales).
 const pctX = (x: number) => ((x + DW / 2) / DW) * 100;
 const pctY = (y: number) => ((y + DH / 2) / DH) * 100;
 
@@ -159,12 +171,12 @@ export default function ShatteredTree({ locale, seed = 0x0ceed }: { locale: Loca
     }
   };
 
-  // 物理迴圈：每幀積分並直接寫 DOM（節點 left/top%、枝條/盤根 path d），不走 React state。
+  // The physics loop: integrate each frame and write the DOM directly (node left/top%, branch and tendril path d), bypassing React state.
   useEffect(() => {
     const reduced = prefersReducedMotion();
     physRef.current = anchors.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 }));
 
-    // 先畫一次靜態幀（reduced-motion 時即最終樣貌；否則作為 rAF 前的底）。
+    // Draw one static frame first (the final look under reduced motion; otherwise the base beneath the rAF loop).
     const draw = (tt: number) => {
       const ph = physRef.current;
       const pos = ph.map((p, i) => ({ x: anchors[i].x + p.x, y: anchors[i].y + p.y }));
@@ -228,7 +240,7 @@ export default function ShatteredTree({ locale, seed = 0x0ceed }: { locale: Loca
     return () => cancelAnimationFrame(raf);
   }, [anchors, branches, tendrils]);
 
-  // 抓取 / 拋擲：按住時節點 1:1 跟指標，釋放保留動量、彈簧拉回。reduced-motion 不啟用。
+  // Grab and throw: while held, a node follows the pointer 1:1; on release it keeps its momentum and the spring pulls it back. Not enabled under reduced motion.
   const scaleAt = () => {
     const w = stageRef.current?.getBoundingClientRect().width ?? DW;
     return w / DW; // px → 設計單位：除以此值
@@ -265,7 +277,7 @@ export default function ShatteredTree({ locale, seed = 0x0ceed }: { locale: Loca
   };
 
   const selected = CHAPTERS.find((c) => c.id === sel) ?? null;
-  // 章節氛圍：active（選取 > hover）節點的元素色，驅動全區 --wt-accent（CSS 平滑過場）。
+  // Chapter mood: the element color of the active node (selection outranks hover) drives the section's --wt-accent, transitioned smoothly by CSS.
   const active = CHAPTERS.find((c) => c.id === (sel ?? hover)) ?? null;
   const statusKey = (s: Status): UIKey =>
     s === "root" ? "chapters.status.root" : s === "live" ? "chapters.status.live" : "chapters.status.soon";

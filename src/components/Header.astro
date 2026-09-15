@@ -1,10 +1,14 @@
 ---
 /*
-  站首 Header —— sticky 毛玻璃列。
-  brand（連首頁）＋ section 導覽（錨點）＋ 語言切換 ＋ Play CTA。
-  首列 skip link 供鍵盤 / 螢幕閱讀器跳到主內容。
-  行動裝置（≤760px）：section 導覽收進 hamburger 展開的下拉選單（Play 併入選單），
-  桌機維持橫列。選單為可存取切換（aria-expanded / aria-controls；Esc / 外點 / 點連結關閉）。
+  Header -- a sticky frosted-glass bar.
+  Brand (linking home) + section navigation (anchors) + the language switcher +
+  the Play CTA.
+  A skip link in the first row lets keyboard and screen-reader users jump to the
+  main content.
+  On mobile (<=760px) the section navigation collapses into a hamburger dropdown
+  (Play joins the menu), while desktop keeps the horizontal row. The menu is an
+  accessible toggle (aria-expanded / aria-controls; closed by Esc, an outside
+  click, or following a link).
 */
 import Wordmark from "@/components/brand/Wordmark.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
@@ -41,7 +45,7 @@ const nav = [
       {nav.map((item) => (
         <a class="sr-header__link" href={item.href}>{item.label}</a>
       ))}
-      {/* Play：桌機用右側 CTA，行動裝置併入本選單 */}
+      {/* Play: a right-hand CTA on desktop, folded into this menu on mobile */}
       <a class="sr-header__link sr-header__nav-play" href={sectionHref("play")}>{t("nav.play")}</a>
     </nav>
 
@@ -64,7 +68,7 @@ const nav = [
 </header>
 
 <style>
-  /* skip link：預設隱藏，聚焦時浮現於左上 */
+  /* Skip link: hidden by default, surfaces at the top left on focus */
   .sr-skip {
     position: fixed;
     top: 0.6rem;
@@ -130,7 +134,7 @@ const nav = [
   .sr-header__link:hover::after {
     transform: scaleX(1);
   }
-  /* Play 併入選單的連結：桌機隱藏（改用右側 CTA），行動選單顯示 */
+  /* The Play link inside the menu: hidden on desktop (the right-hand CTA is used instead), shown in the mobile menu */
   .sr-header__nav-play {
     display: none;
   }
@@ -141,7 +145,7 @@ const nav = [
     margin-left: auto;
   }
 
-  /* hamburger：桌機隱藏 */
+  /* Hamburger: hidden on desktop */
   .sr-header__menu-btn {
     display: none;
     align-items: center;
@@ -182,7 +186,7 @@ const nav = [
   .sr-burger::after {
     top: 6px;
   }
-  /* 開啟時 hamburger → ✕ */
+  /* Hamburger turns into a cross when open */
   .sr-header__menu-btn[aria-expanded="true"] .sr-burger {
     background: transparent;
   }
@@ -193,7 +197,7 @@ const nav = [
     transform: translateY(-6px) rotate(-45deg);
   }
 
-  /* ---- 行動裝置：section 導覽收進下拉選單 ---- */
+  /* ---- Mobile: section navigation collapses into a dropdown ---- */
   @media (max-width: 760px) {
     .sr-header__menu-btn {
       display: inline-flex;
@@ -243,7 +247,7 @@ const nav = [
 </style>
 
 <script>
-  // 行動選單：可存取切換（aria-expanded / data-open）；Esc / 外點 / 點連結 / 回桌機皆關閉。
+  // Mobile menu: accessible toggle (aria-expanded / data-open); closed by Esc, an outside click, following a link, or returning to desktop width.
   const btn = document.querySelector<HTMLButtonElement>(".sr-header__menu-btn");
   const nav = document.getElementById("sr-primary-nav");
   if (btn && nav) {

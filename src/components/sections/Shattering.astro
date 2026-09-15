@@ -1,11 +1,14 @@
 ---
 /*
-  碎裂 The Shattering（#world）—— 世界觀捲動電影。
-  招牌「褪色（Fading）」溶解：一片凝聚的世界殘片，隨捲動向虛空四散、褪色淡出。
+  The Shattering (#world) -- the worldbuilding scroll cinema.
+  The signature "Fading" dissolve: a clustered shard of the world scatters into
+  the void and fades out as the reader scrolls.
 
-  本檔＝結構＋樣式＋種子化碎片場（SSR 決定性）。
-  - 靜態 / reduced-motion / 無 JS：碎片呈凝聚態、文案以 `[data-reveal]` 呈現（世界「完整」的一刻）。
-  - GSAP pin/scrub 電影於 `<script>`（Phase 3b）驅動 cluster → 四散＋褪色。
+  This file is structure, styles, and the seeded shard field (deterministic under SSR).
+  - Static / reduced motion / no JS: the shards stay clustered and the copy is
+    revealed with `[data-reveal]` (the moment the world is still whole).
+  - The GSAP pin/scrub cinema in `<script>` (Phase 3b) drives cluster -> scatter
+    plus fade.
 */
 import { useTranslations, type Locale } from "@/i18n/utils";
 
@@ -15,7 +18,7 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// 種子化碎片：凝聚於中央的殘片，各帶「向虛空四散」的目標位移（供 3b GSAP）。
+// Seeded shards: fragments clustered at the center, each carrying its target displacement for scattering into the void (used by the Phase 3b GSAP).
 function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -30,10 +33,10 @@ const rnd = mulberry32(0x5ca77e);
 const COUNT = 34;
 const shards = Array.from({ length: COUNT }, () => {
   const z = rnd(); // 深度 → 大小 / 亮度
-  // 凝聚位置：中央附近（%）
+  // Clustered position: near the center (%)
   const cx = 50 + (rnd() - 0.5) * 40;
   const cy = 50 + (rnd() - 0.5) * 34;
-  // 四散目標：由中央向外（px）
+  // Scatter target: outward from the center (px)
   const ang = rnd() * Math.PI * 2;
   const dist = 140 + rnd() * 460;
   const dx = Math.round(Math.cos(ang) * dist);
@@ -68,8 +71,10 @@ const shards = Array.from({ length: COUNT }, () => {
     </h2>
     <p class="shatter__lead" data-reveal>{t("world.lead")}</p>
 
-    {/* 全站的核心命題：沒有主角，也就沒有中心。後續各區塊都由這句往下長。
-        刻意不做高亮區塊——與前後文同色同級，讓它自己成立。 */}
+    {/* The site's central claim: with no protagonist there is no center. Every
+        section that follows grows out of this sentence.
+        Deliberately not set as a highlighted block -- same color and level as the
+        text around it, so it stands on its own. */}
     <p class="shatter__claim" data-reveal>{t("world.claim")}</p>
     <p class="shatter__ensemble" data-reveal>{t("world.ensemble")}</p>
   </div>
@@ -99,12 +104,12 @@ const shards = Array.from({ length: COUNT }, () => {
     color: var(--sr-accent);
     opacity: var(--op);
     line-height: 1;
-    /* 凝聚態：位於 left/top，僅套起始旋轉。3b 以 GSAP 動 --dx/--dy/--r1/opacity。 */
+    /* Clustered state: positioned by left/top with only the initial rotation applied. Phase 3b animates --dx/--dy/--r1/opacity with GSAP. */
     transform: translate(-50%, -50%) rotate(var(--r0));
     text-shadow: 0 0 12px rgba(143, 169, 255, 0.35);
     will-change: transform, opacity, filter;
   }
-  /* 交錯上色，讓殘片有冷暖層次 */
+  /* Alternating colors, giving the shards a warm-cool depth */
   .shard:nth-child(3n) {
     color: var(--sr-violet-light);
   }
@@ -117,7 +122,7 @@ const shards = Array.from({ length: COUNT }, () => {
     z-index: 1;
     max-width: 62rem;
     text-align: center;
-    /* 內容底襯：保證字在殘片上仍清晰 */
+    /* Backing behind the content: keeps the text legible over the shards */
   }
   .shatter__content::before {
     content: "";
@@ -143,8 +148,9 @@ const shards = Array.from({ length: COUNT }, () => {
     color: var(--sr-text-bright);
   }
 
-  /* 四段同字級同寬、不分區塊；差別只在顏色——
-     其餘三段走灰階，唯獨核心命題留亮色，讓它自己跳出來。 */
+  /* All four passages share a type size and measure with no block separation;
+     the only difference is color -- three run in grayscale while the central
+     claim alone keeps its brightness, so it steps forward by itself. */
   .shatter__lead,
   .shatter__claim,
   .shatter__ensemble {
@@ -157,7 +163,7 @@ const shards = Array.from({ length: COUNT }, () => {
   .shatter__lead {
     margin-top: var(--sr-space-8);
   }
-  /* 核心命題：與前後同色，靠字重＋斜體站出來。 */
+  /* The central claim: the same color as its neighbors, standing out through weight and italics. */
   .shatter__claim {
     font-weight: 700;
     font-style: italic;
@@ -166,9 +172,12 @@ const shards = Array.from({ length: COUNT }, () => {
 
 <script>
   /*
-    碎裂溶解電影：pin 住區塊，隨捲動 scrub 讓殘片由凝聚態向虛空四散＋淡出，
-    殘片層同步去飽和 —— 招牌「褪色（Fading）」。文案維持可讀（靠 [data-reveal] 呈現）。
-    reduced-motion → bootScrollCinema 回 null，直接略過（保留凝聚態靜態）。
+    The shattering dissolve cinema: pin the section and scrub the shards from
+    their clustered state outward into the void while fading them, desaturating
+    the shard layer in step -- the signature "Fading". The copy stays readable
+    (revealed by [data-reveal]).
+    Under reduced motion bootScrollCinema returns null and this is skipped
+    entirely, leaving the static clustered state.
   */
   import { bootScrollCinema } from "@/lib/scrollCinema";
 
@@ -187,7 +196,7 @@ const shards = Array.from({ length: COUNT }, () => {
     const num = (el: HTMLElement, name: string) =>
       parseFloat(el.style.getPropertyValue(name)) || 0;
 
-    // 以 xPercent/yPercent 重現 CSS 的 translate(-50%,-50%) 置中（GSAP 會接管 transform）
+    // Reproduce the CSS translate(-50%,-50%) centering with xPercent/yPercent (GSAP takes over the transform)
     gsap.set(shards, { xPercent: -50, yPercent: -50 });
     shards.forEach((el) => gsap.set(el, { rotation: num(el, "--r0") }));
 
@@ -202,7 +211,7 @@ const shards = Array.from({ length: COUNT }, () => {
       },
     });
 
-    // 殘片：向虛空四散 ＋ 淡出
+    // Shards: scatter into the void and fade out
     shards.forEach((el) => {
       tl.to(
         el,
@@ -217,7 +226,7 @@ const shards = Array.from({ length: COUNT }, () => {
       );
     });
 
-    // 整體褪色：殘片層去飽和
+    // The overall fade: desaturate the shard layer
     if (shardsWrap) {
       tl.to(shardsWrap, { filter: "grayscale(0.7)", ease: "none" }, 0);
     }

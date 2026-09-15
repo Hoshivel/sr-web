@@ -3,20 +3,25 @@ import type { Application, Sprite, Texture } from "pixi.js";
 import { prefersReducedMotion } from "@/lib/motion";
 
 /*
-  VoidField —— Pixi 程序化虛空（Hero 背景的 WebGL 核心）。
-  漂浮發光碎片（◈ 主題的菱形星痕）＋ 星雲柔光 ＋ 游標視差，疊於 Starfield 之下。
+  VoidField -- the Pixi procedural void (the WebGL core of the hero background).
+  Drifting luminous shards (diamond star-marks on the ◈ theme), nebula glow and
+  cursor parallax, layered beneath the Starfield.
 
-  降級與效能：
-  - reduced-motion → 完全不啟用（CSS 徑向底 + 靜態 Starfield 已足夠）。
-  - 觸控 / 粗指標 → 不綁游標視差。
-  - 碎片數依視窗面積調整、有上限；離開時 destroy Pixi app 與自建貼圖。
-  - Pixi 以動態 import 載入 → 獨立 chunk，僅在此島（client:visible）注水時抓取。
-  - WebGL 初始化以 try/catch 包住，失敗則優雅退場（不影響其餘 Hero）。
+  Degradation and performance:
+  - reduced-motion: not enabled at all (the CSS radial base plus a static
+    Starfield is enough).
+  - Touch or coarse pointer: no cursor parallax is bound.
+  - The shard count scales with viewport area and is capped; on teardown the Pixi
+    app and the textures it created are destroyed.
+  - Pixi is loaded by dynamic import into its own chunk, fetched only when this
+    island (client:visible) hydrates.
+  - WebGL initialization is wrapped in try/catch and bows out gracefully on
+    failure, leaving the rest of the hero untouched.
 */
 
 type PixiNS = typeof import("pixi.js");
 
-/** 離屏徑向漸層 → 柔光貼圖（星雲用）。 */
+/** An offscreen radial gradient baked into a soft-glow texture (used by the nebulae). */
 function makeGlowTexture(PIXI: PixiNS): Texture {
   const size = 256;
   const cv = document.createElement("canvas");
@@ -44,8 +49,9 @@ export default function VoidField() {
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
-    // 行動裝置：關閉最重 WebGL —— 窄視窗完全不載入 Pixi（省下整包下載），
-    // 仍保留 CSS 徑向底 + Starfield 的環境動態。
+    // Mobile: drop the heaviest WebGL -- a narrow viewport does not load Pixi at
+    // all (saving the whole download) while keeping the CSS radial base and the
+    // Starfield's ambient motion.
     if (window.matchMedia?.("(max-width: 720px)").matches) return;
     const host = hostRef.current;
     if (!host) return;
@@ -76,7 +82,7 @@ export default function VoidField() {
         const W = () => app.screen.width;
         const H = () => app.screen.height;
 
-        // 柔光貼圖 + 碎片模板貼圖（菱形，白色 → 由 tint 上色）
+        // Soft-glow texture plus the shard stencil texture (a white diamond, colored via tint)
         const glow = makeGlowTexture(PIXI);
         const tpl = new PIXI.Graphics()
           .moveTo(0, -10)
@@ -88,7 +94,7 @@ export default function VoidField() {
         const shardTex = app.renderer.generateTexture(tpl);
         tpl.destroy();
 
-        // --- 星雲：少數大型柔光，additive 疊加做出深邃輝光 ---
+        // --- Nebulae: a few large soft glows, additively blended into a deep radiance ---
         const nebula = new PIXI.Container();
         app.stage.addChild(nebula);
         const nebulaColors = [0x8fa9ff, 0x7a5bff, 0x6ab0ff, 0xb89bff];
@@ -106,7 +112,7 @@ export default function VoidField() {
           return { s, phase: Math.random() * Math.PI * 2, base };
         });
 
-        // --- 碎片場（受游標視差平移）---
+        // --- The shard field (translated by the cursor parallax) ---
         const field = new PIXI.Container();
         app.stage.addChild(field);
         const count = Math.max(
@@ -135,7 +141,7 @@ export default function VoidField() {
           };
         });
 
-        // --- 游標視差（僅精細指標）---
+        // --- Cursor parallax (fine pointers only) ---
         const fine = window.matchMedia?.("(pointer: fine)").matches ?? false;
         const target = { x: 0, y: 0 };
         const current = { x: 0, y: 0 };
@@ -150,7 +156,7 @@ export default function VoidField() {
           const dt = Math.min(0.05, ticker.deltaMS / 1000);
           t += dt;
 
-          // 視差：碎片場朝游標反向緩移（深度感）
+          // Parallax: the shard field eases away from the cursor, giving a sense of depth
           current.x += (target.x - current.x) * 0.05;
           current.y += (target.y - current.y) * 0.05;
           field.x = -current.x * 42;
@@ -175,7 +181,7 @@ export default function VoidField() {
           }
         });
 
-        // 效能：離開視窗（IntersectionObserver）或分頁隱藏時暫停 ticker，省 GPU/CPU/電量。
+        // Performance: pause the ticker when the island leaves the viewport (IntersectionObserver) or the tab is hidden, saving GPU, CPU and battery.
         let onscreen = true;
         let visible = !document.hidden;
         const applyRun = () => {
@@ -205,7 +211,7 @@ export default function VoidField() {
           shardTex.destroy(true);
         };
       } catch {
-        // WebGL 不可用等 → 靜默退場，保留 CSS 底 + Starfield。
+        // WebGL unavailable and similar failures: bow out silently, leaving the CSS base and the Starfield.
       }
     })();
 

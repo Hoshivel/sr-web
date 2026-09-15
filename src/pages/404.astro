@@ -1,14 +1,17 @@
 ---
 /*
-  404 —— 品牌化「碎散於虛空」頁。
+  404 -- the branded "scattered into the void" page.
 
-  這一份 `dist/404.html` 服務**所有**未匹配的路徑（`wrangler.jsonc` 的
-  `not_found_handling: "404-page"`），所以語系不可能在建置時決定：`/ja/typo`
-  與 `/en/typo` 拿到的是同一份位元組。頁面因此固定以預設語系 zh-Hant 為主、
-  附一行英文，讓讀不懂中文的人也知道發生了什麼事——而不是依路徑在客戶端換字，
-  那只會換掉正文、換不掉 Header/Footer，留下一頁半翻譯。
+  This single `dist/404.html` serves **every** unmatched path (via
+  `not_found_handling: "404-page"` in `wrangler.jsonc`), so the locale cannot be
+  decided at build time: `/ja/typo` and `/en/typo` receive the same bytes. The
+  page therefore always leads in the default locale, zh-Hant, with one English
+  line so that someone who cannot read Chinese still learns what happened --
+  rather than swapping strings client-side by path, which would only swap the body
+  and not the header or footer, leaving a half-translated page.
 
-  文案取自 `src/i18n/ui.ts`（四語齊備），與站上其餘頁面同一個來源。
+  The copy comes from `src/i18n/ui.ts` (complete in all four languages), the same
+  source as every other page.
 */
 import Layout from "@/layouts/Layout.astro";
 import Mark from "@/components/brand/Mark.astro";

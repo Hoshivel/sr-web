@@ -1,7 +1,9 @@
 /*
-  碎界樹 —— island 樣式（wt- 前綴、隨 island chunk 載入）。
-  節點以百分比定位於 .wt-stage、置中於各自 (left,top)；枝條走 SVG viewBox 自動縮放。
-  --wt-accent（章節氛圍）與 --el（單節點元素色）以 CSS 過場平滑 morph（冰藍↔星紫）。
+  The Shattered Realms Tree -- island styles (wt- prefix, loaded with the island chunk).
+  Nodes are positioned in percentages on .wt-stage and centered on their own
+  (left, top); the branches use the SVG viewBox and scale automatically.
+  --wt-accent (the chapter mood) and --el (a single node's element color) morph
+  smoothly through CSS transitions, between ice blue and star violet.
 */
 
 .wt-stage {
@@ -11,7 +13,7 @@
   max-width: 660px;
   margin-inline: auto;
   aspect-ratio: 600 / 480;
-  /* 章節氛圍：隨 active 節點 morph 的柔光（transition 令 --wt-accent 變更平滑過場） */
+  /* Chapter mood: a soft glow morphing with the active node (the transition smooths every change of --wt-accent) */
   background:
     radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--wt-accent) 16%, transparent), transparent 72%),
     radial-gradient(40% 40% at 50% 46%, color-mix(in srgb, var(--wt-accent) 10%, transparent), transparent 70%);
@@ -44,7 +46,7 @@
   opacity: 0.32;
 }
 
-/* ---- 節點 ---- */
+/* ---- Nodes ---- */
 .wt-node {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -88,13 +90,13 @@
     0 0 0 2px color-mix(in srgb, var(--el) 70%, transparent),
     0 0 34px color-mix(in srgb, var(--el) 60%, transparent);
 }
-/* 根節點（碎界◈）：略大，讀作主幹起源 */
+/* The root node (碎界 ◈): slightly larger, reading as the origin of the trunk */
 .wt-node--root .wt-node-glyph {
   width: 3.9rem;
   height: 3.9rem;
   font-size: 1.85rem;
 }
-/* 即將開放（星痕紀元✶）：虛線環 + 稍暗，示意「尚未生長」 */
+/* Coming soon (星痕紀元 ✶): a dashed ring and a slightly dimmer treatment, signaling "not grown yet" */
 .wt-node--soon .wt-node-glyph {
   border-style: dashed;
   color: color-mix(in srgb, var(--el) 82%, var(--sr-text-muted));
@@ -108,7 +110,7 @@
   pointer-events: none;
 }
 
-/* ---- 章節詳情卡（覆於 stage 一角，不撐高頁面） ---- */
+/* ---- Chapter detail card (overlaid in a corner of the stage, so it does not grow the page) ---- */
 .wt-detail {
   position: absolute;
   right: 0;

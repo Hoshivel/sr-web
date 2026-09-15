@@ -2,13 +2,16 @@ import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/motion";
 
 /*
-  Starfield —— 全幅 canvas 星場，緩慢漂移。
-  移植自遊戲 `frontend/src/ui/Starfield.tsx`（sr-web 版：改用共用 reduced-motion 偵測、
-  顏色沿用品牌星/連線色 rgba(206,218,255)/rgba(122,162,255)、DPR≤2）。
+  Starfield -- a full-bleed canvas starfield drifting slowly.
+  Ported from the game's `frontend/src/ui/Starfield.tsx` (the sr-web version uses
+  the shared reduced-motion detection, the brand star and link colors
+  rgba(206,218,255) / rgba(122,162,255), and DPR <= 2).
 
-  interactive：游標半徑內的星連到游標與彼此 —— 純點對點幾何的星座效果。
-  canvas 指標穿透（樣式於 Hero 的 `:global(canvas)`），底下 UI 照常可點；游標於 window 追蹤。
-  reduced-motion：只畫一張靜態星場，無漂移、無連線。
+  interactive: stars within the cursor radius link to the cursor and to each
+  other -- a constellation effect from pure point-to-point geometry.
+  The canvas passes pointer events through (styled by `:global(canvas)` in the
+  hero), so the UI beneath stays clickable; the cursor is tracked on window.
+  reduced-motion: a single static starfield, with no drift and no links.
 */
 export default function Starfield({
   interactive = true,
@@ -43,7 +46,7 @@ export default function Starfield({
     let h = 0;
     let dpr = 1;
 
-    // 游標以邏輯 px 記錄；-1 代表「離開畫面 / 未知」。
+    // The cursor is recorded in logical px; -1 means off-screen or unknown.
     const pointer = { x: -1, y: -1 };
     const LINK_DIST = 130; // 游標周圍參與連線的半徑（px）
 
@@ -58,7 +61,7 @@ export default function Starfield({
           x: Math.random() * w,
           y: Math.random() * h,
           z,
-          // 越深（越小）的星漂移越慢 → 細膩視差。
+          // Deeper (smaller) stars drift more slowly, giving a subtle parallax.
           vx: rand(-1, 1) * (4 + z * 10),
           vy: rand(-1, 1) * (4 + z * 10),
           tw: Math.random() * Math.PI * 2,
@@ -83,7 +86,7 @@ export default function Starfield({
         if (!reduced) {
           s.x += s.vx * dt;
           s.y += s.vy * dt;
-          // 邊界環繞，星場永不清空。
+          // Wrap at the edges, so the field never empties.
           if (s.x < -2) s.x = w + 2;
           else if (s.x > w + 2) s.x = -2;
           if (s.y < -2) s.y = h + 2;
@@ -99,7 +102,7 @@ export default function Starfield({
         ctx.fill();
       }
 
-      // 星座：把游標附近的星連到游標與彼此，隨距離淡出。reduced-motion 時略過。
+      // Constellations: link stars near the cursor to it and to each other, fading with distance. Skipped under reduced motion.
       if (interactive && !reduced && pointer.x >= 0) {
         const near: Star[] = [];
         for (const s of stars) {
@@ -110,14 +113,14 @@ export default function Starfield({
         for (let i = 0; i < near.length; i++) {
           const a = near[i];
           const da = Math.hypot(a.x - pointer.x, a.y - pointer.y);
-          // 游標 → 星
+          // Cursor to star
           ctx.beginPath();
           ctx.moveTo(pointer.x, pointer.y);
           ctx.lineTo(a.x, a.y);
           ctx.strokeStyle = `rgba(122, 162, 255, ${(0.5 * (1 - da / LINK_DIST)).toFixed(3)})`;
           ctx.lineWidth = 0.7;
           ctx.stroke();
-          // 星 → 鄰星（省算：只跟後面的比）
+          // Star to neighboring star (cheaper: compare only against later ones)
           for (let j = i + 1; j < near.length; j++) {
             const b = near[j];
             const dd = Math.hypot(a.x - b.x, a.y - b.y);
@@ -130,7 +133,7 @@ export default function Starfield({
             ctx.stroke();
           }
         }
-        // 游標處柔和光暈，錨定星座。
+        // A soft glow at the cursor, anchoring the constellation.
         const halo = ctx.createRadialGradient(
           pointer.x,
           pointer.y,
@@ -160,7 +163,7 @@ export default function Starfield({
       raf = requestAnimationFrame(loop);
     };
 
-    // 游標以 canvas 為基準的相對座標
+    // Cursor coordinates relative to the canvas
     const onMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       pointer.x = e.clientX - rect.left;
@@ -179,7 +182,7 @@ export default function Starfield({
     }
 
     if (reduced) {
-      // 靜態單幀 —— 無動畫迴圈。
+      // A single static frame -- no animation loop.
       draw(0, 0);
     } else {
       raf = requestAnimationFrame(loop);

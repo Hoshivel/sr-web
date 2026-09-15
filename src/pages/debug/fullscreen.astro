@@ -1,27 +1,32 @@
 ---
 /*
-  /debug/fullscreen —— 全螢幕探針。
+  /debug/fullscreen -- the fullscreen probe.
 
-  存在的理由只有一個：iPad 上接 remote DevTools 不現實，而
-  `requestFullscreen()` 失敗時**什麼都不會顯示**——沒有例外冒到畫面上，沒有
-  訊息，只有「按了沒反應」。這一頁把那次呼叫的實際結果印在頁面自己身上。
+  It exists for exactly one reason: attaching remote DevTools on an iPad is not
+  practical, and a failing `requestFullscreen()` **shows nothing at all** -- no
+  exception surfaces on screen, no message, just "the button did nothing". This
+  page prints the actual result of that call onto the page itself.
 
-  刻意不掛 Layout.astro：不要 header／footer、不要 reveal 動畫、不要 Pixi 與
-  GSAP、不要任何 `transform` 過的祖先。要問的是瀏覽器答不答應，不是本站的版面
-  能不能承受——那兩個問題混在一起過一次了（sr-web#51）。
+  Layout.astro is deliberately not used: no header or footer, no reveal
+  animations, no Pixi or GSAP, and no ancestor that has been `transform`ed. The
+  question is whether the browser will agree, not whether this site's layout can
+  survive it -- those two questions were conflated once already (sr-web#51).
 
-  這一頁不進 sitemap、不被任何地方連到，並且 noindex。
+  This page is absent from the sitemap, linked from nowhere, and noindex.
 */
 
 /*
-  按鈕在樣板裡展開，不由腳本 createElement：Astro 的樣式是靠 `data-astro-cid-*`
-  屬性限定範圍的，而腳本生出來的節點沒有那個屬性，會整排掉出樣式之外——在平板
-  上那代表點擊區變小。
+  The buttons are expanded in the template rather than created by script:
+  Astro scopes styles with a `data-astro-cid-*` attribute, and script-created
+  nodes do not carry it, so the whole row would fall outside the styles -- which
+  on a tablet means a smaller tap target.
 
-  documentElement／body／一般元素／canvas 回答「這個瀏覽器是拒絕某一個元素，還是
-  拒絕全部」；帶 transform 的祖先把「瀏覽器不給」與 sr-web#51 的 containing block
-  分開；video 兩列是對照組——firefox-ios#33992 說 iPadOS 的 Firefox 影片可以全螢幕、
-  其他元素不行，所以那兩列成功而前面全敗，就是那個 issue 的形狀。
+  documentElement / body / a plain element / canvas answer whether this browser
+  refuses one particular element or refuses everything; the transformed ancestor
+  separates "the browser says no" from the containing-block problem of sr-web#51;
+  and the two video rows are the control -- firefox-ios#33992 reports that Firefox
+  on iPadOS allows fullscreen video but not other elements, so those two rows
+  succeeding while everything above fails is the shape of that issue.
 */
 const TARGETS = [
   { name: "html", hint: "document.documentElement —— 產品用的就是這一個" },
@@ -98,8 +103,9 @@ const TARGETS = [
         font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
       }
       /*
-        探針目標。進了全螢幕之後畫面上只剩被指定的那一棵子樹，所以每個目標都要
-        自己看得出來是誰——不然使用者只會看到一塊黑的。
+        Probe targets. Once fullscreen, only the chosen subtree remains on
+        screen, so each target has to identify itself -- otherwise the user just
+        sees a black rectangle.
       */
       .target {
         display: grid;
@@ -115,9 +121,11 @@ const TARGETS = [
       .target b { font-size: 1.1rem; }
       .target span { color: var(--muted); font-size: 0.85rem; }
       /*
-        這一層刻意帶 transform：`position: fixed` 在被 transform 過的祖先底下
-        不是相對視窗，而是相對那個祖先。sr-web#51 的實際成因就是這個，探針要
-        分得出「瀏覽器不給全螢幕」與「給了，但被祖先困住」。
+        This layer is deliberately transformed: under a transformed ancestor,
+        `position: fixed` is relative to that ancestor rather than to the
+        viewport. That is the actual cause of sr-web#51, and the probe has to
+        distinguish "the browser refused fullscreen" from "it granted it, but the
+        ancestor trapped it".
       */
       .transformed { transform: translateZ(0); will-change: transform; }
       canvas.target, video.target { display: block; width: 100%; height: 8rem; background: #0b0e15; }

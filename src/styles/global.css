@@ -14,7 +14,7 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Lenis 平滑捲動接管時的必要樣式；未載入時無副作用 */
+/* Required styles while Lenis owns the scrolling; harmless when it is not loaded */
 html.lenis,
 html.lenis body {
   height: auto;
@@ -81,7 +81,7 @@ button {
   border: 0;
 }
 
-/* 漸層字（字標 / 標題共用） */
+/* Gradient text (shared by the wordmark and headings) */
 .sr-gradient-text {
   background: var(--sr-wordmark-grad);
   -webkit-background-clip: text;
@@ -89,12 +89,12 @@ button {
   color: transparent;
 }
 
-/* 區塊節奏：統一的上下留白 */
+/* Section rhythm: one shared block of vertical space */
 .sr-section {
   padding-block: var(--sr-section-pad);
 }
 
-/* 眉標：小型全大寫追蹤標籤 */
+/* Eyebrow: a small all-caps tracked label */
 .sr-eyebrow {
   display: inline-block;
   font-size: var(--sr-text-xs);
@@ -103,7 +103,7 @@ button {
   color: var(--sr-text-muted);
 }
 
-/* 按鈕基元（品牌一致的 CTA；hero / header / play 共用） */
+/* Button primitive (the on-brand CTA, shared by the hero, header and play sections) */
 .sr-btn {
   display: inline-flex;
   align-items: center;
@@ -147,8 +147,8 @@ button {
 }
 
 /*
-  字符系統：以偽元素輸出品牌 Unicode 字符（◈ ❄ ✶ ◆）。
-  裝飾性用途；語意名稱交給 aria-label / sr-visually-hidden。
+  Glyph system: emit the brand's Unicode glyphs (◈ ❄ ✶ ◆) through pseudo-elements.
+  Decorative only; the semantic name is left to aria-label / sr-visually-hidden.
 */
 .sr-glyph::before {
   content: var(--sr-glyph, "◈");
@@ -170,11 +170,12 @@ button {
 }
 
 /*
-  reveal-on-scroll 基線：進場淡入 + 上移。
-  只有在 <html class="sr-js">（由 head 內聯腳本盡早加上）時才預先隱藏，
-  確保「無 JS / JS 失效」時內容一律可見（不會被永久藏住）。
-  JS（src/lib/motion.ts）在元素進入視窗時加 .is-visible。
-  以 --sr-reveal-i 控制同批元素的 stagger 次序。
+  reveal-on-scroll baseline: fade in and rise on entry.
+  Content is only pre-hidden while <html class="sr-js"> is present (added as early
+  as possible by an inline script in the head), which guarantees that with no JS,
+  or with JS broken, everything stays visible rather than hidden forever.
+  The JS (src/lib/motion.ts) adds .is-visible as an element enters the viewport.
+  --sr-reveal-i controls the stagger order within one batch.
 */
 html.sr-js [data-reveal] {
   opacity: 0;
@@ -191,8 +192,9 @@ html.sr-js [data-reveal].is-visible {
 }
 
 /*
-  全站 reduced-motion 基線：關閉所有裝飾性動態。
-  JS 端的 Pixi / GSAP / Lenis 也會各自偵測此偏好並降級（沿用遊戲慣例）。
+  Site-wide reduced-motion baseline: turn off every decorative animation.
+  On the JS side Pixi, GSAP and Lenis each detect the same preference and degrade
+  themselves (following the game's convention).
 */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -203,7 +205,7 @@ html.sr-js [data-reveal].is-visible {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  /* 不隱藏任何 reveal 內容：直接呈現最終狀態 */
+  /* Hide no reveal content: show the final state directly */
   html.sr-js [data-reveal] {
     opacity: 1 !important;
     transform: none !important;
