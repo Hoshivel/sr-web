@@ -435,12 +435,30 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
             </button>
           )}
           {loadState === "ready" && !connected && selected && (
-            <div className="play-view__ready" aria-hidden="true">
-              <svg viewBox="0 0 80 80">
+            // The call to action sits in the frame it fills: below the frame it
+            // was a fold away on a laptop, and out of reach behind the view in
+            // fullscreen.
+            <div className="play-view__ready">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
                 <polygon points="40,10 66,25 66,55 40,70 14,55 14,25" />
                 <circle cx="40" cy="40" r="5" />
                 <path d="M40 21v14M56 49l-12-7M24 49l12-7" />
               </svg>
+              <button
+                type="button"
+                className="sr-btn sr-btn--primary play-enter"
+                disabled={!selectedAvailable}
+                onClick={connect}
+              >
+                {t("play.enter")}
+              </button>
+              <span className="play-view__region">
+                <span
+                  className={`play-ncard__dot${selected.degraded || !selected.healthy ? " is-degraded" : ""}`}
+                  aria-hidden="true"
+                />
+                {regionLabel(selected)}
+              </span>
             </div>
           )}
         </div>,
@@ -459,16 +477,6 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
       )}
 
       <div className="play-controls">
-        {!connected && (
-          <button
-            type="button"
-            className="sr-btn sr-btn--primary play-enter"
-            disabled={!selectedAvailable}
-            onClick={connect}
-          >
-            {t("play.enter")}
-          </button>
-        )}
         {connected && (
           <button type="button" className="sr-btn sr-btn--ghost" onClick={disconnect}>
             {t("play.disconnect")}
