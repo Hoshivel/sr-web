@@ -452,13 +452,6 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
               >
                 {t("play.enter")}
               </button>
-              <span className="play-view__region">
-                <span
-                  className={`play-ncard__dot${selected.degraded || !selected.healthy ? " is-degraded" : ""}`}
-                  aria-hidden="true"
-                />
-                {regionLabel(selected)}
-              </span>
             </div>
           )}
         </div>,
