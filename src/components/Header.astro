@@ -145,6 +145,25 @@ const nav = [
     margin-left: auto;
   }
 
+  /* Desktop: the section links sit on the page's centre line, not in whatever
+     space the brand and the actions leave between them. */
+  @media (min-width: 761px) {
+    .sr-header__inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+    }
+    .sr-header__brand {
+      justify-self: start;
+    }
+    .sr-header__nav {
+      margin-inline: 0;
+    }
+    .sr-header__actions {
+      justify-self: end;
+      margin-left: 0;
+    }
+  }
+
   /* Hamburger: hidden on desktop */
   .sr-header__menu-btn {
     display: none;

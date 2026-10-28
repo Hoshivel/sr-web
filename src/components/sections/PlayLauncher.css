@@ -1,8 +1,9 @@
 /*
   Play launcher styles (play- prefix, loaded with the island chunk).
   Top to bottom: the horizontally scrollable node cards (.play-nodes-bar), the
-  embed viewport (.play-view), the drag handle (.play-resize), and the control bar
-  (.play-controls: enter / size mode / new tab).
+  embed viewport (.play-view, which also holds the enter button until the game is
+  connected), the drag handle (.play-resize), and the control bar
+  (.play-controls: leave / size mode / new tab).
 */
 
 .play-launcher {
@@ -16,7 +17,9 @@
   display: flex;
   gap: 0.7rem;
   overflow-x: auto;
-  padding: 0.35rem 0.15rem 0.7rem;
+  /* The top padding holds the recommended badge, which hangs above its card:
+     a scrolling row clips both axes, so anything less cuts the badge off. */
+  padding: 0.75rem 0.15rem 0.7rem;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -63,8 +66,8 @@
 
 .play-ncard {
   position: relative;
-  flex: 0 0 auto;
-  width: 13.5rem;
+  /* A handful of regions share the row instead of hugging its left end. */
+  flex: 1 0 13.5rem;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
@@ -93,7 +96,7 @@
   opacity: 0.72;
 }
 .play-ncard--skeleton {
-  width: 13.5rem;
+  flex: 0 0 13.5rem;
   height: 5.4rem;
   background: linear-gradient(90deg, var(--sr-surface-2), var(--sr-surface-3), var(--sr-surface-2));
   background-size: 200% 100%;
@@ -164,9 +167,9 @@
 }
 .play-ncard__rec {
   position: absolute;
-  top: -0.55rem;
+  top: -0.6rem;
   right: 0.6rem;
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #0a0c12;
@@ -268,11 +271,26 @@
   inset: 0;
   z-index: 2;
   display: grid;
-  place-items: center;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  text-align: center;
   pointer-events: none;
 }
+.play-view__ready .play-enter {
+  pointer-events: auto;
+}
+.play-view__region {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--sr-text-muted);
+  font-size: var(--sr-text-xs);
+  letter-spacing: 0.04em;
+}
 .play-view__ready svg {
-  width: clamp(4.5rem, 11vw, 7rem);
+  width: clamp(3.5rem, 8vw, 5.5rem);
   overflow: visible;
   fill: none;
   stroke: var(--sr-accent);
@@ -426,7 +444,8 @@
   flex: 1 1 auto;
 }
 .play-enter {
-  padding: 0.62rem 1.3rem;
+  padding: 0.8rem 2rem;
+  font-size: var(--sr-text-base);
 }
 .play-enter:disabled,
 .play-newtab:disabled {
@@ -495,10 +514,18 @@
 }
 
 @media (max-width: 560px) {
-  .play-ncard {
-    width: 11.5rem;
+  /* A phone shows every region at once rather than scrolling most of them
+     off-screen. */
+  .play-nodes-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .play-ncard--skeleton {
+    width: auto;
   }
   .play-route-state {
+    grid-column: 1 / -1;
     align-items: flex-start;
     flex-wrap: wrap;
   }
@@ -507,9 +534,6 @@
   }
   .play-controls {
     gap: 0.5rem;
-  }
-  .play-enter {
-    flex: 1 1 auto;
   }
 }
 

@@ -98,7 +98,8 @@ const nav = [
     gap: 0.75rem;
     margin-top: var(--sr-space-12);
     padding-top: var(--sr-space-6);
-    border-top: 1px solid var(--sr-border);
+    /* The rule spans the content above it, not the container's gutters. */
+    background: linear-gradient(var(--sr-border), var(--sr-border)) center top / calc(100% - 2 * var(--sr-gutter)) 1px no-repeat;
     color: var(--sr-text-dim);
     font-size: var(--sr-text-xs);
   }
