@@ -510,6 +510,12 @@
 
 @media (max-width: 560px) {
   /* Keep all four choices in one horizontal swipeable row on phones. */
+  .play-nodes-bar {
+    /* The recommended badge sits above the card. Preserve room for its
+       entire box and glow while first/last cards reach the scroll edges. */
+    padding: 1rem 0.35rem 0.85rem;
+    scroll-padding-inline: 0.35rem;
+  }
   .play-ncard,
   .play-ncard--skeleton {
     flex: 0 0 13.5rem;
