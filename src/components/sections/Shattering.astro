@@ -163,10 +163,17 @@ const shards = Array.from({ length: COUNT }, () => {
   .shatter__lead {
     margin-top: var(--sr-space-8);
   }
-  /* The central claim: the same color as its neighbors, standing out through weight and italics. */
+  /* The central claim stands out through weight and italics. CJK faces have no
+     italic and a synthesised slant reads as a rendering fault, so Chinese and
+     Japanese step forward through weight and the brighter ink instead. */
   .shatter__claim {
     font-weight: 700;
     font-style: italic;
+  }
+  .shatter__claim:lang(zh),
+  .shatter__claim:lang(ja) {
+    font-style: normal;
+    color: var(--sr-text-bright);
   }
 </style>
 
