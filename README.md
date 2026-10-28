@@ -22,7 +22,7 @@ hoshi-svc 管理服務目錄、探活與路由政策；本倉庫沒有後端。
 
 - Astro 7、React islands、strict TypeScript。
 - GSAP／ScrollTrigger、Lenis、Pixi.js。
-- Node `>=22.12.0`；相依由 lockfile、Dependabot 與 security workflow 管理。
+- Node `>=22.23.4`；相依由 lockfile、Dependabot 與 security workflow 管理。
 - `PUBLIC_HOSHI_SVC_BASE` 指定公開 route API，預設 `https://svc.hoshivel.com`。
 - routing key 只放 `X-Hoshi-Routing-Key`，不得進 URL 或日誌。
 
