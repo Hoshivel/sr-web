@@ -291,16 +291,15 @@ const pillars = [
     color: var(--sr-text-bright);
     letter-spacing: 0.01em;
   }
-  /* What this pillar decides -- one sentence, and the card ends there. The
-     element colour stays on the motif and the top rule; four coloured
-     sentences side by side read as a rainbow, not as four meanings. */
+  /* Keep the compact horizontal layout and repeat each card's element color
+     on its short claim, matching the approved preview. */
   .pillar__claim {
     align-self: start;
     margin-top: var(--sr-space-2);
     font-size: var(--sr-text-base);
     font-weight: 500;
     line-height: var(--sr-leading-tight);
-    color: var(--sr-text);
+    color: var(--el);
     text-wrap: pretty;
   }
 
