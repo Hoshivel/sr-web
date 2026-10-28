@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           # package.json 的 engines 要求 >=22.12.0。
-          node-version: "22"
+          node-version: "22.23.4"
           cache: npm
 
       # `npm ci` 而不是 `npm install`：要驗的是 lockfile 裡那一組版本，
