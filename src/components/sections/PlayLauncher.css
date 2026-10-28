@@ -271,6 +271,9 @@
   inset: 0;
   z-index: 2;
   display: grid;
+  /* Keep the established CTA position while removing the duplicate region
+     label below it. The last track has no rendered or announced content. */
+  grid-template-rows: auto auto calc(var(--sr-text-xs) * var(--sr-leading));
   place-content: center;
   justify-items: center;
   gap: 1rem;
@@ -280,14 +283,6 @@
 }
 .play-view__ready .play-enter {
   pointer-events: auto;
-}
-.play-view__region {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--sr-text-muted);
-  font-size: var(--sr-text-xs);
-  letter-spacing: 0.04em;
 }
 .play-view__ready svg {
   width: clamp(3.5rem, 8vw, 5.5rem);
@@ -514,18 +509,19 @@
 }
 
 @media (max-width: 560px) {
-  /* A phone shows every region at once rather than scrolling most of them
-     off-screen. */
+  /* Keep all four choices in one horizontal swipeable row on phones. */
   .play-nodes-bar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow: visible;
+    /* The recommended badge sits above the card. Preserve room for its
+       entire box and glow while first/last cards reach the scroll edges. */
+    padding: 1rem 0.35rem 0.85rem;
+    scroll-padding-inline: 0.35rem;
   }
+  .play-ncard,
   .play-ncard--skeleton {
-    width: auto;
+    flex: 0 0 13.5rem;
+    width: 13.5rem;
   }
   .play-route-state {
-    grid-column: 1 / -1;
     align-items: flex-start;
     flex-wrap: wrap;
   }

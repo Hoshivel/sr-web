@@ -148,9 +148,8 @@ const shards = Array.from({ length: COUNT }, () => {
     color: var(--sr-text-bright);
   }
 
-  /* All four passages share a type size and measure with no block separation;
-     the only difference is color -- three run in grayscale while the central
-     claim alone keeps its brightness, so it steps forward by itself. */
+  /* All passages share a type size, measure and muted ink; the central claim
+     uses its original weight and italics without a brighter color override. */
   .shatter__lead,
   .shatter__claim,
   .shatter__ensemble {
@@ -163,17 +162,10 @@ const shards = Array.from({ length: COUNT }, () => {
   .shatter__lead {
     margin-top: var(--sr-space-8);
   }
-  /* The central claim stands out through weight and italics. CJK faces have no
-     italic and a synthesised slant reads as a rendering fault, so Chinese and
-     Japanese step forward through weight and the brighter ink instead. */
+  /* The central claim uses the same ink as its neighbors, with weight and italics. */
   .shatter__claim {
     font-weight: 700;
     font-style: italic;
-  }
-  .shatter__claim:lang(zh),
-  .shatter__claim:lang(ja) {
-    font-style: normal;
-    color: var(--sr-text-bright);
   }
 </style>
 

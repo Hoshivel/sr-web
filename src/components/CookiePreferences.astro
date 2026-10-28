@@ -111,11 +111,12 @@ const language = globalLanguageForLocale(locale);
     .sr-cookie__card h2 {
       font-size: var(--sr-text-base);
     }
-    /* Side by side, both actions fit one row and the card keeps to about a
-       quarter of a phone screen; stacked full width it took two fifths. A label
-       too long for half a row still wraps to its own line. */
+    .sr-cookie__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
     .sr-cookie__actions .sr-btn {
-      flex: 1 1 auto;
+      width: 100%;
     }
   }
 </style>
