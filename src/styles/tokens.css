@@ -28,7 +28,11 @@
   --sr-text: #e6e9ef;
   --sr-text-bright: #eef1f8;
   --sr-text-muted: #8b93a7;
-  --sr-text-dim: #69728a;
+  /* The quietest text tone still has to read as text: 4.5:1 (WCAG AA) on the
+     page backgrounds and the first two surfaces, checked by
+     test/tokens-contrast.test.mjs. #69728a was 3.6-4.2:1 there. It is not
+     dark enough a step for surface-3/4: text on those uses muted or brighter. */
+  --sr-text-dim: #7a8298;
 
   /* ---- Accents ---- */
   --sr-accent: #8fa9ff; /* periwinkle 主品牌色 */

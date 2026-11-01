@@ -21,6 +21,9 @@ interface Props {
 }
 const { locale, path = "/", isHome: isHomeProp } = Astro.props;
 const t = useTranslations(locale);
+// A multi-word Latin name needs two lines in the bar and does not fit beside the
+// actions on the narrowest phones (see the max-width: 374px rule below).
+const longName = t("site.name").includes(" ");
 const home = localizedPath(locale, "/");
 const isHome = isHomeProp ?? (path === "/" || path === "");
 const sectionHref = (section: string) => isHome ? `#${section}` : `${home}#${section}`;
@@ -37,7 +40,7 @@ const nav = [
 
 <header class="sr-header">
   <div class="sr-container sr-header__inner">
-    <a class="sr-header__brand" href={home}>
+    <a class:list={["sr-header__brand", { "sr-header__brand--long": longName }]} href={home}>
       <Wordmark locale={locale} variant="compact" glow />
       {/* No aria-label: it would replace the visible wordmark in the link's name.
           The name must start with the text people see (WCAG 2.5.3 Label in Name),
@@ -265,6 +268,22 @@ const nav = [
     .sr-header__nav-play {
       color: var(--sr-accent);
       font-weight: 600;
+    }
+  }
+
+  /* Below 375px a two-word Latin name ("Shattered / Realms") is wider than the
+     room the language switcher and the menu button leave: it ran under the
+     switcher, and at 320px it pushed the menu button past the edge (WCAG 1.4.10
+     asks for no sideways scrolling there). Keep the mark and hide the words
+     visually; they stay in the link's accessible name. */
+  @media (max-width: 374px) {
+    .sr-header__brand--long :global(.sr-wordmark__text) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
   }
 </style>
