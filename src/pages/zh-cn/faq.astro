@@ -1,0 +1,8 @@
+---
+import FaqPage from "@/components/pages/FaqPage.astro";
+
+// /zh-cn/faq/ (Simplified Chinese); the page itself lives in the component.
+const locale = "zh-CN" as const;
+---
+
+<FaqPage locale={locale} />

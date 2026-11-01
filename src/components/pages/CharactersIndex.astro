@@ -1,0 +1,178 @@
+---
+/*
+  Characters index (/characters/) -- the four characters, each linking to their
+  own page.
+
+  It keeps the home section's principle: nobody stands at the center, so every
+  character gets the same weight, in the same order, introduced by what they are
+  looking for rather than by what they can do.
+*/
+import PageShell from "@/components/pages/PageShell.astro";
+import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH, characterPath } from "@/i18n/pages";
+import { CHARACTERS, PORTRAIT_SIZE } from "@/config/characters";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const copy = pages[locale];
+const crumbs = [
+  { name: copy.labels.home, path: "/" },
+  { name: copy.nav.characters, path: PAGE_PATH.characters },
+];
+---
+
+<PageShell
+  locale={locale}
+  title={copy.characters.title}
+  description={copy.characters.description}
+  crumbs={crumbs}
+  eyebrow={t("char.eyebrow")}
+  heading={[t("char.titleA"), t("char.titleB")]}
+  lead={t("char.lead")}
+  wide
+>
+  <ul class="sr-container roster">
+    {CHARACTERS.map((c, index) => (
+      <li class="roster__item" style={`--el:${c.el}`}>
+        <div class="roster__portrait" aria-hidden="true">
+          {c.art ? (
+            <img
+              class="roster__art"
+              src={c.art}
+              alt=""
+              width={PORTRAIT_SIZE.width}
+              height={PORTRAIT_SIZE.height}
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchpriority={index === 0 ? "high" : undefined}
+              decoding="async"
+            />
+          ) : (
+            <span class="roster__sigil">{c.glyph}</span>
+          )}
+        </div>
+        <div class="roster__body">
+          <p class="roster__role">{t(`char.${c.id}.role`)}</p>
+          <h2 class="roster__name">
+            {/* The name is the link; ::after stretches it over the whole card. */}
+            <a class="roster__link sr-gradient-text" href={localizedPath(locale, characterPath(c.id))}>
+              {t(`char.${c.id}.name`)}
+            </a>
+          </h2>
+          <p class="roster__epithet">{t(`char.${c.id}.epithet`)}</p>
+          <p class="roster__seeking">{t(`char.${c.id}.seeking`)}</p>
+          <span class="roster__more" aria-hidden="true">{copy.labels.profile} →</span>
+        </div>
+      </li>
+    ))}
+  </ul>
+</PageShell>
+
+<style>
+  .roster {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sr-space-6);
+  }
+  .roster__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+    align-items: center;
+    gap: var(--sr-space-6);
+    padding: var(--sr-space-6);
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius-lg);
+    background:
+      radial-gradient(70% 90% at 20% 30%, color-mix(in srgb, var(--el) 12%, transparent), transparent 70%),
+      var(--sr-surface-1);
+    transition:
+      border-color var(--sr-dur-fast) var(--sr-ease-out),
+      transform var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .roster__item:hover,
+  .roster__item:focus-within {
+    border-color: color-mix(in srgb, var(--el) 55%, var(--sr-border));
+    transform: translateY(-2px);
+  }
+  .roster__portrait {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    display: grid;
+    place-items: center;
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+  }
+  .roster__art {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 8px 22px color-mix(in srgb, var(--el) 28%, transparent));
+  }
+  .roster__sigil {
+    font-size: 3rem;
+    color: var(--el);
+  }
+  .roster__role {
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--el) 72%, var(--sr-text-muted));
+  }
+  .roster__name {
+    margin-top: var(--sr-space-2);
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-xl);
+    line-height: 1.1;
+  }
+  .roster__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .roster__link:focus-visible {
+    outline: none;
+  }
+  .roster__item:has(.roster__link:focus-visible) {
+    outline: 2px solid var(--sr-accent);
+    outline-offset: 3px;
+  }
+  .roster__epithet {
+    margin-top: var(--sr-space-1);
+    font-size: var(--sr-text-sm);
+    color: var(--sr-text-muted);
+  }
+  .roster__seeking {
+    margin-top: var(--sr-space-4);
+    font-size: var(--sr-text-sm);
+    line-height: 1.8;
+    color: var(--sr-text);
+  }
+  .roster__more {
+    display: inline-block;
+    margin-top: var(--sr-space-4);
+    font-size: var(--sr-text-sm);
+    color: var(--sr-accent);
+  }
+
+  @media (max-width: 900px) {
+    .roster {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .roster__item {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .roster__portrait {
+      width: min(14rem, 100%);
+      justify-self: center;
+    }
+  }
+</style>

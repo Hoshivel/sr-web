@@ -1,0 +1,103 @@
+---
+/*
+  SectionList -- renders the prose sections of a subpage from `src/i18n/pages.ts`:
+  a heading, paragraphs and, where a section has them, a list of terms (modes,
+  card types, victory conditions) as a description list. The FAQ reuses it, one
+  section per question, with a link to the page that answers in depth.
+*/
+import MoreLink from "@/components/pages/MoreLink.astro";
+import type { Section, FaqLink } from "@/i18n/pages";
+import type { Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+  sections: (Section & { more?: FaqLink })[];
+}
+const { locale, sections } = Astro.props;
+---
+
+<div class="sr-container prose">
+  {sections.map((section) => (
+    <section class="prose__section" id={section.id} aria-labelledby={`${section.id}-title`}>
+      <h2 class="prose__title" id={`${section.id}-title`}>{section.heading}</h2>
+      {section.body.map((paragraph) => (
+        <p class="prose__text">{paragraph}</p>
+      ))}
+      {section.terms && (
+        <dl class="prose__terms">
+          {section.terms.map((item) => (
+            <div class="prose__term">
+              <dt>{item.term}</dt>
+              <dd>{item.text}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {section.more && <MoreLink locale={locale} to={section.more} class="prose__more" />}
+    </section>
+  ))}
+</div>
+
+<style>
+  .prose {
+    max-width: calc(var(--sr-maxw-narrow) + 2 * var(--sr-gutter));
+  }
+  .prose__section + .prose__section {
+    margin-top: var(--sr-space-12);
+    padding-top: var(--sr-space-12);
+    border-top: 1px solid var(--sr-border);
+  }
+  /* Room for the sticky header when a fragment link scrolls here. */
+  .prose__section {
+    scroll-margin-top: 5rem;
+  }
+  .prose__title {
+    font-family: var(--sr-font-display);
+    font-weight: 700;
+    font-size: var(--sr-text-xl);
+    line-height: var(--sr-leading-tight);
+    letter-spacing: 0.02em;
+    color: var(--sr-text-bright);
+  }
+  .prose__text {
+    margin-top: var(--sr-space-4);
+    font-size: var(--sr-text-base);
+    line-height: 1.85;
+    color: var(--sr-text);
+  }
+  .prose__terms {
+    margin-top: var(--sr-space-6);
+    display: grid;
+    gap: 1px;
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius);
+    overflow: hidden;
+    background: var(--sr-border);
+  }
+  .prose__term {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.32fr) 1fr;
+    gap: var(--sr-space-4);
+    padding: var(--sr-space-4) var(--sr-space-6);
+    background: var(--sr-surface-1);
+  }
+  .prose__term dt {
+    font-weight: 700;
+    color: var(--sr-accent);
+  }
+  .prose__term dd {
+    margin: 0;
+    color: var(--sr-text);
+    line-height: var(--sr-leading);
+  }
+  .prose :global(.prose__more) {
+    margin-top: var(--sr-space-4);
+  }
+
+  @media (max-width: 560px) {
+    .prose__term {
+      grid-template-columns: 1fr;
+      gap: var(--sr-space-1);
+    }
+  }
+</style>

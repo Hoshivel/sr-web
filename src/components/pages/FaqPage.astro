@@ -1,0 +1,43 @@
+---
+/*
+  FAQ page (/faq/) -- one section per question, each answer pointing to the page
+  that covers it in depth. The same entries become the page's FAQPage
+  structured data.
+
+  Answers only state what the game does today (sign-in, the Basic tutorial
+  reward, modes, chapters); nothing here promises prices, platforms or dates.
+*/
+import PageShell from "@/components/pages/PageShell.astro";
+import SectionList from "@/components/pages/SectionList.astro";
+import type { Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH } from "@/i18n/pages";
+import { faqPage } from "@/lib/structured-data";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = pages[locale];
+const crumbs = [
+  { name: copy.labels.home, path: "/" },
+  { name: copy.nav.faq, path: PAGE_PATH.faq },
+];
+const sections = copy.faq.entries.map((entry) => ({
+  id: entry.id,
+  heading: entry.q,
+  body: entry.a,
+  more: entry.link,
+}));
+---
+
+<PageShell
+  locale={locale}
+  title={copy.faq.title}
+  description={copy.faq.description}
+  crumbs={crumbs}
+  heading={copy.faq.title}
+  lead={copy.faq.lead}
+  jsonLd={[faqPage(copy.faq.entries)]}
+>
+  <SectionList locale={locale} sections={sections} />
+</PageShell>

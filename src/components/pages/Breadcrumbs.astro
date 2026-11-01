@@ -1,0 +1,66 @@
+---
+/*
+  Breadcrumbs -- the visible trail at the top of a subpage. The same list goes to
+  Layout as the page's BreadcrumbList, so what readers see and what crawlers read
+  cannot drift apart.
+*/
+import { localizedPath, type Locale } from "@/i18n/utils";
+import type { Crumb } from "@/lib/structured-data";
+
+interface Props {
+  locale: Locale;
+  /** Accessible name of the trail. */
+  label: string;
+  /** Home first, the current page last. */
+  crumbs: Crumb[];
+}
+const { locale, label, crumbs } = Astro.props;
+const last = crumbs.length - 1;
+---
+
+<nav class="crumbs" aria-label={label}>
+  <ol class="crumbs__list">
+    {crumbs.map((crumb, index) => (
+      <li class="crumbs__item">
+        {index < last ? (
+          <a class="crumbs__link" href={localizedPath(locale, crumb.path)}>{crumb.name}</a>
+        ) : (
+          <span aria-current="page">{crumb.name}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  .crumbs__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+    list-style: none;
+    padding: 0;
+    font-size: var(--sr-text-xs);
+    letter-spacing: 0.06em;
+    /* Small text on the dark ground: muted is the lightest grey that still meets
+       4.5:1 (dim measures 3.8-4.2 against these backgrounds). */
+    color: var(--sr-text-muted);
+  }
+  /* The separator is decoration: the alt text after "/" is empty, so assistive
+     technology reads only the names (the list already conveys the order). */
+  .crumbs__item + .crumbs__item::before {
+    content: "›" / "";
+    margin-right: 0.5rem;
+    color: var(--sr-border-strong);
+  }
+  .crumbs__link {
+    color: var(--sr-text-muted);
+    transition: color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .crumbs__link:hover {
+    color: var(--sr-text-bright);
+  }
+  [aria-current="page"] {
+    color: var(--sr-text);
+  }
+</style>

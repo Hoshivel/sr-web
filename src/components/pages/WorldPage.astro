@@ -1,0 +1,84 @@
+---
+/*
+  World page (/world/) -- the Shattering, a world without a center, the
+  battlefield as a fragment, and the chapters on the Shattered Realms Tree.
+
+  The opening (eyebrow, heading, lead) is the home section's own copy, so the two
+  pages introduce the world in the same words; the sections below go further. The
+  chapter list reads the same data as the tree on the home page.
+*/
+import PageShell from "@/components/pages/PageShell.astro";
+import SectionList from "@/components/pages/SectionList.astro";
+import ChapterCard from "@/components/pages/ChapterCard.astro";
+import { useTranslations, type Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH } from "@/i18n/pages";
+import { CHAPTERS } from "@/config/chapters";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const copy = pages[locale];
+const crumbs = [
+  { name: copy.labels.home, path: "/" },
+  { name: copy.nav.world, path: PAGE_PATH.world },
+];
+---
+
+<PageShell
+  locale={locale}
+  title={copy.world.title}
+  description={copy.world.description}
+  crumbs={crumbs}
+  eyebrow={t("world.eyebrow")}
+  heading={[t("world.titleA"), t("world.titleB")]}
+  lead={t("world.lead")}
+>
+  <SectionList locale={locale} sections={copy.world.sections} />
+
+  <div class="sr-container tree-column">
+    <section class="tree" id="chapters" aria-labelledby="chapters-title">
+      <h2 class="tree__title" id="chapters-title">{copy.world.chaptersHeading}</h2>
+      <p class="tree__lead">{copy.world.chaptersLead}</p>
+      <ol class="tree__list">
+        {CHAPTERS.map((chapter) => (
+          <li>
+            <ChapterCard locale={locale} chapter={chapter} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  </div>
+</PageShell>
+
+<style>
+  /* The rule above the list spans the text column, like the sections before it. */
+  .tree-column {
+    max-width: calc(var(--sr-maxw-narrow) + 2 * var(--sr-gutter));
+  }
+  .tree {
+    margin-top: var(--sr-space-12);
+    padding-top: var(--sr-space-12);
+    border-top: 1px solid var(--sr-border);
+    scroll-margin-top: 5rem;
+  }
+  .tree__title {
+    font-family: var(--sr-font-display);
+    font-weight: 700;
+    font-size: var(--sr-text-xl);
+    color: var(--sr-text-bright);
+  }
+  .tree__lead {
+    margin-top: var(--sr-space-4);
+    line-height: 1.85;
+    color: var(--sr-text);
+  }
+  .tree__list {
+    list-style: none;
+    margin-top: var(--sr-space-8);
+    padding: 0;
+    display: grid;
+    gap: var(--sr-space-4);
+  }
+</style>

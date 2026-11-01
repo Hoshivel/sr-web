@@ -1,0 +1,38 @@
+---
+/*
+  Gameplay page (/gameplay/) -- how a match works: turns and AP, the hand, skills
+  and levels, terrain, building, monsters and envoys, victory, modes and formats.
+
+  The home section deliberately stops at four one-line claims ("the details of
+  play belong to the game itself"); this page is where those details live for
+  people who look them up before playing. Rules are described without numbers --
+  the game's own rules screen has the current values.
+*/
+import PageShell from "@/components/pages/PageShell.astro";
+import SectionList from "@/components/pages/SectionList.astro";
+import { useTranslations, type Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH } from "@/i18n/pages";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const copy = pages[locale];
+const crumbs = [
+  { name: copy.labels.home, path: "/" },
+  { name: copy.nav.gameplay, path: PAGE_PATH.gameplay },
+];
+---
+
+<PageShell
+  locale={locale}
+  title={copy.gameplay.title}
+  description={copy.gameplay.description}
+  crumbs={crumbs}
+  eyebrow={t("gameplay.eyebrow")}
+  heading={[t("gameplay.titleA"), t("gameplay.titleB")]}
+  lead={copy.gameplay.lead}
+>
+  <SectionList locale={locale} sections={copy.gameplay.sections} />
+</PageShell>

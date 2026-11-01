@@ -18,7 +18,9 @@
   character added later can simply leave `art: null` to take the placeholder branch.
   Entrance uses `[data-reveal]` stagger (Layout already boots it).
 */
-import { useTranslations, type Locale } from "@/i18n/utils";
+import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
+import { pages, characterPath, type CharacterId } from "@/i18n/pages";
+import { CHARACTERS, PORTRAIT_SIZE } from "@/config/characters";
 
 interface Props {
   locale: Locale;
@@ -50,19 +52,21 @@ function constellation(seed: number) {
   return { stars, path };
 }
 
-// The four characters: id -> element sigil glyph + element accent color (inline
-// --el) + portrait (art). The copy comes from i18n.
-// art null means the portrait is not wired up yet (procedural placeholder); a
-// value overlays the real portrait slot. `as const` keeps the ids literal (so the
-// i18n keys can be derived from them); rendering tests a local `art` variable so
-// the placeholder branch is not narrowed to never (a character added later can
-// leave art: null and take the placeholder).
-const figures = [
-  { id: "hakuto", glyph: "❄", el: "var(--sr-accent-ice)", seed: 0x1ce01, art: "/art/portraits/hakuto.webp" as string | null },
-  { id: "shadow", glyph: "☾", el: "var(--sr-violet-light)", seed: 0x5bad0, art: "/art/portraits/shadow.webp" as string | null },
-  { id: "sekien", glyph: "❂", el: "var(--sr-gold)", seed: 0xf1a3e, art: "/art/portraits/sekien.webp" as string | null },
-  { id: "aoiro", glyph: "❦", el: "var(--sr-success)", seed: 0xa01a0, art: "/art/portraits/aoiro.webp" as string | null },
-] as const;
+// The four characters' identity (element sigil, accent colour, portrait) comes
+// from src/config/characters.ts, shared with the character pages; the copy comes
+// from i18n. A character added later with `art: null` takes the placeholder
+// branch. The constellation seed is this section's own texture.
+const SEEDS: Record<CharacterId, number> = {
+  hakuto: 0x1ce01,
+  shadow: 0x5bad0,
+  sekien: 0xf1a3e,
+  aoiro: 0xa01a0,
+};
+const figures = CHARACTERS.map((c) => ({ ...c, seed: SEEDS[c.id] }));
+const { labels } = pages[locale];
+// The link reads "<label>: <name>" to assistive technology; the name is hidden
+// because it is the heading right above.
+const nameSeparator = locale === "en" ? ": " : "：";
 ---
 
 <section class="sr-section characters" id="characters">
@@ -92,8 +96,8 @@ const figures = [
                 class="figure__art"
                 src={f.art}
                 alt={t(`char.${f.id}.name`)}
-                width="720"
-                height="960"
+                width={PORTRAIT_SIZE.width}
+                height={PORTRAIT_SIZE.height}
                 loading="lazy"
                 decoding="async"
               />
@@ -121,6 +125,13 @@ const figures = [
               </p>
               <p class="figure__combat-text">{t(`char.${f.id}.fantasy`)}</p>
             </div>
+
+            <a class="figure__more" href={localizedPath(locale, characterPath(f.id))}>
+              {labels.profile}<span class="sr-visually-hidden">{nameSeparator}{t(`char.${f.id}.name`)}</span><span
+                class="figure__more-arrow"
+                aria-hidden="true">→</span
+              >
+            </a>
           </div>
         </li>
       );
@@ -320,6 +331,25 @@ const figures = [
   }
   .figure__combat-el {
     color: color-mix(in srgb, var(--el) 78%, var(--sr-text-muted));
+  }
+  .figure__more {
+    display: inline-block;
+    margin-top: var(--sr-space-6);
+    font-size: var(--sr-text-sm);
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--el) 80%, var(--sr-text));
+    border-bottom: 1px solid color-mix(in srgb, var(--el) 35%, transparent);
+    transition:
+      color var(--sr-dur-fast) var(--sr-ease-out),
+      border-color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .figure__more:hover {
+    color: var(--sr-text-bright);
+    border-color: var(--sr-text-bright);
+  }
+  .figure__more-arrow {
+    display: inline-block;
+    margin-left: 0.35em;
   }
   .figure__combat-text {
     margin-top: var(--sr-space-2);

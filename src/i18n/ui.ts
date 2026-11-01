@@ -44,6 +44,22 @@ export const OG_LOCALE: Record<Locale, string> = {
   ja: "ja_JP",
 };
 
+/**
+ * The home page's meta description, for the locales where the default -- the
+ * tagline and the introduction joined (`site.tagline — site.summary`) -- is too
+ * long for a search result.
+ *
+ * Results cut a description at a pixel width that holds roughly 155 Latin
+ * characters; the English composition runs to about 250 and was cut mid-sentence,
+ * losing the developer's name. The Chinese and Japanese compositions fit, so
+ * they keep showing the same introduction as the page itself. Keep the three
+ * names (Shattered Realms, 碎界, Hoshivel) in this line for the same reason
+ * `site.summary` carries them.
+ */
+export const META_DESCRIPTION: Partial<Record<Locale, string>> = {
+  en: "Shattered Realms (碎界) is a 2D hex-grid turn-based strategy game by Hoshivel. Click to play in your browser — build your hand and position your cast.",
+};
+
 /** Display name in the language switcher (each written in its own language). */
 export const LOCALE_LABEL: Record<Locale, string> = {
   "zh-Hant": "正體中文",

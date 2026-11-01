@@ -27,12 +27,15 @@ hoshi dev -open
 ```
 
 `hoshi test` 必須包含 route contract test、`astro check`、`astro build` 與建置後的
-`test/built/`（對 `dist/` 核對 canonical、hreflang、分享圖片、404 noindex 與 sitemap）；
-不得只跑 build。
+`test/built/`（對 `dist/` 的每一頁核對 canonical、hreflang、分享圖片、標題與描述、麵包屑、
+站內連結、404 noindex 與 sitemap）；不得只跑 build。
 
 ## 3. 特殊規則
 
 - 本站是無後端的靜態站；分流由 hoshi-svc route API 處理，不得恢復 `backend/`。
 - 直接使用 `RouteDecision`，不保留 `/api/play.json` 相容層。
 - 全倉庫禁用容器產物，包括 Dockerfile 與 compose.yaml。
+- 子頁的角色、模式、難度與勝利條件名稱沿用遊戲內的字串；技能與規則說明不得寫數值
+  （傷害、射程、回合數、計時），由 `test/pages-copy.test.mjs` 擋下。未上線篇章不得寫出
+  首頁以外的劇情。
 - 文件用正體中文，程式碼註解用英文。

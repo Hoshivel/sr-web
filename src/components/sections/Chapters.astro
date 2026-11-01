@@ -8,6 +8,7 @@
   cleanly.
 */
 import ShatteredTree from "@/components/sections/ShatteredTree.tsx";
+import MoreLink from "@/components/pages/MoreLink.astro";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -40,6 +41,10 @@ const t = useTranslations(locale);
         <path d="M17 12l7 4-3 1 1 4-2 1-2-4-3 2z" />
       </svg>
     </div>
+  </div>
+
+  <div class="sr-container chapters__more">
+    <MoreLink locale={locale} to="world" hash="chapters" />
   </div>
 </section>
 
@@ -77,6 +82,11 @@ const t = useTranslations(locale);
   }
   .chapters__stage {
     margin-top: var(--sr-space-12);
+  }
+  .chapters__more {
+    position: relative;
+    margin-top: var(--sr-space-8);
+    text-align: center;
   }
   .chapters__hint {
     display: flex;

@@ -1,0 +1,127 @@
+---
+/*
+  PageShell -- the frame every subpage shares: Layout with the page's title,
+  description and breadcrumbs, the breadcrumb trail, a hero (eyebrow, heading,
+  lead) and a closing call to play.
+
+  A page can replace the hero's content through the `hero` slot (the character
+  pages put a portrait there); the trail above it stays the same on every page.
+  The body goes in the default slot.
+
+  The hero shares the body's reading column, so the trail, the heading and the
+  text start on one edge. Pages whose body spans the full container (the
+  character index and pages) pass `wide`.
+*/
+import Layout from "@/layouts/Layout.astro";
+import Breadcrumbs from "@/components/pages/Breadcrumbs.astro";
+import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
+import { pages } from "@/i18n/pages";
+import type { Crumb } from "@/lib/structured-data";
+
+interface Props {
+  locale: Locale;
+  /** The page name; the locale's title suffix is appended for <title>. */
+  title: string;
+  description: string;
+  /** Home first, this page last. */
+  crumbs: Crumb[];
+  eyebrow?: string;
+  /** One line, or two where the second carries the gradient (like the home sections). */
+  heading?: string | readonly [string, string];
+  lead?: string;
+  jsonLd?: Record<string, unknown>[];
+  /** The hero spans the whole container instead of the reading column. */
+  wide?: boolean;
+}
+
+const { locale, title, description, crumbs, eyebrow, heading, lead, jsonLd, wide = false } = Astro.props;
+const t = useTranslations(locale);
+const { labels } = pages[locale];
+const lines = typeof heading === "string" ? [heading] : heading ? [...heading] : [];
+const playHref = `${localizedPath(locale, "/")}#play`;
+---
+
+<Layout
+  locale={locale}
+  title={`${title}${labels.titleSuffix}`}
+  description={description}
+  crumbs={crumbs}
+  jsonLd={jsonLd}
+>
+  <main id="main" class="page">
+    <div class="page__hero">
+      <div class:list={["sr-container page__hero-inner", { "page__hero-inner--narrow": !wide }]}>
+        <Breadcrumbs locale={locale} label={labels.breadcrumb} crumbs={crumbs} />
+        {Astro.slots.has("hero") ? (
+          <slot name="hero" />
+        ) : (
+          <div class="page__intro">
+            {eyebrow && <p class="sr-eyebrow">{eyebrow}</p>}
+            <h1 class="page__title">
+              {lines.map((line, index) => (
+                <span class={index ? "page__title-b sr-gradient-text" : "page__title-a"}>{line}</span>
+              ))}
+            </h1>
+            {lead && <p class="page__lead">{lead}</p>}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <slot />
+
+    <div class="page__cta">
+      <a class="sr-btn sr-btn--primary page__cta-btn" href={playHref} data-magnetic>{t("cta.play")}</a>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .page {
+    position: relative;
+    background:
+      radial-gradient(60% 40% at 50% 0%, rgba(122, 162, 255, 0.08), transparent 70%),
+      var(--sr-void);
+  }
+  .page__hero-inner {
+    padding-top: clamp(2rem, 6vw, 4rem);
+    padding-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+  .page__hero-inner--narrow {
+    max-width: calc(var(--sr-maxw-narrow) + 2 * var(--sr-gutter));
+  }
+  .page__intro {
+    margin-top: var(--sr-space-8);
+    max-width: 52rem;
+  }
+  .page__title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12em;
+    margin-top: var(--sr-space-3);
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-2xl);
+    line-height: var(--sr-leading-tight);
+    letter-spacing: 0.02em;
+  }
+  .page__title-a {
+    color: var(--sr-text-bright);
+  }
+  .page__lead {
+    margin-top: var(--sr-space-6);
+    max-width: 60ch;
+    font-size: var(--sr-text-lg);
+    line-height: var(--sr-leading);
+    color: var(--sr-text-muted);
+  }
+  .page__cta {
+    display: flex;
+    justify-content: center;
+    padding-block: var(--sr-space-16) var(--sr-space-24);
+  }
+  .page__cta-btn {
+    padding: 0.8rem 1.6rem;
+    font-size: var(--sr-text-base);
+  }
+</style>

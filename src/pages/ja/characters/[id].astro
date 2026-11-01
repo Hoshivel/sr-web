@@ -1,0 +1,14 @@
+---
+import CharacterPage from "@/components/pages/CharacterPage.astro";
+import { CHARACTER_IDS, type CharacterId } from "@/i18n/pages";
+
+// /ja/characters/<id>/ (Japanese): one page per character.
+export function getStaticPaths() {
+  return CHARACTER_IDS.map((id) => ({ params: { id } }));
+}
+
+const locale = "ja" as const;
+const id = Astro.params.id as CharacterId;
+---
+
+<CharacterPage locale={locale} id={id} />
