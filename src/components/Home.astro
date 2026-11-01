@@ -65,7 +65,7 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
            Nothing changed visually: the two lines still lay out separately and
            the all-caps is done in CSS. -->
       <h1 class="hero__title" data-reveal>
-        <span class="hero__title-name sr-gradient-text">{t("site.name")}</span>{" "}
+        <span class:list={["hero__title-name", "sr-gradient-text", { "hero__title-name--latin": !showLatin }]}>{t("site.name")}</span>{" "}
         {showLatin && <span class="hero__latin">{t("site.nameLatin")}</span>}
       </h1>
       <p class="hero__tagline" data-reveal>{t("site.tagline")}</p>
@@ -179,6 +179,10 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     flex-direction: column;
     align-items: center;
     gap: 0.6rem;
+    /* A grid item may not shrink below its content by default, so one word too
+       wide for the screen used to widen the whole column, and the hero's
+       overflow: hidden then cut the tagline and buttons off on the right. */
+    min-width: 0;
   }
 
   .hero__mark {
@@ -218,6 +222,14 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
     line-height: 1;
     padding-inline: 0.2em;
     filter: drop-shadow(0 2px 24px rgba(122, 162, 255, 0.28));
+  }
+  /* The display size was set for the two-character name. "Shattered" at its
+     3.5rem floor is wider than a 320-400px screen, so the Latin name is capped
+     to what the content width can hold: the word takes 6.1em with the
+     tracking, plus 0.4em of inline padding and a little slack. Wider screens
+     keep the display size. */
+  .hero__title-name--latin {
+    font-size: min(var(--sr-text-display), calc((100vw - 2 * var(--sr-gutter)) / 6.6));
   }
   .hero__latin {
     /* The text itself is in normal case (see site.nameLatin in i18n/ui.ts); the
