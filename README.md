@@ -25,6 +25,9 @@ hoshi-svc 管理服務目錄、探活與路由政策；本倉庫沒有後端。
 - Node `>=22.23.4`；相依由 lockfile、Dependabot 與 security workflow 管理。
 - `PUBLIC_HOSHI_SVC_BASE` 指定公開 route API，預設 `https://svc.hoshivel.com`。
 - routing key 只放 `X-Hoshi-Routing-Key`，不得進 URL 或日誌。
+- `npm run build` 在 `astro build` 之後跑 `test/built/`，對 `dist/` 實際送出的 HTML 核對
+  canonical、hreflang、分享圖片、`og:locale`、404 的 noindex 與 sitemap。新增頁面時，
+  沒有 noindex 的頁面都必須列進 `src/pages/sitemap.xml.ts`。
 
 ```sh
 hoshi test
