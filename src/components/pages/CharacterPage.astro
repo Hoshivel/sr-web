@@ -1,0 +1,357 @@
+---
+/*
+  Character page (/characters/<id>/) -- one character in full.
+
+  Order follows the home section's principle, who they are before what they can
+  do: the hero names them (role in the story, name, the names others call them,
+  their own line), then their story, then how they fight and every skill, then
+  the chapter they appear in and the other characters.
+
+  Skill descriptions carry no numbers (see the note at the top of
+  src/i18n/pages.ts): the game is where balance values live.
+*/
+import PageShell from "@/components/pages/PageShell.astro";
+import ChapterCard from "@/components/pages/ChapterCard.astro";
+import MoreLink from "@/components/pages/MoreLink.astro";
+import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH, characterPath, type CharacterId } from "@/i18n/pages";
+import { CHARACTERS, PORTRAIT_SIZE } from "@/config/characters";
+import { CHAPTERS } from "@/config/chapters";
+
+interface Props {
+  locale: Locale;
+  id: CharacterId;
+}
+const { locale, id } = Astro.props;
+const t = useTranslations(locale);
+const copy = pages[locale];
+const { labels } = copy;
+const profile = copy.character[id];
+const visual = CHARACTERS.find((c) => c.id === id)!;
+const chapter = visual.chapter ? CHAPTERS.find((c) => c.id === visual.chapter) : undefined;
+const others = CHARACTERS.filter((c) => c.id !== id);
+const name = t(`char.${id}.name`);
+const crumbs = [
+  { name: labels.home, path: "/" },
+  { name: copy.nav.characters, path: PAGE_PATH.characters },
+  { name, path: characterPath(id) },
+];
+---
+
+<PageShell locale={locale} title={profile.title} description={profile.description} crumbs={crumbs} wide>
+  <div slot="hero" class="profile" style={`--el:${visual.el}`}>
+    <div class="profile__portrait">
+      {visual.art ? (
+        <img
+          class="profile__art"
+          src={visual.art}
+          alt={name}
+          width={PORTRAIT_SIZE.width}
+          height={PORTRAIT_SIZE.height}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      ) : (
+        <span class="profile__sigil" aria-hidden="true">{visual.glyph}</span>
+      )}
+    </div>
+    <div class="profile__intro">
+      <p class="profile__role">{t(`char.${id}.role`)}</p>
+      <h1 class="profile__name sr-gradient-text">{name}</h1>
+      <p class="profile__titles">{profile.titles}</p>
+      <blockquote class="profile__quote"><p>{profile.quote}</p></blockquote>
+      <p class="profile__tags">
+        <span class="profile__tag">{t(`char.${id}.element`)}</span>
+        <span class="profile__tag">{profile.role}</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="sr-container sheet" style={`--el:${visual.el}`}>
+    <section class="sheet__section" aria-labelledby="story">
+      <h2 class="sheet__title" id="story">{labels.story}</h2>
+      <p class="sheet__text sheet__text--lead">{t(`char.${id}.seeking`)}</p>
+    </section>
+
+    <section class="sheet__section" aria-labelledby="style">
+      <h2 class="sheet__title" id="style">{labels.style}</h2>
+      {profile.style.map((paragraph) => <p class="sheet__text">{paragraph}</p>)}
+    </section>
+
+    <section class="sheet__section" aria-labelledby="skills">
+      <h2 class="sheet__title" id="skills">{labels.skills}</h2>
+
+      <section class="skills" aria-labelledby="skills-passive">
+        <h3 class="skills__title" id="skills-passive">{labels.passives}</h3>
+        <p class="skills__note">{labels.passivesNote}</p>
+        <ul class="skills__list">
+          {profile.passives.map((skill) => (
+            <li class="skill">
+              <h4 class="skill__name">{skill.name}</h4>
+              <p class="skill__text">{skill.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="skills" aria-labelledby="skills-core">
+        <h3 class="skills__title" id="skills-core">{labels.core}</h3>
+        <p class="skills__note">{labels.coreNote}</p>
+        <ul class="skills__list">
+          {profile.core.map((skill) => (
+            <li class="skill">
+              <h4 class="skill__name">
+                {skill.name}
+                <span class="skill__level">Lv.{skill.level}{skill.level === 5 && ` · ${labels.ultimate}`}</span>
+              </h4>
+              <p class="skill__text">{skill.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="skills" aria-labelledby="skills-card">
+        <h3 class="skills__title" id="skills-card">{labels.cards}</h3>
+        <p class="skills__note">{labels.cardsNote}</p>
+        <ul class="skills__list">
+          {profile.cards.map((skill) => (
+            <li class="skill">
+              <h4 class="skill__name">{skill.name}</h4>
+              <p class="skill__text">{skill.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </section>
+
+    {chapter && (
+      <section class="sheet__section" aria-labelledby="chapter">
+        <h2 class="sheet__title" id="chapter">{labels.chapter}</h2>
+        <div class="sheet__chapter">
+          <ChapterCard locale={locale} chapter={chapter} />
+        </div>
+        <MoreLink locale={locale} to="world" hash="chapters" class="sheet__more" />
+      </section>
+    )}
+
+    <section class="sheet__section" aria-labelledby="others">
+      <h2 class="sheet__title" id="others">{labels.others}</h2>
+      <ul class="others">
+        {others.map((other) => (
+          <li class="others__item" style={`--el:${other.el}`}>
+            <a class="others__link" href={localizedPath(locale, characterPath(other.id))}>
+              <span class="others__glyph" aria-hidden="true">{other.glyph}</span>
+              <span class="others__name">{t(`char.${other.id}.name`)}</span>
+              <span class="others__epithet">{t(`char.${other.id}.epithet`)}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</PageShell>
+
+<style>
+  /* ---- Hero: portrait beside the introduction ---- */
+  .profile {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    margin-top: var(--sr-space-6);
+  }
+  .profile__portrait {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    display: grid;
+    place-items: center;
+    border-radius: var(--sr-radius-lg);
+    background: radial-gradient(
+      70% 58% at 50% 34%,
+      color-mix(in srgb, var(--el) 20%, transparent),
+      transparent 72%
+    );
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+  }
+  .profile__art {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 8px 26px color-mix(in srgb, var(--el) 30%, transparent));
+  }
+  .profile__sigil {
+    font-size: clamp(3.2rem, 8vw, 4.6rem);
+    color: var(--el);
+  }
+  .profile__role {
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--el) 72%, var(--sr-text-muted));
+  }
+  .profile__name {
+    margin-top: var(--sr-space-3);
+    font-family: var(--sr-font-display);
+    font-weight: 800;
+    font-size: var(--sr-text-2xl);
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+  }
+  .profile__titles {
+    margin-top: var(--sr-space-2);
+    font-size: var(--sr-text-sm);
+    color: var(--sr-text-muted);
+  }
+  .profile__quote {
+    margin-top: var(--sr-space-6);
+    padding-left: var(--sr-space-4);
+    border-left: 2px solid color-mix(in srgb, var(--el) 60%, transparent);
+    font-size: var(--sr-text-lg);
+    color: var(--sr-text);
+  }
+  .profile__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--sr-space-6);
+  }
+  .profile__tag {
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--sr-radius-pill);
+    border: 1px solid color-mix(in srgb, var(--el) 35%, var(--sr-border));
+    font-size: var(--sr-text-xs);
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--el) 70%, var(--sr-text));
+  }
+
+  /* ---- Body ---- */
+  .sheet {
+    max-width: calc(var(--sr-maxw-narrow) + 2 * var(--sr-gutter));
+  }
+  .sheet__section + .sheet__section {
+    margin-top: var(--sr-space-12);
+    padding-top: var(--sr-space-12);
+    border-top: 1px solid var(--sr-border);
+  }
+  .sheet__title {
+    font-family: var(--sr-font-display);
+    font-weight: 700;
+    font-size: var(--sr-text-xl);
+    color: var(--sr-text-bright);
+    scroll-margin-top: 5rem;
+  }
+  .sheet__text {
+    margin-top: var(--sr-space-4);
+    line-height: 1.85;
+    color: var(--sr-text);
+  }
+  .sheet__text--lead {
+    font-size: var(--sr-text-lg);
+  }
+
+  .skills {
+    margin-top: var(--sr-space-8);
+  }
+  .skills__title {
+    font-size: var(--sr-text-base);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--el) 75%, var(--sr-text));
+  }
+  .skills__note {
+    margin-top: var(--sr-space-1);
+    font-size: var(--sr-text-xs);
+    color: var(--sr-text-muted);
+  }
+  .skills__list {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--sr-space-4);
+    display: grid;
+    gap: var(--sr-space-3);
+  }
+  .skill {
+    padding: var(--sr-space-4) var(--sr-space-6);
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius);
+    background: var(--sr-surface-1);
+  }
+  .skill__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: var(--sr-text-base);
+    font-weight: 700;
+    color: var(--sr-text-bright);
+  }
+  .skill__level {
+    font-size: var(--sr-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--sr-text-muted);
+  }
+  .skill__text {
+    margin-top: var(--sr-space-2);
+    font-size: var(--sr-text-sm);
+    line-height: 1.8;
+    color: var(--sr-text-muted);
+  }
+
+  .sheet__chapter {
+    margin-top: var(--sr-space-6);
+  }
+  .sheet :global(.sheet__more) {
+    margin-top: var(--sr-space-4);
+  }
+
+  .others {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--sr-space-6);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sr-space-3);
+  }
+  .others__link {
+    display: grid;
+    gap: 0.25rem;
+    height: 100%;
+    padding: var(--sr-space-4);
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius);
+    background: var(--sr-surface-1);
+    transition: border-color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .others__link:hover {
+    border-color: color-mix(in srgb, var(--el) 55%, var(--sr-border));
+  }
+  .others__glyph {
+    font-size: 1.4rem;
+    color: var(--el);
+  }
+  .others__name {
+    font-weight: 700;
+    color: var(--sr-text-bright);
+  }
+  .others__epithet {
+    font-size: var(--sr-text-xs);
+    color: var(--sr-text-muted);
+  }
+
+  @media (max-width: 760px) {
+    .profile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .profile__portrait {
+      width: min(18rem, 100%);
+      justify-self: center;
+    }
+    .others {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

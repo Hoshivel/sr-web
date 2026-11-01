@@ -1,0 +1,8 @@
+---
+import CharactersIndex from "@/components/pages/CharactersIndex.astro";
+
+// /characters/ (Traditional Chinese, the default locale, at the root); the page itself lives in the component.
+const locale = "zh-Hant" as const;
+---
+
+<CharactersIndex locale={locale} />

@@ -25,6 +25,7 @@ export {
   LOCALE_PATH,
   HTML_LANG,
   OG_LOCALE,
+  META_DESCRIPTION,
   LOCALE_LABEL,
   LOCALE_SHORT,
   type Locale,

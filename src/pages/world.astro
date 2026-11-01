@@ -1,0 +1,8 @@
+---
+import WorldPage from "@/components/pages/WorldPage.astro";
+
+// /world/ (Traditional Chinese, the default locale, at the root); the page itself lives in the component.
+const locale = "zh-Hant" as const;
+---
+
+<WorldPage locale={locale} />

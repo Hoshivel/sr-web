@@ -1,0 +1,100 @@
+---
+/*
+  ChapterCard -- one chapter of the Shattered Realms Tree: sigil, kicker, name,
+  release status, tagline and story. Used by the world page's chapter list and by
+  a character page's "appears in". The copy is the same `theme.<id>.*` the tree on
+  the home page shows.
+*/
+import { useTranslations, type Locale, type UIKey } from "@/i18n/utils";
+import type { Chapter, ChapterStatus } from "@/config/chapters";
+
+interface Props {
+  locale: Locale;
+  chapter: Chapter;
+}
+const { locale, chapter } = Astro.props;
+const t = useTranslations(locale);
+const statusKey: Record<ChapterStatus, UIKey> = {
+  root: "chapters.status.root",
+  live: "chapters.status.live",
+  soon: "chapters.status.soon",
+};
+const key = (field: "name" | "kicker" | "tagline" | "story") => `theme.${chapter.id}.${field}` as UIKey;
+---
+
+<article class={`chapter chapter--${chapter.status}`} style={`--el:${chapter.accent}`}>
+  <span class="chapter__glyph" aria-hidden="true">{chapter.glyph}</span>
+  <div class="chapter__body">
+    <p class="chapter__meta">
+      <span>{t(key("kicker"))}</span>
+      <span class="chapter__status">{t(statusKey[chapter.status])}</span>
+    </p>
+    <h3 class="chapter__name">{t(key("name"))}</h3>
+    <p class="chapter__tagline">{t(key("tagline"))}</p>
+    <p class="chapter__story">{t(key("story"))}</p>
+  </div>
+</article>
+
+<style>
+  .chapter {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--sr-space-6);
+    padding: var(--sr-space-6);
+    border: 1px solid color-mix(in srgb, var(--el) 28%, var(--sr-border));
+    border-radius: var(--sr-radius-lg);
+    background:
+      radial-gradient(80% 120% at 0% 0%, color-mix(in srgb, var(--el) 10%, transparent), transparent 60%),
+      var(--sr-surface-1);
+  }
+  .chapter__glyph {
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--el);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--el) 60%, transparent);
+  }
+  .chapter__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--sr-text-xs);
+    letter-spacing: var(--sr-tracking-wide);
+    text-transform: uppercase;
+    color: var(--sr-text-muted);
+  }
+  .chapter__status {
+    padding: 0.1rem 0.55rem;
+    border-radius: var(--sr-radius-pill);
+    border: 1px solid color-mix(in srgb, var(--el) 45%, transparent);
+    color: color-mix(in srgb, var(--el) 80%, var(--sr-text));
+  }
+  .chapter--soon .chapter__status {
+    border-color: var(--sr-border-strong);
+    color: var(--sr-text-muted);
+  }
+  .chapter__name {
+    margin-top: var(--sr-space-2);
+    font-family: var(--sr-font-display);
+    font-weight: 700;
+    font-size: var(--sr-text-lg);
+    color: var(--sr-text-bright);
+  }
+  .chapter__tagline {
+    margin-top: var(--sr-space-2);
+    color: color-mix(in srgb, var(--el) 70%, var(--sr-text));
+  }
+  .chapter__story {
+    margin-top: var(--sr-space-3);
+    font-size: var(--sr-text-sm);
+    line-height: 1.8;
+    color: var(--sr-text-muted);
+  }
+
+  @media (max-width: 560px) {
+    .chapter {
+      grid-template-columns: 1fr;
+      gap: var(--sr-space-3);
+    }
+  }
+</style>

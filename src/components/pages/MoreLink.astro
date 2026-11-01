@@ -1,0 +1,58 @@
+---
+/*
+  MoreLink -- "read more" from a home-page section or an FAQ answer to the subpage
+  that covers it in depth. One component so the wording and look stay the same
+  wherever the site points deeper.
+*/
+import { localizedPath, useTranslations, type Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH, type FaqLink } from "@/i18n/pages";
+
+interface Props {
+  locale: Locale;
+  /** A subpage, or "play" for the home page's play section. */
+  to: FaqLink;
+  /** Fragment on the target page, without "#". */
+  hash?: string;
+  class?: string;
+}
+const { locale, to, hash, class: className } = Astro.props;
+const t = useTranslations(locale);
+const { labels, nav } = pages[locale];
+const base = to === "play" ? `${localizedPath(locale, "/")}#play` : localizedPath(locale, PAGE_PATH[to]);
+const href = hash && to !== "play" ? `${base}#${hash}` : base;
+const label = to === "play" ? t("nav.play") : nav[to];
+---
+
+<p class:list={["more-link", className]}>
+  <span class="more-link__prefix">{labels.more}</span><a class="more-link__a" href={href}>{label}<span
+      class="more-link__arrow"
+      aria-hidden="true">→</span
+    ></a>
+</p>
+
+<style>
+  .more-link {
+    font-size: var(--sr-text-sm);
+    letter-spacing: 0.04em;
+    color: var(--sr-text-muted);
+  }
+  .more-link__a {
+    color: var(--sr-accent);
+    border-bottom: 1px solid color-mix(in srgb, var(--sr-accent) 35%, transparent);
+    transition:
+      color var(--sr-dur-fast) var(--sr-ease-out),
+      border-color var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .more-link__a:hover {
+    color: var(--sr-text-bright);
+    border-color: var(--sr-text-bright);
+  }
+  .more-link__arrow {
+    display: inline-block;
+    margin-left: 0.35em;
+    transition: transform var(--sr-dur-fast) var(--sr-ease-out);
+  }
+  .more-link__a:hover .more-link__arrow {
+    transform: translateX(3px);
+  }
+</style>

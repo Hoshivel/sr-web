@@ -1,0 +1,14 @@
+---
+import CharacterPage from "@/components/pages/CharacterPage.astro";
+import { CHARACTER_IDS, type CharacterId } from "@/i18n/pages";
+
+// /characters/<id>/ (Traditional Chinese, the default locale, at the root): one page per character.
+export function getStaticPaths() {
+  return CHARACTER_IDS.map((id) => ({ params: { id } }));
+}
+
+const locale = "zh-Hant" as const;
+const id = Astro.params.id as CharacterId;
+---
+
+<CharacterPage locale={locale} id={id} />

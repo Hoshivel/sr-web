@@ -1,0 +1,8 @@
+---
+import GameplayPage from "@/components/pages/GameplayPage.astro";
+
+// /gameplay/ (Traditional Chinese, the default locale, at the root); the page itself lives in the component.
+const locale = "zh-Hant" as const;
+---
+
+<GameplayPage locale={locale} />
