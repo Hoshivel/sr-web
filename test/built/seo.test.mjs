@@ -44,8 +44,36 @@ const fileFor = (url) => {
   const path = decodeURIComponent(new URL(url).pathname);
   return join(dist, path.endsWith("/") ? `${path}index.html` : path);
 };
-// Comments ship too (Layout's notes mention "<title>"), and parsers skip them.
-const read = (file) => readFileSync(file, "utf8").replace(/<!--[\s\S]*?-->/g, "");
+/**
+ * The document without its comments. Layout's notes ship (one mentions
+ * "<title>") and parsers skip them. Plain string search: a regex replace here
+ * reads to CodeQL as an incomplete sanitizer.
+ */
+const withoutComments = (html) => {
+  let out = "";
+  let at = 0;
+  for (let open = html.indexOf("<!--"); open !== -1; open = html.indexOf("<!--", at)) {
+    out += html.slice(at, open);
+    const close = html.indexOf("-->", open + 4);
+    if (close === -1) return out; // an unterminated comment runs to the end
+    at = close + 3;
+  }
+  return out + html.slice(at);
+};
+const read = (file) => withoutComments(readFileSync(file, "utf8"));
+
+/** Every JSON-LD block in a page, found by plain string search like the comments above. */
+const jsonLd = (html) => {
+  const open = '<script type="application/ld+json"';
+  const blocks = [];
+  for (let at = html.indexOf(open); at !== -1; at = html.indexOf(open, at + open.length)) {
+    const start = html.indexOf(">", at) + 1;
+    const end = html.indexOf("</script>", start);
+    assert.ok(start > 0 && end !== -1, "unterminated JSON-LD block");
+    blocks.push(JSON.parse(html.slice(start, end)));
+  }
+  return blocks;
+};
 
 const homes = LOCALES.map((locale) => {
   const url = `${ORIGIN}${localizedPath(locale, "/")}`;
@@ -118,10 +146,7 @@ test("og:locale is language_TERRITORY, one per locale", () => {
 
 test("the home page's structured data names an image that ships", () => {
   const html = homes.find((h) => h.locale === DEFAULT_LOCALE).html;
-  const blocks = (html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g) ?? []).map((s) =>
-    JSON.parse(s.replace(/^<script[^>]*>/, "").replace(/<\/script>$/, "")),
-  );
-  const game = blocks.flatMap((b) => b["@graph"] ?? [b]).find((n) => n["@type"] === "VideoGame");
+  const game = jsonLd(html).flatMap((b) => b["@graph"] ?? [b]).find((n) => n["@type"] === "VideoGame");
   assert.ok(game, "the VideoGame node is missing");
   assert.ok(existsSync(fileFor(game.image ?? "")), `VideoGame.image ${game.image} is not built`);
 });
