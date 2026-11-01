@@ -37,8 +37,12 @@ const nav = [
 
 <header class="sr-header">
   <div class="sr-container sr-header__inner">
-    <a class="sr-header__brand" href={home} aria-label={t("a11y.home")}>
+    <a class="sr-header__brand" href={home}>
       <Wordmark locale={locale} variant="compact" glow />
+      {/* No aria-label: it would replace the visible wordmark in the link's name.
+          The name must start with the text people see (WCAG 2.5.3 Label in Name),
+          then say where the link goes. */}
+      <span class="sr-visually-hidden">{t("a11y.home")}</span>
     </a>
 
     <nav class="sr-header__nav" id="sr-primary-nav" aria-label={t("a11y.primaryNav")}>

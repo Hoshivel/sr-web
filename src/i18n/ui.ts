@@ -32,9 +32,13 @@ export const HTML_LANG: Record<Locale, string> = {
   ja: "ja",
 };
 
-/** The `og:locale` value. */
+/**
+ * The `og:locale` value: language_TERRITORY, the only shape Open Graph readers
+ * accept. There is no script form, so Traditional Chinese is written as zh_TW;
+ * `zh_Hant` is not a locale they know.
+ */
 export const OG_LOCALE: Record<Locale, string> = {
-  "zh-Hant": "zh_Hant",
+  "zh-Hant": "zh_TW",
   "zh-CN": "zh_CN",
   en: "en_US",
   ja: "ja_JP",

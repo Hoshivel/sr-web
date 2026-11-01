@@ -21,9 +21,16 @@ interface Props {
   description?: string;
   /** 404 can point the language switcher back at the home page while section links still target the real home page. */
   navigationPath?: string;
+  /**
+   * Keep the page out of search results. The page then claims no URL of its own:
+   * no canonical, no hreflang alternates, no og:url. The 404 page needs this --
+   * one file answers every unmatched path, so whatever URL it named would be
+   * wrong for all the others, and `/404` itself answers 200.
+   */
+  noindex?: boolean;
 }
 
-const { locale = DEFAULT_LOCALE, title, description, navigationPath } = Astro.props;
+const { locale = DEFAULT_LOCALE, title, description, navigationPath, noindex = false } = Astro.props;
 const t = useTranslations(locale);
 
 // The default title puts all three names on one line: the Chinese name, the
@@ -53,6 +60,9 @@ const xDefault = Astro.site
   : localizedPath(DEFAULT_LOCALE, logicalPath);
 
 const siteRoot = Astro.site?.href ?? "https://sr.hoshivel.com/";
+// Open Graph and Twitter Cards require absolute image URLs; a root-relative
+// "/og.png" leaves link previews without an image.
+const shareImage = new URL("/og.png", siteRoot).href;
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
@@ -73,6 +83,7 @@ const structuredData = {
       alternateName: ["碎界", "砕界"],
       inLanguage: LOCALES.map((l) => HTML_LANG[l]),
       description: t("site.summary"),
+      image: shareImage,
       gamePlatform: "Web browser",
       applicationCategory: "GameApplication",
       genre: ["Turn-based strategy", "Strategy"],
@@ -102,31 +113,31 @@ const structuredData = {
     </script>
     <PreferenceBootstrap locale={locale} path={logicalPath} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <meta name="theme-color" content="#06070b" />
 
     <!-- i18n alternate links -->
-    {alternates.map((alt) => (
+    {!noindex && alternates.map((alt) => (
       <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
     ))}
-    <link rel="alternate" hreflang="x-default" href={xDefault} />
+    {!noindex && <link rel="alternate" hreflang="x-default" href={xDefault} />}
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:site_name" content="Shattered Realms" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
     <meta property="og:locale" content={OG_LOCALE[locale]} />
-    <meta property="og:image" content="/og.png" />
+    <meta property="og:image" content={shareImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={`${t("site.name")} — ${t("site.tagline")}`} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/og.png" />
+    <meta name="twitter:image" content={shareImage} />
     <meta name="twitter:image:alt" content={`${t("site.name")} — ${t("site.tagline")}`} />
 
     <!-- Structured data (home page). One type answers each of two questions:

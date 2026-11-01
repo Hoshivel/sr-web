@@ -12,7 +12,8 @@
     "dev": "astro dev",
     "start": "astro dev",
     "test": "node --experimental-strip-types --test test/*.test.mjs",
-    "build": "npm test && astro check && astro build",
+    "build": "npm test && astro check && astro build && npm run test:built",
+    "test:built": "node --experimental-strip-types --test test/built/*.test.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro"

@@ -26,7 +26,8 @@ hoshi test
 hoshi dev -open
 ```
 
-`hoshi test` 必須包含 route contract test、`astro check` 與 `astro build`；
+`hoshi test` 必須包含 route contract test、`astro check`、`astro build` 與建置後的
+`test/built/`（對 `dist/` 核對 canonical、hreflang、分享圖片、404 noindex 與 sitemap）；
 不得只跑 build。
 
 ## 3. 特殊規則
