@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
 import { prefersReducedMotion } from "@/lib/motion";
+import { CHAPTERS, type Chapter, type ChapterStatus } from "@/config/chapters";
 import "./ShatteredTree.css";
 
 /*
@@ -43,19 +44,8 @@ const SPRING_K = 4.5;
 const SPRING_C = 2.2;
 const LINK_K = 1.1;
 
-type Status = "root" | "live" | "soon";
-interface Chapter {
-  id: "shattered" | "snowpass" | "starseal";
-  glyph: string;
-  accent: string;
-  status: Status;
-}
-// Three nodes: 碎界 ◈ (the origin and root) -> 風雪過境 ❄ (chapter one, live) -> 星痕紀元 ✶ (chapter two, coming).
-const CHAPTERS: readonly Chapter[] = [
-  { id: "shattered", glyph: "◈", accent: "#8fa9ff", status: "root" },
-  { id: "snowpass", glyph: "❄", accent: "#7fd0ff", status: "live" },
-  { id: "starseal", glyph: "✶", accent: "#b48dff", status: "soon" },
-] as const;
+// The chapter list is shared with the world page (src/config/chapters.ts).
+type Status = ChapterStatus;
 
 interface Phys {
   x: number;

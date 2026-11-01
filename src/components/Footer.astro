@@ -1,10 +1,15 @@
 ---
 /*
-  Footer -- the brand (full lockup), navigation, the language switcher, and credits.
+  Footer -- the brand (full lockup), navigation, the subpages ("explore"), the
+  language switcher, and credits.
+
+  The explore list is how every page reaches the subpages (world, gameplay,
+  characters, FAQ): the header's links stay anchors into the home page.
 */
 import Wordmark from "@/components/brand/Wordmark.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
+import { pages, PAGE_PATH, type PageId } from "@/i18n/pages";
 
 interface Props {
   locale: Locale;
@@ -25,6 +30,9 @@ const nav = [
   { href: sectionHref("characters"), label: t("nav.characters") },
   { href: sectionHref("play"), label: t("nav.play") },
 ];
+const copy = pages[locale];
+const EXPLORE: PageId[] = ["world", "gameplay", "characters", "faq"];
+const explore = EXPLORE.map((id) => ({ href: localizedPath(locale, PAGE_PATH[id]), label: copy.nav[id] }));
 ---
 
 <footer class="sr-footer">
@@ -36,6 +44,13 @@ const nav = [
 
     <nav class="sr-footer__nav" aria-label={t("a11y.footerNav")}>
       {nav.map((item) => (
+        <a class="sr-footer__link" href={item.href}>{item.label}</a>
+      ))}
+    </nav>
+
+    <nav class="sr-footer__explore" aria-labelledby="sr-footer-explore">
+      <span class="sr-eyebrow" id="sr-footer-explore">{copy.labels.explore}</span>
+      {explore.map((item) => (
         <a class="sr-footer__link" href={item.href}>{item.label}</a>
       ))}
     </nav>
@@ -62,7 +77,7 @@ const nav = [
   }
   .sr-footer__inner {
     display: grid;
-    grid-template-columns: 1.4fr 1fr auto;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
     gap: clamp(1.5rem, 5vw, 4rem);
     align-items: start;
   }
@@ -72,7 +87,8 @@ const nav = [
     color: var(--sr-text-muted);
     font-size: var(--sr-text-sm);
   }
-  .sr-footer__nav {
+  .sr-footer__nav,
+  .sr-footer__explore {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;

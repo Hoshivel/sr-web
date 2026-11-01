@@ -10,6 +10,7 @@
   - The GSAP pin/scrub cinema in `<script>` (Phase 3b) drives cluster -> scatter
     plus fade.
 */
+import MoreLink from "@/components/pages/MoreLink.astro";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -77,6 +78,7 @@ const shards = Array.from({ length: COUNT }, () => {
         text around it, so it stands on its own. */}
     <p class="shatter__claim" data-reveal>{t("world.claim")}</p>
     <p class="shatter__ensemble" data-reveal>{t("world.ensemble")}</p>
+    <MoreLink locale={locale} to="world" class="shatter__more" />
   </div>
 </section>
 
@@ -166,6 +168,9 @@ const shards = Array.from({ length: COUNT }, () => {
   .shatter__claim {
     font-weight: 700;
     font-style: italic;
+  }
+  .shatter__content :global(.shatter__more) {
+    margin-top: var(--sr-space-8);
   }
 </style>
 

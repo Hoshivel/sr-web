@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { ui as dictionaries } from "../src/i18n/ui.ts";
+import { pages } from "../src/i18n/pages.ts";
 
 // 碎界樹 is the OFFICIAL name of the chapter tree — it belongs to 碎界, it is not
 // the world tree out of general mythology, and the game client calls it exactly
@@ -51,6 +52,23 @@ test("only the approved title line may still say 碎界之樹", () => {
         );
       }
     }
+  }
+});
+
+test("the subpage copy uses the official name too", () => {
+  // src/i18n/pages.ts has no exempt line: the world page names the tree in a
+  // heading and a lead, and both use the name.
+  const walk = (value, path) =>
+    typeof value === "string"
+      ? [[path, value]]
+      : Object.entries(value).flatMap(([key, v]) => walk(v, `${path}.${key}`));
+  for (const [locale, copy] of Object.entries(pages)) {
+    for (const [path, value] of walk(copy, locale)) {
+      for (const banned of BANNED) {
+        assert.ok(!value.includes(banned), `${path} says "${banned}" — the tree is ${NAMES[locale]}`);
+      }
+    }
+    assert.ok(copy.world.chaptersHeading.includes(NAMES[locale]), `${locale}: the chapter list names the tree`);
   }
 });
 

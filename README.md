@@ -3,6 +3,26 @@
 《碎界 Shattered Realms》的純靜態官網與 Play launcher。網站介紹世界與玩法；
 Play 透過 hoshi-svc 取得可用遊戲節點，不保存節點清單或健康 fallback。
 
+## 頁面
+
+| 路徑 | 內容 |
+|---|---|
+| `/` | 首頁：預覽、世界觀、玩法、碎界樹、角色與 Play |
+| `/world/` | 世界觀與篇章 |
+| `/gameplay/` | 玩法說明 |
+| `/characters/`、`/characters/<id>/` | 角色一覽與各角色頁 |
+| `/faq/` | 常見問題 |
+
+四個語系各有一份：正體中文在根路徑，其餘在 `/zh-cn/`、`/en/`、`/ja/`。
+
+- 短文案（首頁、導覽、角色短介紹）在 `src/i18n/ui.ts`；子頁長文在 `src/i18n/pages.ts`，
+  檔頭寫明來源與規則。角色、模式、難度與勝利條件的名稱沿用遊戲內的字串；技能與規則
+  說明**不寫數值**——數值隨平衡改變，遊戲本身會顯示目前的值。`test/pages-copy.test.mjs`
+  核對四語結構一致並擋下數字。
+- 角色的立繪、元素色與登場篇章在 `src/config/characters.ts`，篇章與狀態在
+  `src/config/chapters.ts`；首頁與子頁讀同一份。
+- 子頁由 `src/components/pages/` 的元件組成，`src/pages/` 下每個語系的路由檔只指定語系。
+
 ## 分流鏈
 
 ```text
@@ -25,9 +45,10 @@ hoshi-svc 管理服務目錄、探活與路由政策；本倉庫沒有後端。
 - Node `>=22.23.4`；相依由 lockfile、Dependabot 與 security workflow 管理。
 - `PUBLIC_HOSHI_SVC_BASE` 指定公開 route API，預設 `https://svc.hoshivel.com`。
 - routing key 只放 `X-Hoshi-Routing-Key`，不得進 URL 或日誌。
-- `npm run build` 在 `astro build` 之後跑 `test/built/`，對 `dist/` 實際送出的 HTML 核對
-  canonical、hreflang、分享圖片、`og:locale`、404 的 noindex 與 sitemap。新增頁面時，
-  沒有 noindex 的頁面都必須列進 `src/pages/sitemap.xml.ts`。
+- `npm run build` 在 `astro build` 之後跑 `test/built/`，對 `dist/` 實際送出的每一頁核對
+  canonical、hreflang、分享圖片、`og:locale`、標題與描述不重複、英文描述長度、麵包屑、
+  404 的 noindex 與 sitemap。新增頁面時，沒有 noindex 的頁面都必須列進
+  `src/pages/sitemap.xml.ts`，並且至少有一個站內連結指向它（頁尾的「深入了解」）。
 
 ```sh
 hoshi test

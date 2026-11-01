@@ -1,16 +1,28 @@
 /*
-  /sitemap.xml -- hand-rolled sitemap (zero dependencies) listing each locale's
-  home page with hreflang alternates between them.
+  /sitemap.xml -- hand-rolled sitemap (zero dependencies) listing every page in
+  every locale, each with hreflang alternates to its other language versions.
   Only indexable content pages are included. The static site prerenders this to a
   file; robots.txt points here.
+
+  `test/built/seo.test.mjs` compares this list with the pages that are actually
+  built, so a subpage added without an entry here (or an entry without a page)
+  fails the build.
 */
 import type { APIRoute } from "astro";
 import { LOCALES, localizedPath, HTML_LANG, DEFAULT_LOCALE } from "@/i18n/utils";
+import { PAGE_PATH, CHARACTER_IDS, characterPath } from "@/i18n/pages";
 
 export const prerender = true;
 
 // Logical pages (locale-independent); add a new subpage here.
-const LOGICAL_PAGES = ["/"];
+const LOGICAL_PAGES = [
+  "/",
+  PAGE_PATH.world,
+  PAGE_PATH.gameplay,
+  PAGE_PATH.characters,
+  ...CHARACTER_IDS.map(characterPath),
+  PAGE_PATH.faq,
+];
 
 export const GET: APIRoute = ({ site }) => {
   const origin = (site?.href ?? "https://sr.hoshivel.com/").replace(/\/$/, "");

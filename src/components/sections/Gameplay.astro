@@ -10,6 +10,7 @@
   Static / reduced motion / no JS: the pillars render directly with their motifs
   still (the site-wide reduced-motion baseline disables the animation).
 */
+import MoreLink from "@/components/pages/MoreLink.astro";
 import { useTranslations, type Locale } from "@/i18n/utils";
 
 interface Props {
@@ -91,6 +92,11 @@ const pillars = [
       </li>
     ))}
   </ol>
+
+  {/* The pillars stay one line each; the rules themselves live on the gameplay page. */}
+  <div class="sr-container gameplay__more">
+    <MoreLink locale={locale} to="gameplay" />
+  </div>
 </section>
 
 <style>
@@ -125,6 +131,10 @@ const pillars = [
   }
   .gameplay__title-a {
     color: var(--sr-text-bright);
+  }
+  .gameplay__more {
+    margin-top: var(--sr-space-12);
+    text-align: center;
   }
   .gameplay__grid {
     list-style: none;

@@ -10,10 +10,12 @@ import {
   stripLocalePrefix,
   HTML_LANG,
   OG_LOCALE,
+  META_DESCRIPTION,
   LOCALES,
   DEFAULT_LOCALE,
   type Locale,
 } from "@/i18n/utils";
+import { breadcrumbList, type Crumb } from "@/lib/structured-data";
 
 interface Props {
   locale?: Locale;
@@ -28,9 +30,25 @@ interface Props {
    * wrong for all the others, and `/404` itself answers 200.
    */
   noindex?: boolean;
+  /**
+   * A subpage's place in the site, home first and the page itself last
+   * (logical paths). It becomes the page's BreadcrumbList; the visible trail is
+   * rendered by the page from the same list.
+   */
+  crumbs?: Crumb[];
+  /** Further structured-data nodes for this page (the FAQ's FAQPage). */
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { locale = DEFAULT_LOCALE, title, description, navigationPath, noindex = false } = Astro.props;
+const {
+  locale = DEFAULT_LOCALE,
+  title,
+  description,
+  navigationPath,
+  noindex = false,
+  crumbs = [],
+  jsonLd = [],
+} = Astro.props;
 const t = useTranslations(locale);
 
 // The default title puts all three names on one line: the Chinese name, the
@@ -39,7 +57,9 @@ const t = useTranslations(locale);
 // them to be read as one work, somewhere has to spell both at once. Each locale's
 // wording lives in `site.title`.
 const pageTitle = title ?? t("site.title");
-const pageDescription = description ?? `${t("site.tagline")} — ${t("site.summary")}`;
+// META_DESCRIPTION only covers locales whose composed line is too long for a
+// search result (see its note in ui.ts).
+const pageDescription = description ?? META_DESCRIPTION[locale] ?? `${t("site.tagline")} — ${t("site.summary")}`;
 
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
@@ -100,6 +120,10 @@ const structuredData = {
     },
   ],
 };
+const pageGraph = [...(crumbs.length ? [breadcrumbList(siteRoot, locale, crumbs)] : []), ...jsonLd];
+const pageStructuredData = pageGraph.length
+  ? { "@context": "https://schema.org", "@graph": pageGraph }
+  : null;
 ---
 
 <!doctype html>
@@ -153,6 +177,14 @@ const structuredData = {
         type="application/ld+json"
         is:inline
         set:html={JSON.stringify(structuredData)}
+      />
+    )}
+    <!-- Structured data (subpages): BreadcrumbList, plus whatever the page adds -->
+    {!isHomePage && pageStructuredData && (
+      <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(pageStructuredData)}
       />
     )}
   </head>
