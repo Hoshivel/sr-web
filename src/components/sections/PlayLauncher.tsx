@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslations, type Locale } from "@/i18n/utils";
 import type { UIKey } from "@/i18n/ui";
 import { fetchPlay, pickEntryId, type PlayRegion, type PlayResponse } from "@/lib/play";
+import { policyHref } from "@/lib/policies";
 import {
   FULLSCREEN_CHANGE_EVENTS,
   exitFullscreen,
@@ -24,14 +25,15 @@ type SizeMode = "normal" | "theater" | "fullscreen";
 type LoadState = "loading" | "ready" | "unavailable";
 const MIN_H = 260;
 const MAX_H = 1000;
+const IDENTITY_ORIGIN = "https://id.hoshivel.com";
 // The frame starts on the selected game origin and may navigate to Hoshi ID.
 // Naming both through 'src' + the exact identity origin keeps WebAuthn usable
 // after that navigation without delegating credential access to arbitrary
 // content. The feature identifiers are the WebAuthn Level 3 Permissions Policy
 // contract; allow-forms in the sandbox below is separately required for login.
 const FRAME_CREDENTIAL_POLICY =
-  "publickey-credentials-get 'src' https://id.hoshivel.com; " +
-  "publickey-credentials-create 'src' https://id.hoshivel.com";
+  `publickey-credentials-get 'src' ${IDENTITY_ORIGIN}; ` +
+  `publickey-credentials-create 'src' ${IDENTITY_ORIGIN}`;
 
 // The native layer is asked for on <html>, not on the view element, for two
 // reasons that both outlive whichever browser is in front of us:
@@ -244,6 +246,33 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
   const selectedAvailable = selected !== null && (selected.healthy || selected.degraded === true);
   const frameURL = connected && selectedAvailable && selected ? selected.url : undefined;
   const frameLoading = Boolean(frameURL && !frameReady);
+  const gameFrameRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    if (!frameURL) return;
+    const gameOrigin = new URL(frameURL).origin;
+    const openPolicy = (event: MessageEvent<unknown>) => {
+      // The current frame can show the game or its Hoshi ID sign-in. Both
+      // origins use fixed policy destinations outside the sandbox.
+      const gameWindow = gameFrameRef.current?.contentWindow;
+      if (!gameWindow || event.source !== gameWindow) return;
+      if (event.origin !== gameOrigin && event.origin !== IDENTITY_ORIGIN) return;
+      const message = event.data;
+      if (!message || typeof message !== "object" || !("type" in message)) return;
+      if (event.origin === IDENTITY_ORIGIN && message.type === "hoshivel:policy-bridge-request") {
+        gameWindow.postMessage({ type: "hoshivel:policy-bridge-ready" }, IDENTITY_ORIGIN);
+        return;
+      }
+      if (message.type !== "hoshivel:open-policy" || !navigator.userActivation?.isActive) return;
+      if (!("policy" in message) || !("locale" in message)) return;
+      const { policy, locale } = message;
+      if (policy !== "usage-policy" && policy !== "privacy-policy") return;
+      if (locale !== "zh-TW" && locale !== "zh-CN" && locale !== "en" && locale !== "ja") return;
+      window.open(policyHref(locale === "zh-TW" ? "zh-Hant" : locale, policy), "_blank", "noopener,noreferrer");
+    };
+    window.addEventListener("message", openPolicy);
+    return () => window.removeEventListener("message", openPolicy);
+  }, [frameURL]);
 
   const pick = (id: string) => {
     frameAttemptRef.current += 1;
@@ -394,9 +423,11 @@ export default function PlayLauncher({ locale }: { locale: Locale }) {
         >
           {frameURL ? (
             <iframe
+              ref={gameFrameRef}
               className={`play-frame play-frame--game${frameReady ? " is-ready" : ""}`}
               title={selected ? `${t("play.frameTitle")} · ${regionLabel(selected)}` : t("play.frameTitle")}
               src={frameURL}
+              referrerPolicy="origin"
               allow={FRAME_CREDENTIAL_POLICY}
               allowFullScreen
               sandbox="allow-forms allow-scripts allow-same-origin"

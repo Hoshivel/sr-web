@@ -1,7 +1,7 @@
 ---
 /*
   Footer -- the brand (full lockup), navigation, the subpages ("explore"), the
-  language switcher, and credits.
+  language switcher, policy links, and credits.
 
   The explore list is how every page reaches the subpages (world, gameplay,
   characters, FAQ): the header's links stay anchors into the home page.
@@ -10,6 +10,7 @@ import Wordmark from "@/components/brand/Wordmark.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import { useTranslations, localizedPath, type Locale } from "@/i18n/utils";
 import { pages, PAGE_PATH, type PageId } from "@/i18n/pages";
+import { policyHref } from "@/lib/policies";
 
 interface Props {
   locale: Locale;
@@ -66,6 +67,10 @@ const explore = EXPLORE.map((id) => ({ href: localizedPath(locale, PAGE_PATH[id]
       <span class="sr-glyph sr-glyph-mark" aria-hidden="true"></span>
       © {year} {t("footer.rights")}
     </p>
+    <div class="sr-footer__policies">
+      <a class="sr-footer__link" href={policyHref(locale, "usage-policy")}>{t("footer.usagePolicy")}</a>
+      <a class="sr-footer__link" href={policyHref(locale, "privacy-policy")}>{t("footer.privacyPolicy")}</a>
+    </div>
   </div>
 </footer>
 
@@ -123,6 +128,14 @@ const explore = EXPLORE.map((id) => ({ href: localizedPath(locale, PAGE_PATH[id]
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+  }
+  .sr-footer__policies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+  }
+  .sr-footer__policies a {
+    padding-block: 0.375rem;
   }
 
   @media (max-width: 760px) {

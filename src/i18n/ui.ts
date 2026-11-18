@@ -119,6 +119,8 @@ const zhHant = {
   "footer.langLabel": "語言",
   "footer.summary": "破碎星空之下，啟程未竟之旅",
   "footer.rights": "碎界 Shattered Realms",
+  "footer.usagePolicy": "使用政策",
+  "footer.privacyPolicy": "隱私政策",
 
   "cookie.settings": "Cookie 設定",
   "cookie.title": "記住你的顯示偏好",
@@ -288,6 +290,8 @@ const zhCN: Record<UIKey, string> = {
   "footer.langLabel": "语言",
   "footer.summary": "破碎星空之下，启程未竟之旅",
   "footer.rights": "碎界 Shattered Realms",
+  "footer.usagePolicy": "使用政策",
+  "footer.privacyPolicy": "隐私政策",
 
   "cookie.settings": "Cookie 设置",
   "cookie.title": "记住你的显示偏好",
@@ -444,6 +448,8 @@ const en: Record<UIKey, string> = {
   "footer.langLabel": "Language",
   "footer.summary": "Beneath a shattered sky, the journey begins",
   "footer.rights": "Shattered Realms",
+  "footer.usagePolicy": "Usage Policy",
+  "footer.privacyPolicy": "Privacy Policy",
 
   "cookie.settings": "Cookie settings",
   "cookie.title": "Remember your display preferences",
@@ -610,6 +616,8 @@ const ja: Record<UIKey, string> = {
   "footer.langLabel": "言語",
   "footer.summary": "砕けた星空の下、未完の旅へ",
   "footer.rights": "砕界 Shattered Realms",
+  "footer.usagePolicy": "利用ポリシー",
+  "footer.privacyPolicy": "プライバシーポリシー",
 
   "cookie.settings": "Cookie 設定",
   "cookie.title": "表示設定を保存",
