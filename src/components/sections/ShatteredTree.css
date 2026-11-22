@@ -13,10 +13,12 @@
   max-width: 660px;
   margin-inline: auto;
   aspect-ratio: 600 / 480;
-  /* Chapter mood: a soft glow morphing with the active node (the transition smooths every change of --wt-accent) */
+  border-radius: 20px;
+  /* Chapter mood: a soft cosmic nebula glow morphing with the active node */
   background:
-    radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--wt-accent) 16%, transparent), transparent 72%),
-    radial-gradient(40% 40% at 50% 46%, color-mix(in srgb, var(--wt-accent) 10%, transparent), transparent 70%);
+    radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--wt-accent) 22%, transparent), transparent 72%),
+    radial-gradient(42% 38% at 24% 72%, rgba(122, 91, 255, 0.12), transparent 70%);
+  box-shadow: inset 0 0 48px rgba(6, 7, 11, 0.55);
   transition: background var(--sr-dur-slow) var(--sr-ease-out);
   touch-action: pan-y; /* 允許在空白處縱向捲動；節點自身 none（見下） */
 }
@@ -35,6 +37,7 @@
   stroke-width: 1.6;
   stroke-linecap: round;
   opacity: 0.7;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--wt-accent) 38%, transparent));
   transition: stroke var(--sr-dur-slow) var(--sr-ease-out);
 }
 .wt-weave {
@@ -118,12 +121,12 @@
   z-index: 5;
   width: min(21rem, 94%);
   padding: var(--sr-space-4);
-  border: 1px solid color-mix(in srgb, var(--el) 40%, var(--sr-border));
+  border: 1px solid color-mix(in srgb, var(--wt-accent, var(--el)) 35%, var(--sr-border));
   border-radius: var(--sr-radius-lg);
-  background: color-mix(in srgb, var(--el) 8%, var(--sr-scrim));
-  -webkit-backdrop-filter: var(--sr-blur);
-  backdrop-filter: var(--sr-blur);
-  box-shadow: var(--sr-shadow-3), 0 0 40px color-mix(in srgb, var(--el) 18%, transparent);
+  background: linear-gradient(155deg, rgba(24, 28, 44, 0.82), rgba(14, 17, 27, 0.88));
+  -webkit-backdrop-filter: blur(18px) saturate(1.28);
+  backdrop-filter: blur(18px) saturate(1.28);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   animation: wt-detail-in var(--sr-dur) var(--sr-ease-out);
 }
 @keyframes wt-detail-in {

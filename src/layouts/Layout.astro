@@ -199,9 +199,10 @@ const pageStructuredData = pageGraph.length
       // (IntersectionObserver) plus the magnetic buttons.
       // Both are plain vanilla and reduced-motion aware, and neither pulls in
       // Lenis, GSAP or Pixi (those boot in their own islands or in Phase 3).
-      import { initScrollReveal, initMagnetic } from "@/lib/motion";
+      import { initScrollReveal, initMagnetic, initPillarSpotlight } from "@/lib/motion";
       initScrollReveal();
       initMagnetic();
+      initPillarSpotlight();
     </script>
   </body>
 </html>

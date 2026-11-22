@@ -154,18 +154,27 @@ const pillars = [
     column-gap: clamp(1.1rem, 2.4vw, 1.75rem);
     align-items: center;
     padding: clamp(1.4rem, 3vw, 2.2rem);
-    border: 1px solid var(--sr-border);
+    border: 1px solid color-mix(in srgb, var(--el) 26%, var(--sr-border));
     border-radius: var(--sr-radius-lg);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--el) 7%, var(--sr-surface-1)),
-      var(--sr-surface-1) 60%
-    );
+    background:
+      radial-gradient(
+        280px circle at var(--mx, 50%) var(--my, 50%),
+        color-mix(in srgb, var(--el) 10%, transparent),
+        transparent 65%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--el) 7%, var(--sr-surface-1)),
+        var(--sr-surface-1) 66%
+      );
+    box-shadow:
+      0 14px 36px rgba(0, 0, 0, 0.44),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
     overflow: hidden;
     transition:
-      transform var(--sr-dur) var(--sr-ease-out),
-      border-color var(--sr-dur) var(--sr-ease-out),
-      box-shadow var(--sr-dur) var(--sr-ease-out);
+      transform 340ms var(--sr-ease-out),
+      border-color 340ms ease,
+      box-shadow 340ms ease;
   }
   /* A thin rule along the top edge in the element color */
   .pillar::before {
@@ -182,10 +191,11 @@ const pillars = [
   }
   .pillar:hover {
     transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--el) 45%, var(--sr-border));
+    border-color: color-mix(in srgb, var(--el) 48%, var(--sr-border));
     box-shadow:
-      var(--sr-shadow-2),
-      0 0 42px color-mix(in srgb, var(--el) 22%, transparent);
+      0 20px 44px rgba(0, 0, 0, 0.56),
+      0 0 28px color-mix(in srgb, var(--el) 18%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
   }
   .pillar:hover::before {
     transform: scaleX(1);
@@ -216,6 +226,13 @@ const pillars = [
     stroke-linejoin: round;
     stroke-linecap: round;
     filter: drop-shadow(0 0 6px color-mix(in srgb, var(--el) 55%, transparent));
+    transition:
+      transform 360ms var(--sr-ease-out),
+      filter 360ms ease;
+  }
+  .pillar:hover .pillar__motif {
+    transform: scale(1.08) translateY(-1px);
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--el) 55%, transparent));
   }
 
   /* Motif details -- the cards (hand) */
