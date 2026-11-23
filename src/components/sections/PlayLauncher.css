@@ -17,9 +17,8 @@
   display: flex;
   gap: 0.7rem;
   overflow-x: auto;
-  /* The top padding holds the recommended badge, which hangs above its card:
-     a scrolling row clips both axes, so anything less cuts the badge off. */
-  padding: 0.75rem 0.15rem 0.7rem;
+  /* Preserve headroom for the top recommended badge and bottom unclipped glow. */
+  padding: 0.85rem 0.35rem 1.25rem;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -79,18 +78,22 @@
   background: var(--sr-surface-2);
   cursor: pointer;
   transition:
-    border-color var(--sr-dur-fast) var(--sr-ease-out),
-    background var(--sr-dur-fast) var(--sr-ease-out),
-    transform var(--sr-dur-fast) var(--sr-ease-out);
+    border-color 280ms var(--sr-ease-out),
+    background 280ms var(--sr-ease-out),
+    box-shadow 280ms var(--sr-ease-out),
+    transform 280ms var(--sr-ease-out);
 }
 .play-ncard:hover {
   border-color: var(--sr-border-strong);
   transform: translateY(-2px);
 }
 .play-ncard.is-selected {
-  border-color: var(--sr-accent);
-  background: color-mix(in srgb, var(--sr-accent) 10%, var(--sr-surface-2));
-  box-shadow: var(--sr-ring-accent);
+  border-color: color-mix(in srgb, var(--sr-accent) 88%, white 8%);
+  background: color-mix(in srgb, var(--sr-accent) 11%, var(--sr-surface-2));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--sr-accent) 55%, transparent),
+    0 4px 16px -4px rgba(143, 169, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 .play-ncard.is-degraded {
   opacity: 0.72;
@@ -515,7 +518,7 @@
   .play-nodes-bar {
     /* The recommended badge sits above the card. Preserve room for its
        entire box and glow while first/last cards reach the scroll edges. */
-    padding: 1rem 0.35rem 0.85rem;
+    padding: 1rem 0.35rem 1.25rem;
     scroll-padding-inline: 0.35rem;
   }
   .play-ncard,

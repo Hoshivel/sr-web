@@ -137,6 +137,50 @@ export function initMagnetic(options: MagneticOptions = {}): () => void {
   };
 }
 
+/**
+ * Restrained pointer spotlight on gameplay `.pillar` cards: updates `--mx`
+ * and `--my` percentage coordinates within each card so the element-tinted
+ * radial glint follows fine pointers without affecting reduced-motion or touch.
+ * @returns cleanup function.
+ */
+export function initPillarSpotlight(selector = ".pillar"): () => void {
+  if (typeof document === "undefined" || prefersReducedMotion()) return () => {};
+  if (window.matchMedia && !window.matchMedia("(pointer: fine)").matches) {
+    return () => {};
+  }
+
+  const pillars = Array.from(document.querySelectorAll<HTMLElement>(selector));
+  if (pillars.length === 0) return () => {};
+
+  const cleanups: Array<() => void> = [];
+  for (const card of pillars) {
+    const onMove = (e: PointerEvent) => {
+      const r = card.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const x = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
+      const y = Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100));
+      card.style.setProperty("--mx", `${x.toFixed(1)}%`);
+      card.style.setProperty("--my", `${y.toFixed(1)}%`);
+    };
+    const onLeave = () => {
+      card.style.setProperty("--mx", "50%");
+      card.style.setProperty("--my", "50%");
+    };
+    card.addEventListener("pointermove", onMove);
+    card.addEventListener("pointerleave", onLeave);
+    cleanups.push(() => {
+      card.removeEventListener("pointermove", onMove);
+      card.removeEventListener("pointerleave", onLeave);
+      card.style.removeProperty("--mx");
+      card.style.removeProperty("--my");
+    });
+  }
+
+  return () => {
+    for (const c of cleanups) c();
+  };
+}
+
 export interface SmoothScrollHandle {
   /** The underlying Lenis instance (null under reduced motion, leaving native scrolling). */
   lenis: Lenis | null;

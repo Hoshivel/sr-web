@@ -171,6 +171,19 @@ const nextHref = HAS_PREVIEWS ? "#teaser" : learnHref;
       transparent 68%
     );
   }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background: radial-gradient(
+      60% 45% at 50% 42%,
+      rgba(143, 169, 255, 0.14),
+      rgba(122, 91, 255, 0.08) 55%,
+      transparent 80%
+    );
+  }
 
   .hero__content {
     position: relative;
